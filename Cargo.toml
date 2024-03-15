@@ -1,0 +1,49 @@
+[package]
+name = "metroidvania"
+description = "A 2D metroidvania game"
+authors = ["aardhyn lavender"]
+version = "0.1.0"
+edition = "2021"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
+
+[dependencies.sdl2]
+version = "0.36"
+default-features = false
+features = ["ttf", "image", "gfx", "mixer", "static-link", "use-vcpkg", "unsafe_textures"]
+
+[package.metadata.vcpkg]
+dependencies = ["sdl2", "sdl2-image[libjpeg-turbo,tiff,libwebp]", "sdl2-ttf", "sdl2-gfx", "sdl2-mixer"]
+git = "https://github.com/microsoft/vcpkg"
+rev = "53bef8994c541b6561884a8395ea35715ece75db"
+
+[package.metadata.vcpkg.target]
+x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
+
+[package.metadata.bundle]
+name = "metroidvania"
+identifier = "com.aardhyn.metroidvania"
+version = "0.1.0"
+short_description = "A 2D metroidvania game"
+authors = ["aardhyn lavender"]
+copyright = "aardhyn lavender"
+icon = ["asset/icon.png"]
+resources = [
+    "asset/*.ogg",
+    "asset/*.ttf",
+    "asset/*.png"
+]
+osx_frameworks = [
+    "SDL2",
+    "SDL2_image",
+    "SDL2_ttf",
+    "SDL2_mixer"
+]
+
+[dependencies]
+num = "0.4.1"
+rand = "0.8.5"
