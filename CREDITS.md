@@ -8,6 +8,7 @@ Aardhyn Lavender
 
 - Rust
 - Simple DirectMedia Layer (SDL2) (Rust-SDL2 bindings)
+- Hecs
 
 - Rust Rover
 - Vim
