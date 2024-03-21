@@ -1,5 +1,8 @@
 use crate::engine::geometry::Vec2;
 
+pub const TYPEFACE_PATH: &str = "asset/typeface.ttf";
+pub const TYPEFACE_SIZE: u16 = 5;
+
 pub const WINDOW_TITLE: &str = "Metroidvania";
 pub const LOGICAL_SIZE: Vec2<u32> = Vec2::new(640, 362);
 pub const WINDOW_SCALE: f32 = 2.0;

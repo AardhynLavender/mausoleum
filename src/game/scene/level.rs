@@ -1,12 +1,14 @@
 use std::path::Path;
+
 use sdl2::keyboard::Keycode;
+
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::render::component::Sprite;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::game::component::physics::Gravity;
 use crate::game::component::position::Position;
-use crate::game::scenes::menu::MenuScene;
+use crate::game::scene::menu::MenuScene;
 use crate::game::system::physics::sys_gravity;
 
 pub struct LevelScene;

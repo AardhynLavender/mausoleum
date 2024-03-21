@@ -1,15 +1,15 @@
-use std::rc::Rc;
+use std::path::Path;
 
 use sdl2::ttf::{Font, Sdl2TtfContext};
 
-use crate::engine::store::HeapStore;
+use crate::engine::store::Store;
 
 /**
  * Typeface loading, storage, and retrieval
  */
 
 /// store typefaces
-pub type TypefaceStore<'ttf, 'f> = HeapStore<Font<'ttf, 'f>>;
+pub type TypefaceStore<'ttf, 'f> = Store<String, Font<'ttf, 'f>>;
 
 /// Load and store typefaces
 pub struct TypefaceLoader<'ttf, 'b> {
@@ -27,13 +27,18 @@ impl<'ttf, 'l> TypefaceLoader<'ttf, 'l> {
   }
 
   /// Loads a typeface from a file and adds it to the store
-  pub fn load(&mut self, filepath: String, size: u16) -> Result<(), String> {
-    let font = self.subsystem.load_font(filepath.as_str(), size)?;
+  pub fn load(&mut self, filepath: &Path, size: u16) -> Result<(), String> {
+    let path_str = filepath
+      .to_str()
+      .ok_or("Failed to convert path to str")?;
+    let basename = filepath
+      .file_stem()
+      .ok_or("Could not extract file stem")?
+      .to_str()
+      .ok_or("Could not convert OsStr to str")?;
 
-    let filename = filepath.split("/").last().ok_or("Failed to get filename")?;
-    let basename = filename.split(".").next().ok_or("Failed to get basename")?;
-
-    self.store.add(String::from(basename), Rc::new(font));
+    let font = self.subsystem.load_font(path_str, size)?;
+    self.store.add(String::from(basename), font);
 
     Ok(())
   }

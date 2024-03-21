@@ -52,22 +52,27 @@ pub struct Store<K, V> {
 }
 
 impl<K, V> Store<K, V> where
-  K: Eq + std::hash::Hash + Display
+  K: Eq + std::hash::Hash + Display + Clone,
 {
-  /// Instantiate a new store
   pub fn new() -> Self {
     Self {
       store: HashMap::new(),
     }
   }
-
   /// Add a value to the store
   pub fn add(&mut self, key: K, value: V) -> &V {
     self.store.entry(key).or_insert(value)
   }
 
+  /// Set a value in the store
+  pub fn set(&mut self, key: K, value: V) -> &V {
+    self.store.insert(key.clone(), value);
+    self.store.get(&key).expect("Failed to set value in store")
+  }
+
   /// Retrieve an immutable reference to item in the store
-  pub fn get(&self, key: K) -> Result<&V, String> {
+  pub fn get(&self, key: impl Into<K>) -> Result<&V, String> {
+    let key = key.into();
     return if let Some(value) = self.store.get(&key) {
       Ok(value)
     } else {

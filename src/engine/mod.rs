@@ -13,3 +13,4 @@ pub mod system;
 pub mod internal;
 pub mod scene;
 pub mod lifecycle;
+pub mod component;

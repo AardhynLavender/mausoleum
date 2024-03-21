@@ -41,6 +41,6 @@ impl<'ttf> AssetManager<'ttf> {
 
   /// Deconstruct the manager into its stores and loaders
   pub fn use_store(&mut self) -> (&TextureStore, &AudioPlayer, &mut TilesetStore) {
-    (&self.texture.use_store(), &self.audio, &mut self.tileset)
+    (self.texture.use_store(), &self.audio, &mut self.tileset)
   }
 }

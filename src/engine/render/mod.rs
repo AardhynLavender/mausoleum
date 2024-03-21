@@ -12,7 +12,6 @@ use crate::engine::render::color::RGBA;
  * Rendering subsystem
  */
 pub mod color;
-pub mod text;
 pub mod system;
 pub mod component;
 
