@@ -14,7 +14,7 @@ use crate::engine::world::World;
 
 
 /// Bundles a subsystem with actions
-struct Application<'a> {
+struct Engine<'a> {
   subsystem: &'a mut Subsystem,
   events: EventStore,
   scenes: SceneManager,
@@ -22,7 +22,7 @@ struct Application<'a> {
   lifecycle: Lifecycle,
 }
 
-impl<'a> Application<'a> {
+impl<'a> Engine<'a> {
   /// Instantiate a new application using `subsystem` with `actions`
   fn new(subsystem: &'a mut Subsystem, lifecycle: Lifecycle, scene: impl Scene + 'static) -> Self {
     Self {
@@ -35,7 +35,7 @@ impl<'a> Application<'a> {
   }
 
   /// Load assets, setup state, and start the main loop
-  pub fn run(&mut self, assets: &mut AssetManager) {
+  pub fn start(&mut self, assets: &mut AssetManager) {
     let mut systems = SystemManager::new();
 
     add_internal_systems(&mut systems);
@@ -70,18 +70,23 @@ impl<'a> Application<'a> {
   }
 }
 
-/// Build subsystems and build application of `Properties` `TState` with `Actions`
-pub fn run_application(
-  properties: Properties,
-  actions: Lifecycle,
-  initial_scene: impl Scene + 'static,
-) -> Result<(), String> {
-  let mut subsystem = Subsystem::build(properties)?;
-  let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
-  let mut assets = AssetManager::new(&subsystem.renderer, &ttf_context);
+/// Constructs and runs an application of `Properties` with `Actions`
+pub struct Application;
 
-  let mut app = Application::new(&mut subsystem, actions, initial_scene);
-  app.run(&mut assets);
+impl Application {
+  /// Build subsystems and start application of `Properties` with `Actions`
+  pub fn build(
+    properties: Properties,
+    actions: Lifecycle,
+    initial_scene: impl Scene + 'static,
+  ) -> Result<(), String> {
+    let mut subsystem = Subsystem::build(properties)?;
+    let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
+    let mut assets = AssetManager::new(&subsystem.renderer, &ttf_context);
 
-  Ok(())
+    let mut engine = Engine::new(&mut subsystem, actions, initial_scene);
+    engine.start(&mut assets);
+
+    Ok(())
+  }
 }
