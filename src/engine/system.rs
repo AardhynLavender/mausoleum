@@ -15,7 +15,35 @@ pub enum Schedule {
 }
 
 /// Arguments passed to systems
-pub type SysArgs<'app, 'fonts> = (TDelta, &'app mut World, &'app mut Renderer, &'app mut EventStore, &'app mut SceneManager, &'app mut AssetManager<'fonts>);
+pub struct SysArgs<'app, 'fonts> {
+  pub delta: TDelta,
+  pub world: &'app mut World,
+  pub render: &'app mut Renderer,
+  pub event: &'app mut EventStore,
+  pub scene: &'app mut SceneManager,
+  pub asset: &'app mut AssetManager<'fonts>,
+}
+
+impl<'app, 'fonts> SysArgs<'app, 'fonts> {
+  /// Instantiate a new system args wrapper
+  pub fn new(
+    delta: TDelta,
+    world: &'app mut World,
+    render: &'app mut Renderer,
+    event: &'app mut EventStore,
+    scene: &'app mut SceneManager,
+    asset: &'app mut AssetManager<'fonts>,
+  ) -> Self {
+    Self {
+      delta,
+      world,
+      render,
+      event,
+      scene,
+      asset,
+    }
+  }
+}
 
 /// A system mutably queries and/or updates the world
 pub type System = fn(&mut SysArgs);

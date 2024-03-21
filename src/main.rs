@@ -1,7 +1,8 @@
 #![deny(warnings)]
 // #![windows_subsystem = "windows"]
 
-use crate::engine::application::{run_application, Events, EventArgs};
+use crate::engine::application::{run_application};
+use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::render::{Properties};
 use crate::game::constant::{LOGICAL_SIZE, WINDOW_SIZE, WINDOW_TITLE};
 use crate::game::scenes::menu::MenuScene;
@@ -23,7 +24,7 @@ fn main() -> Result<(), String> {
       hardware_acceleration: true,
       software_acceleration: false,
     },
-    Events {
+    Lifecycle {
       setup,
       destroy,
     },
@@ -31,7 +32,7 @@ fn main() -> Result<(), String> {
   )
 }
 
-fn setup(_: EventArgs) {
+fn setup(_: LifecycleArgs) {
   println!("Setting up game");
 }
 

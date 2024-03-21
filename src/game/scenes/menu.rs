@@ -1,5 +1,5 @@
 use sdl2::keyboard::Keycode;
-use crate::engine::application::EventArgs;
+use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::game::scenes::level::LevelScene;
@@ -12,18 +12,18 @@ use crate::game::scenes::level::LevelScene;
 pub struct MenuScene;
 
 impl Scene for MenuScene {
-  fn setup(&self, (_, system, ..): &mut EventArgs) {
+  fn setup(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
     println!("Setting up menu");
     system.add(Schedule::FrameUpdate, sys_menu_listener);
   }
 
-  fn destroy(&self, _: &mut EventArgs) {
+  fn destroy(&self, _: &mut LifecycleArgs) {
     println!("Destroying menu scene");
   }
 }
 
-pub fn sys_menu_listener((_, _, _, events, scenes, ..): &mut SysArgs) {
-  if events.is_key_pressed(Keycode::G) {
-    scenes.queue_next(LevelScene);
+pub fn sys_menu_listener(SysArgs { event, scene, .. }: &mut SysArgs) {
+  if event.is_key_pressed(Keycode::G) {
+    scene.queue_next(LevelScene);
   }
 }
