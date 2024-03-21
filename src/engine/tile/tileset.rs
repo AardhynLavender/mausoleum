@@ -4,7 +4,7 @@ use crate::engine::asset::texture::Texture;
 use crate::engine::geometry::{Rec2, Vec2};
 use crate::engine::store::HeapStore;
 use crate::engine::tile::tile::{TileData, TileId};
-use crate::engine::utility::types::Size2;
+use crate::engine::utility::alias::Size2;
 
 /// Store tilesets
 pub type TilesetStore = HeapStore<Tileset>;

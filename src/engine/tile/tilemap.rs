@@ -3,8 +3,8 @@ use std::rc::Rc;
 use crate::engine::geometry::Vec2;
 use crate::engine::tile::tile::{Tile, TileData};
 use crate::engine::tile::tileset::Tileset;
+use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate};
-use crate::engine::utility::types::{Coordinate, Size2};
 
 /// A 2D grid of tiles
 pub type MapData = Vec<Option<Tile>>;

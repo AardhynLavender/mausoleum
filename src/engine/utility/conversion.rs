@@ -1,4 +1,4 @@
-use crate::engine::utility::types::{Coordinate, Size2};
+use crate::engine::utility::alias::{Coordinate, Size2};
 
 /**
  * convert between related types

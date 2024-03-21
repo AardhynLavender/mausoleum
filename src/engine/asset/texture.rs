@@ -5,8 +5,9 @@ use sdl2::render::{TextureCreator, TextureQuery};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::Rec2;
 use crate::engine::store::{next_key, Store};
+use crate::engine::utility::alias::{Size, Size2};
 
 /**
  * Texture loading, storage, and retrieval
@@ -57,8 +58,8 @@ impl TextureLoader {
   }
 
   /// Returns an immutable reference to the store
-  pub fn use_store(&self) -> &TextureStore {
-    &self.store
+  pub fn use_store(&mut self) -> &mut TextureStore {
+    &mut self.store
   }
 }
 
@@ -68,14 +69,14 @@ pub type SrcRect = Rec2<u32, u32>;
 /// A wrapper for a SDL2 texture
 pub struct Texture {
   pub internal: sdl2::render::Texture,
-  pub dimensions: Vec2<u32>,
+  pub dimensions: Size2,
 }
 
 impl Texture {
   /// Instantiate a new texture from an SDL2 texture
   pub fn new(texture: sdl2::render::Texture) -> Self {
     let TextureQuery { width, height, .. } = texture.query();
-    let dimensions = Vec2::new(width, height);
+    let dimensions = Size2::new(width as Size, height as Size);
     Self {
       internal: texture,
       dimensions,
