@@ -1,9 +1,22 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::rc::Rc;
 
 /**
  * Generic stores for both the stack and heap
  */
+
+pub type Key = usize;
+
+static mut NEXT_KEY: Key = 0;
+
+pub fn next_key() -> Key {
+  unsafe {
+    let key = NEXT_KEY;
+    NEXT_KEY += 1;
+    key
+  }
+}
 
 /// Store T on the heap keyed by String
 pub struct HeapStore<T: ?Sized> {
@@ -13,7 +26,9 @@ pub struct HeapStore<T: ?Sized> {
 impl<T: ?Sized> HeapStore<T> {
   /// Instantiate a new store
   pub fn new() -> Self {
-    Self { store: HashMap::new() }
+    Self {
+      store: HashMap::new(),
+    }
   }
 
   /// Add a value to the store
@@ -31,29 +46,32 @@ impl<T: ?Sized> HeapStore<T> {
   }
 }
 
-/// Store T on the stack keyed by String
-pub struct Store<T> {
-  pub store: HashMap<String, T>,
+/// Store T on the stack keyed by V
+pub struct Store<K, V> {
+  pub store: HashMap<K, V>,
 }
 
-impl<T> Store<T> {
+impl<K, V> Store<K, V> where
+  K: Eq + std::hash::Hash + Display
+{
   /// Instantiate a new store
   pub fn new() -> Self {
-    Self { store: HashMap::new() }
+    Self {
+      store: HashMap::new(),
+    }
   }
 
   /// Add a value to the store
-  pub fn add(&mut self, key: String, value: T) -> &mut T {
+  pub fn add(&mut self, key: K, value: V) -> &V {
     self.store.entry(key).or_insert(value)
   }
 
   /// Retrieve an immutable reference to item in the store
-  pub fn get(&self, key: &str) -> Result<&T, String> {
-    return if let Some(value) = self.store.get(key) {
+  pub fn get(&self, key: K) -> Result<&V, String> {
+    return if let Some(value) = self.store.get(&key) {
       Ok(value)
     } else {
       Err(format!("Failed to get {} from store", key))
     };
   }
 }
-

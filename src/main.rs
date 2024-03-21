@@ -1,47 +1,44 @@
-use crate::engine::application::{Actions, run_application};
-use crate::engine::asset::AssetManager;
-use crate::engine::event::EventStore;
-use crate::engine::render::{Properties, Renderer};
+use std::path::Path;
+use crate::engine::application::{run_application, Lifecycle, SetupArgs};
+use crate::engine::render::{Properties};
+use crate::engine::render::component::Sprite;
+use crate::engine::system::Schedule;
+use crate::game::component::physics::Gravity;
+use crate::game::component::position::Position;
 use crate::game::constant::{LOGICAL_SIZE, WINDOW_SIZE, WINDOW_TITLE};
+use crate::game::system::physics::sys_gravity;
 
 pub mod engine;
 pub mod game;
 
-pub struct State {}
-
 fn main() -> Result<(), String> {
-  run_application(Properties {
-    title: String::from(WINDOW_TITLE),
-    dimensions: WINDOW_SIZE,
-    logical: Some(LOGICAL_SIZE),
-    fullscreen: false,
-    show_cursor: false,
-    vsync: true,
-    opengl: true,
-    hardware_acceleration: true,
-    software_acceleration: false,
-    screen_color: Default::default(),
-  }, Actions::<State> {
-    load,
-    render,
-    update,
-    setup,
-  })
+  run_application(
+    Properties {
+      title: String::from(WINDOW_TITLE),
+      screen_color: Default::default(),
+      dimensions: WINDOW_SIZE,
+      logical: Some(LOGICAL_SIZE),
+      fullscreen: false,
+      show_cursor: false,
+      vsync: true,
+      opengl: true,
+      hardware_acceleration: true,
+      software_acceleration: false,
+    },
+    Lifecycle {
+      setup,
+      destroy,
+    },
+  )
 }
 
-fn load(_: &mut AssetManager) {
-  println!("Loading game")
+fn setup((world, systems, assets): SetupArgs) {
+  let sprite = Sprite::new(assets.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"));
+
+  systems.add(Schedule::FrameUpdate, sys_gravity);
+  world.add((Position::new(80.0, 90.0), Gravity::new(0.0, 1.0), sprite));
 }
 
-fn setup(_: &AssetManager) -> State {
-  println!("Setting up game");
-  State {}
-}
-
-fn render(_: &mut State, _: &AssetManager, _: &mut Renderer) {
-  println!("Rendering game")
-}
-
-fn update(_: &EventStore, _: &AssetManager, _: &mut State, _: &mut Renderer) {
-  println!("Updating game")
+fn destroy() {
+  println!("Destroying game");
 }

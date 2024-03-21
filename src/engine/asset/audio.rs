@@ -30,7 +30,9 @@ pub struct Audio {
 }
 
 /// Store music and sfx
-type AudioStore = Store<Audio>;
+type AudioStore = Store<String, Audio>;
+
+type AudioKey = String;
 
 /// load and play music and sfx
 pub struct AudioPlayer {
@@ -40,36 +42,47 @@ pub struct AudioPlayer {
 impl AudioPlayer {
   /// Instantiate a new audio player
   pub fn new() -> Self {
-    initialize_audio_subsystem()
-      .expect("Failed to initialize audio subsystem");
-    Self { store: AudioStore::new() }
+    initialize_audio_subsystem().expect("Failed to initialize audio subsystem");
+    Self {
+      store: AudioStore::new(),
+    }
   }
 
   /// Load a sfx or music file
-  pub fn load(&mut self, sound_type: SoundType, filepath: String) -> Result<(), &str> {
+  pub fn load(&mut self, sound_type: SoundType, filepath: String) -> Result<AudioKey, &str> {
     let path = filepath.clone();
     let filename = path.split("/").last().ok_or("Failed to get filename")?;
     let basename = filename.split(".").next().ok_or("Failed to get basename")?;
 
     match sound_type {
       SoundType::Music => {
-        let music = sdl2::mixer::Music::from_file(filepath.clone()).expect("Failed to load music");
-        let audio = Audio { sound: Sound::Music { data: music }, name: String::from(basename), path: filepath };
+        let music =
+          sdl2::mixer::Music::from_file(filepath.clone()).expect("Failed to load music");
+        let audio = Audio {
+          sound: Sound::Music { data: music },
+          name: String::from(basename),
+          path: filepath,
+        };
         self.store.add(String::from(basename), audio);
-        Ok(())
+        Ok(String::from(basename))
       }
       SoundType::Effect => {
-        let effect = sdl2::mixer::Chunk::from_file(filepath.clone()).expect("Failed to load sound effect");
-        let audio = Audio { sound: Sound::Effect { data: effect }, name: String::from(basename), path: filepath };
+        let effect = sdl2::mixer::Chunk::from_file(filepath.clone())
+          .expect("Failed to load sound effect");
+        let audio = Audio {
+          sound: Sound::Effect { data: effect },
+          name: String::from(basename),
+          path: filepath,
+        };
         self.store.add(String::from(basename), audio);
-        Ok(())
+        Ok(String::from(basename))
       }
     }
   }
 
   /// Play a sfx or music
   pub fn play(&self, name: &str, volume: i32, looping: Loop) -> Result<(), String> {
-    let audio = self.store.get(name)?;
+    let audio = self.store.get(name.to_string())?;
     let loops = match looping {
       Loop::Forever => -1,
       Loop::Once => 0,
@@ -91,10 +104,12 @@ impl AudioPlayer {
 
   /// Stop a playing sfx or music
   pub fn stop(&self, name: &str) -> Result<(), String> {
-    let audio = self.store.get(name)?;
+    let audio = self.store.get(name.to_string())?;
     match &audio.sound {
       Sound::Music { data: _ } => sdl2::mixer::Music::halt(),
-      Sound::Effect { data: _ } => unimplemented!("Stopping sound effects is not yet implemented")
+      Sound::Effect { data: _ } => {
+        unimplemented!("Stopping sound effects is not yet implemented")
+      }
     }
     Ok(())
   }
