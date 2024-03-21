@@ -4,7 +4,6 @@ use hecs::{DynamicBundle, Entity as HEntity, Query, World as HWorld};
  * A World is a collection of entities
  */
 
-
 type InternalWorld = HWorld;
 type Entity = HEntity;
 
@@ -27,14 +26,20 @@ impl World {
   pub fn add(&mut self, components: impl DynamicBundle) -> Entity {
     self.world.spawn(components)
   }
-  /// Despawn an entity
+  /// free an entity immediately (not recommended)
   pub fn free_now(&mut self, entity: Entity) -> Result<(), String> {
     self.world.despawn(entity).map_err(|e| e.to_string())
   }
+  /// free all entities immediately (not recommended)
+  pub fn free_all_now(&mut self) {
+    self.world.clear();
+  }
 
+  /// Immutably query the world for entities of a certain component set
   pub fn query<Q: Query>(&self) -> hecs::QueryBorrow<'_, Q> {
     self.world.query::<Q>()
   }
+  /// Mutably query the world for entities of a certain component set
   pub fn query_mut<Q: Query>(&mut self) -> hecs::QueryMut<'_, Q> {
     self.world.query_mut()
   }

@@ -1,5 +1,7 @@
 use crate::engine::asset::AssetManager;
+use crate::engine::event::EventStore;
 use crate::engine::render::Renderer;
+use crate::engine::scene::SceneManager;
 use crate::engine::utility::types::TDelta;
 use crate::engine::world::World;
 
@@ -13,7 +15,7 @@ pub enum Schedule {
 }
 
 /// Arguments passed to systems
-pub type SysArgs<'app, 'fonts> = (TDelta, &'app mut World, &'app mut Renderer, &'app mut AssetManager<'fonts>);
+pub type SysArgs<'app, 'fonts> = (TDelta, &'app mut World, &'app mut Renderer, &'app mut EventStore, &'app mut SceneManager, &'app mut AssetManager<'fonts>);
 
 /// A system mutably queries and/or updates the world
 pub type System = fn(&mut SysArgs);
@@ -39,6 +41,13 @@ impl SystemManager {
       Schedule::FixedUpdate => self.fixed_systems.push(system),
       Schedule::PostUpdate => self.render_systems.push(system),
     }
+  }
+
+  /// Remove all systems from the manager
+  pub fn clear(&mut self) {
+    self.frame_systems.clear();
+    self.fixed_systems.clear();
+    self.render_systems.clear();
   }
 
   /// call the systems of a schedule
