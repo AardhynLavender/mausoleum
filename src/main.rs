@@ -1,5 +1,5 @@
 #![deny(warnings)]
-// #![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"] // uncomment this for release builds
 
 use std::path::Path;
 
