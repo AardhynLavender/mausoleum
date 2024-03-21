@@ -20,7 +20,11 @@ impl Tileset {
   /// Instantiate a new tileset from a `texture` with `tile_size`
   pub fn new(texture: Rc<Texture>, tile_size: Size2) -> Self {
     let tiles = make_tiles(texture.dimensions, tile_size).expect("Failed to make tile");
-    Self { texture, tile_size, tiles }
+    Self {
+      texture,
+      tile_size,
+      tiles,
+    }
   }
 
   /// Get a copy of the tile data at `id`

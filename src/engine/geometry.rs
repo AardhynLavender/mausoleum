@@ -43,7 +43,7 @@ impl<T: UnitPrimitive> Vec2<T> {
   pub const fn new(x: T, y: T) -> Self {
     Self { x, y }
   }
-  /// Deconstruct the vector into its components
+  /// Deconstruct the vector into its component.rs
   pub fn destructure(&self) -> (T, T) {
     (self.x, self.y)
   }
@@ -64,6 +64,14 @@ impl<T: IntConvertable> From<&Vec2<T>> for Point {
   }
 }
 
+// convert Vec2 float to Vec2 i32
+impl From<Vec2<f32>> for Vec2<i32> {
+  fn from(value: Vec2<f32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as i32, y as i32)
+  }
+}
+
 // Rectangle 2D //
 
 /// A Rectangle representation in 2D space of some numeric type `T`
@@ -78,7 +86,7 @@ impl<T: UnitPrimitive, U: SizePrimitive> Rec2<T, U> {
   pub const fn new(origin: Vec2<T>, size: Vec2<U>) -> Self {
     Self { origin, size }
   }
-  /// Deconstruct the rectangle into its components
+  /// Deconstruct the rectangle into its component.rs
   pub fn destructure(&self) -> ((T, T), (U, U)) {
     (self.origin.destructure(), self.size.destructure())
   }

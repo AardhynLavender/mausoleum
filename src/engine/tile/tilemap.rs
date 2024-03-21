@@ -22,7 +22,12 @@ impl Tilemap {
   pub fn new(tileset: Rc<Tileset>, position: Vec2<i32>, dimensions: Size2) -> Self {
     let size_tiles = dimensions.x * dimensions.y;
     let tiles: MapData = vec![None; size_tiles as usize];
-    Self { tileset, tiles, position, dimensions }
+    Self {
+      tileset,
+      tiles,
+      position,
+      dimensions,
+    }
   }
 
   /// Get the tile at `coordinate`
@@ -44,7 +49,8 @@ impl Tilemap {
     let tile = Tile::new(data, position);
     let index = coordinate_to_index(&coordinate, self.dimensions);
 
-    if let Some(current_tile) = self.tiles.get_mut(index) { // bound check
+    if let Some(current_tile) = self.tiles.get_mut(index) {
+      // bound check
       *current_tile = Some(tile);
     }
   }
@@ -60,7 +66,8 @@ impl Tilemap {
   pub fn clear_tile_at_coord(&mut self, coordinate: &Coordinate) {
     let index = coordinate_to_index(&coordinate, self.dimensions);
 
-    if let Some(tile) = self.tiles.get_mut(index) { // bound check
+    if let Some(tile) = self.tiles.get_mut(index) {
+      // bound check
       *tile = None;
     }
   }

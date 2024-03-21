@@ -17,7 +17,7 @@ pub struct Text {
   dirty: bool,
   color: RGBA,
   position: Vec2<i32>,
-  texture: Option<Rc::<Texture>>,
+  texture: Option<Rc<Texture>>,
 }
 
 impl Text {
@@ -32,7 +32,11 @@ impl Text {
   }
 
   /// Builds a `Texture` from `content` in `font`
-  fn rebuild_texture<'t>(&mut self, font: &Rc<Font<'t, 't>>, texture_loader: &'t TextureLoader) -> Result<(), String> {
+  fn rebuild_texture<'t>(
+    &mut self,
+    font: &Rc<Font<'t, 't>>,
+    texture_loader: &'t TextureLoader,
+  ) -> Result<(), String> {
     let surface = font
       .render(self.content.as_str())
       .blended(self.color)
@@ -55,7 +59,12 @@ impl Text {
   }
 
   /// Render the text to the screen, regenerating the texture if the content has changed
-  pub fn render<'t>(&mut self, font: &Rc<Font<'t, 't>>, texture_loader: &'t TextureLoader, renderer: &mut Renderer) {
+  pub fn render<'t>(
+    &mut self,
+    font: &Rc<Font<'t, 't>>,
+    texture_loader: &'t TextureLoader,
+    renderer: &mut Renderer,
+  ) {
     // content changed; reset texture
     if self.dirty {
       self.texture = None;

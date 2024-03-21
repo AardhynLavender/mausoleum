@@ -6,7 +6,7 @@ use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 
 use crate::engine::geometry::{Rec2, Vec2};
-use crate::engine::store::{HeapStore, next_key, Store};
+use crate::engine::store::{next_key, Store};
 
 /**
  * Texture loading, storage, and retrieval

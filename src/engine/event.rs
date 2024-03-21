@@ -77,7 +77,7 @@ impl Events {
   /// Poll for events and update `event_store`
   pub fn update(&mut self, event_store: &mut EventStore) {
     event_store.clear_pressed_keys();
-    
+
     let events = self.event_pump.poll_iter();
     for event in events {
       match event {

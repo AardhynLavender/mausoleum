@@ -16,11 +16,16 @@ pub struct RGBA {
 }
 
 impl RGBA {
-  /// Instantiate a new color from its components
+  /// Instantiate a new color from its component.rs
   pub const fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
-    Self { red, green, blue, alpha }
+    Self {
+      red,
+      green,
+      blue,
+      alpha,
+    }
   }
-  /// Deconstruct a color into its components
+  /// Deconstruct a color into its component.rs
   pub fn destructure(self) -> (u8, u8, u8, u8) {
     (self.red, self.green, self.blue, self.alpha)
   }
@@ -29,7 +34,12 @@ impl RGBA {
 impl From<&RGBA> for Color {
   /// Convert reference to `RGBA` color to an `sdl2::pixels::Color`
   fn from(value: &RGBA) -> Self {
-    Self { r: value.red, g: value.green, b: value.blue, a: value.alpha }
+    Self {
+      r: value.red,
+      g: value.green,
+      b: value.blue,
+      a: value.alpha,
+    }
   }
 }
 
