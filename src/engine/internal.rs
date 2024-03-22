@@ -25,7 +25,7 @@ pub fn add_internal_systems(systems: &mut SystemManager) {
 
 /// Add internal entities to the world
 pub fn add_internal_entities(world: &mut World) {
-  let fps_text = Text::new(color::TEXT);
+  let fps_text = Text::new(color::TEXT3);
   unsafe {
     FPS_TEXT = Some(world.add((FpsText, fps_text, Position::new(4.0, 4.0))));
   }
