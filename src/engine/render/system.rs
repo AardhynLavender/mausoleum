@@ -8,7 +8,7 @@ use crate::game::component::position::Position;
 
 /// Entities with a sprite and position are rendered
 pub fn sys_render(SysArgs { world, render, asset, .. }: &mut SysArgs) {
-  for (_, (renderable, position)) in world.query_mut::<(Or<&Sprite, &mut Text>, &Position)>() {
+  for (_, (renderable, position)) in world.query::<(Or<&Sprite, &mut Text>, &Position)>() {
     // fetch the texture key from either the 'sprite' or 'text' component
     let texture_key = match renderable {
       Or::Left(sprite) => sprite.texture,
@@ -17,8 +17,11 @@ pub fn sys_render(SysArgs { world, render, asset, .. }: &mut SysArgs) {
           .use_store()
           .get("typeface")
           .expect(format!("Failed to retrieve typeface at '{}'", "typeface").as_str());
-        let texture_key = text.get_content(&typeface, &mut asset.texture);
-        texture_key.clone()
+        if let Some(texture_key) = text.get_content(&typeface, &mut asset.texture) {
+          texture_key
+        } else {
+          continue; // no text content to render; skip this component
+        }
       }
       Or::Both(..) => panic!("Entity has both Sprite and Text components")
     };

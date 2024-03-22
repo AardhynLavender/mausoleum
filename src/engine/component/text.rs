@@ -75,7 +75,7 @@ impl Text {
   /// Updates the content of a text and rebuilds the texture recalculating dimensions
   /// ## Panics
   /// Will panic if the texture cannot be built
-  pub fn get_content<'ttf, 'a>(&mut self, typeface: &Font<'ttf, 'a>, texture_loader: &mut TextureLoader) -> &TextureKey {
+  pub fn get_content<'ttf, 'a>(&mut self, typeface: &Font<'ttf, 'a>, texture_loader: &mut TextureLoader) -> Option<TextureKey> {
     // if the content has changed, the texture is stale
     if self.dirty {
       self.texture = None;
@@ -90,8 +90,6 @@ impl Text {
     }
 
     self.texture
-      .as_ref()
-      .expect("Failed to get texture") // panic is fine, as failing to get a texture is unexpected
   }
   /// Get the dimensions of the text
   pub fn get_dimensions(&self) -> Size2 {
