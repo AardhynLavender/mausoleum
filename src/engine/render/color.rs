@@ -52,16 +52,16 @@ impl From<RGBA> for Color {
 
 // Utility //
 
-pub const U8MAX: u8 = 255;
-pub const OPAQUE: u8 = U8MAX;
+pub const OPAQUE: u8 = 255;
 
 // common //
 
 pub mod color {
   use super::{OPAQUE, RGBA};
 
-  // From the Catppuccin theme:
-  pub const TEXT: RGBA = RGBA::new(205, 214, 244, OPAQUE);
-  pub const SURFACE_0: RGBA = RGBA::new(49, 50, 68, OPAQUE);
-  pub const MANTLE: RGBA = RGBA::new(24, 24, 37, OPAQUE);
+  pub const TEXT: RGBA = RGBA::new(255, 255, 255, OPAQUE);
+  pub const TEXT2: RGBA = RGBA::new(128, 128, 128, OPAQUE);
+  pub const TEXT3: RGBA = RGBA::new(64, 64, 64, OPAQUE);
+  pub const PRIMARY: RGBA = RGBA::new(62, 207, 142, OPAQUE);
+  pub const ON_PRIMARY: RGBA = RGBA::new(255, 255, 255, OPAQUE);
 }
