@@ -1,17 +1,20 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
-use crate::engine::internal::add_internal_systems;
-use crate::engine::lifecycle::{LifecycleArgs, Lifecycle};
-use crate::engine::render::{Properties};
+use crate::engine::internal::{add_internal_entities, add_internal_systems};
+use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
+use crate::engine::render::Properties;
 use crate::engine::scene::{Scene, SceneManager};
 use crate::engine::subsystem::Subsystem;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
+use crate::engine::time::Frame;
+use crate::engine::utility::alias::DeltaMS;
 use crate::engine::world::World;
 
 /**
  * Application structure and lifecycle
  */
 
+pub const SIMULATION_FPS: DeltaMS = 30.0 / 1_000.0;
 
 /// Bundles a subsystem with actions
 struct Engine<'a> {
@@ -20,6 +23,7 @@ struct Engine<'a> {
   scenes: SceneManager,
   world: World,
   lifecycle: Lifecycle,
+  last_frame: Frame,
 }
 
 impl<'a> Engine<'a> {
@@ -31,6 +35,7 @@ impl<'a> Engine<'a> {
       scenes: SceneManager::new(scene),
       world: World::new(),
       lifecycle,
+      last_frame: Frame::default(),
     }
   }
 
@@ -39,19 +44,21 @@ impl<'a> Engine<'a> {
     let mut systems = SystemManager::new();
 
     add_internal_systems(&mut systems);
+    add_internal_entities(&mut self.world);
 
     (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, assets));
 
-    let delta = 1.0;
-
     loop {
-      self.subsystem.events.update(&mut self.events);
-      if self.subsystem.events.is_quit {
-        break;
-      }
+      // compute delta time
+      let (delta, ..) = self.last_frame.next();
 
       if self.scenes.is_queue() {
         self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, assets))
+      }
+
+      self.subsystem.events.update(&mut self.events);
+      if self.subsystem.events.is_quit {
+        break;
       }
 
       systems.update(

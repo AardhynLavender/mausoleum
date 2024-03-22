@@ -1,4 +1,4 @@
-use hecs::{DynamicBundle, Entity as HEntity, Query, World as HWorld};
+use hecs::{DynamicBundle, Entity as HEntity, Query, QueryOneError, World as HWorld};
 
 /**
  * A World is a collection of entities
@@ -35,12 +35,12 @@ impl World {
     self.world.clear();
   }
 
-  /// Immutably query the world for entities of a certain component set
-  pub fn query<Q: Query>(&self) -> hecs::QueryBorrow<'_, Q> {
-    self.world.query::<Q>()
-  }
   /// Mutably query the world for entities of a certain component set
-  pub fn query_mut<Q: Query>(&mut self) -> hecs::QueryMut<'_, Q> {
-    self.world.query_mut()
+  pub fn query<Q: Query>(&mut self) -> hecs::QueryMut<'_, Q> {
+    self.world.query_mut::<Q>()
+  }
+  /// Mutably query the world for a single entity of a certain component set
+  pub fn query_entity<Q: Query>(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryOneError> {
+    self.world.query_one_mut::<Q>(entity)
   }
 }

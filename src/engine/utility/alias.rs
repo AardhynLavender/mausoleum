@@ -11,6 +11,6 @@ pub type Size = u32;
 /// A 2D dimension
 pub type Size2 = Vec2<Size>;
 /// difference in ms between frames
-pub type MSDelta = f32;
+pub type DeltaMS = f32;
 /// A 2D coordinate
 pub type Coordinate = Vec2<i32>;
