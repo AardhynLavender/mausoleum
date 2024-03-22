@@ -44,3 +44,21 @@ impl World {
     self.world.query_one_mut::<Q>(entity)
   }
 }
+
+/// Push default T state into the world
+pub fn push_state<T>(world: &mut World) where T: Default + Send + Sync + 'static {
+  world.add((T::default(), ));
+}
+
+/// Push T state into the world
+pub fn push_state_with<T>(world: &mut World, state: T) where T: Send + Sync + 'static {
+  world.add((state, ));
+}
+
+pub fn use_state<T>(world: &mut World) -> &mut T where T: Send + Sync + 'static {
+  world.query::<&mut T>()
+    .into_iter()
+    .next()
+    .expect("No state found")
+    .1
+}
