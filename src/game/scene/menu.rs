@@ -1,17 +1,17 @@
 use crate::engine::asset::AssetManager;
-use crate::engine::component::text::Text;
+use crate::engine::component::text::{Text, TextBuilder};
 use crate::engine::component::ui::Selection;
 use crate::engine::geometry::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::render::color::color;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
+use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::{push_state_with, use_state, World};
 use crate::game::component::position::Position;
-use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y};
+use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
 use crate::game::scene::level::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
-use crate::game::utility::position::{align_end, center_horizontal};
 
 /**
  * The main menu scene
@@ -27,66 +27,26 @@ struct MenuState {
 
 /// Add the main menu UI to the world
 pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
+  let textures = &mut asset.texture;
   let typeface = asset.typeface
     .use_store()
     .get("typeface")
     .expect("Failed to get typeface");
+  let mut builder = TextBuilder::new(typeface, textures, color::TEXT, &WINDOW);
 
   // static text
-  let title_text = Text::new(color::TEXT).with_content("demo game", &typeface, &mut asset.texture);
-  let copyright_text = Text::new(color::TEXT2).with_content("copyright aardhyn lavender 2024", &typeface, &mut asset.texture);
-  world.add((
-    Position::new(
-      center_horizontal(title_text.get_dimensions().x as f32),
-      TITLE_Y,
-    ),
-    title_text,
-  ));
-  world.add((
-    Position::new(
-      center_horizontal(copyright_text.get_dimensions().x as f32),
-      align_end(COPYRIGHT_MARGIN + copyright_text.get_dimensions().y as f32),
-    ),
-    copyright_text,
-  ));
+  world.add(builder.make_text("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
+  world.add(builder.make_text("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
-  // buttons
-  let start_text = Text::new(color::TEXT).with_content("start", &typeface, &mut asset.texture);
-  let start = world.add((
-    Position::new(
-      center_horizontal(start_text.get_dimensions().x as f32),
-      BUTTONS_BEGIN_Y,
-    ),
-    start_text,
-  ));
-  let options_text = Text::new(color::TEXT).with_content("options", &typeface, &mut asset.texture);
-  let options = world.add((
-    Position::new(
-      center_horizontal(options_text.get_dimensions().x as f32),
-      BUTTONS_BEGIN_Y + BUTTONS_Y_GAP,
-    ),
-    options_text,
-  ));
-  let quit_text = Text::new(color::TEXT).with_content("quit", &typeface, &mut asset.texture);
-  let quit = world.add((
-    Position::new(
-      center_horizontal(quit_text.get_dimensions().x as f32),
-      BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0,
-    ),
-    quit_text,
-  ));
-
-  // create a selection of these buttons
-  push_state_with::<MenuState>(
-    world,
-    MenuState {
-      interface: Selection::build([
-        start,
-        options,
-        quit
-      ]).expect("Failed to build selection")
-    },
-  );
+  // add buttons
+  let state = MenuState {
+    interface: Selection::build([
+      world.add(builder.make_text("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
+      world.add(builder.make_text("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
+      world.add(builder.make_text("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+    ]).expect("Failed to build selection")
+  };
+  push_state_with::<MenuState>(world, state);
 }
 
 // Scene //

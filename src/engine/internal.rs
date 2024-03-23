@@ -42,7 +42,7 @@ fn sys_update_fps_text(SysArgs { delta, world, .. }: &mut SysArgs) {
   unsafe {
     if let Some(entity) = FPS_TEXT {
       let fps_text = world.query_entity::<&mut Text>(entity).expect("Failed to get fps text");
-      fps_text.set_content(format!("FPS: {:.4}", delta));
+      fps_text.set_content(format!("FPS {:.4}", delta));
     }
   }
 }

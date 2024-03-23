@@ -1,9 +1,10 @@
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::utility::alignment::Aligner;
 
 // Menu //
 
 pub const TITLE_Y: f32 = 80.0;
-pub const COPYRIGHT_MARGIN: f32 = 4.0;
+pub const COPYRIGHT_MARGIN: f32 = 10.0;
 pub const BUTTONS_BEGIN_Y: f32 = 160.0;
 pub const BUTTONS_Y_GAP: f32 = 16.0;
 
@@ -21,6 +22,8 @@ pub const WINDOW_SIZE: Vec2<u32> = Vec2::new(
   (LOGICAL_SIZE.x as f32 * WINDOW_SCALE) as u32,
   (LOGICAL_SIZE.y as f32 * WINDOW_SCALE) as u32,
 );
+
+pub const WINDOW: Aligner = Aligner::new(Rec2::new(Vec2::const_default(), LOGICAL_SIZE));
 
 // Physics //
 

@@ -1,3 +1,4 @@
+use hecs::DynamicBundle;
 use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
@@ -5,6 +6,8 @@ use crate::engine::geometry::Vec2;
 use crate::engine::render::color::RGBA;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
+use crate::engine::utility::alignment::{Aligner, Alignment};
+use crate::game::component::position::Position;
 
 pub struct Text {
   content: String,
@@ -96,3 +99,45 @@ impl Text {
     self.dimensions
   }
 }
+
+// Helpers //
+
+/// Helper function to assemble the components for a text entity
+pub fn make_text<'font, 'app>(
+  content: impl Into<String>,
+  position: Alignment,
+  aligner: &Aligner,
+  color: RGBA,
+  typeface: &Font<'font, 'app>,
+  texture_loader: &mut TextureLoader,
+) -> impl DynamicBundle {
+  let text = Text::new(color).with_content(content, &typeface, texture_loader);
+  let position = aligner.align(position, text.get_dimensions());
+
+  (Position(position), text, )
+}
+
+/// Helper struct for creating multiple text entities
+pub struct TextBuilder<'fonts, 'app> {
+  typeface: &'app Font<'fonts, 'app>,
+  texture_loader: &'app mut TextureLoader,
+  color: RGBA,
+  aligner: &'app Aligner,
+}
+
+impl<'app, 'fonts> TextBuilder<'app, 'fonts> {
+  /// Instantiate a new text builder
+  pub fn new(typeface: &'app Font<'fonts, 'app>, texture_loader: &'app mut TextureLoader, color: RGBA, aligner: &'app Aligner) -> Self {
+    Self {
+      typeface,
+      texture_loader,
+      color,
+      aligner,
+    }
+  }
+  /// Assemble the components for a text entity
+  pub fn make_text(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle {
+    make_text(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
+  }
+}
+

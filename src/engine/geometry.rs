@@ -49,6 +49,15 @@ impl<T: UnitPrimitive> Vec2<T> {
   }
 }
 
+impl Vec2<i32> {
+  /// Instantiate a new constexpr vector of i32.
+  /// Easier to create this "const_default" function than create const versions for every use of `T`
+  /// explicitly except floating point types
+  pub const fn const_default() -> Self {
+    Self { x: 0, y: 0 }
+  }
+}
+
 impl<T: IntConvertable> From<Vec2<T>> for Point {
   /// Convert a Vec2 of T to a Point of i32
   fn from(value: Vec2<T>) -> Self {
