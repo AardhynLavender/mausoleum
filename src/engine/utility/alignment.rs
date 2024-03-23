@@ -62,14 +62,14 @@ impl Aligner {
         Align::Center(offset) => self.center_horizontal(size.x) + offset,
         Align::End(offset) => (self.bounds.size.x - size.x) as f32 - offset,
         Align::At(offset) => offset,
-      } + self.bounds.origin.x as f32,
+      },
       match y {
         Align::Start(offset) => 0.0 + offset,
         Align::Center(offset) => self.center_vertical(size.y) + offset,
         Align::End(offset) => (self.bounds.size.y - size.y) as f32 - offset,
         Align::At(unit) => unit,
-      } + self.bounds.origin.y as f32,
-    )
+      },
+    ) + self.bounds.origin.into()
   }
 }
 
