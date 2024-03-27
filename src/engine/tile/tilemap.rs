@@ -1,97 +1,75 @@
-use std::rc::Rc;
+use std::collections::HashMap;
+
+use hecs::Entity;
 
 use crate::engine::geometry::Vec2;
-use crate::engine::tile::tile::{Tile, TileData};
+use crate::engine::render::component::Sprite;
+use crate::engine::tile::tile::{Tile, TileData, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
-use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate};
+use crate::engine::utility::conversion::index_to_coordinate;
+use crate::engine::world::World;
+use crate::game::component::position::Position;
 
-/// A 2D grid of tiles
-pub type MapData = Vec<Option<Tile>>;
+/**
+ * Tilemap structure and utilities
+ */
 
-/// Manages a grid of tiles
+/// Manages a grid of entities
 pub struct Tilemap {
-  pub tileset: Rc<Tileset>,
-  tiles: MapData,
-  pub position: Vec2<i32>,
-  pub dimensions: Size2,
+  // store the data to build the tilemap
+  tiles: Vec<Option<TileData>>,
+  // store the entities that make up the tilemap
+  entities: HashMap<Coordinate, Entity>,
+  dimensions: Size2,
 }
 
 impl Tilemap {
-  /// Instantiate a new tilemap from `tileset` at `position` with `dimensions`
-  pub fn new(tileset: Rc<Tileset>, position: Vec2<i32>, dimensions: Size2) -> Self {
-    let size_tiles = dimensions.x * dimensions.y;
-    let tiles: MapData = vec![None; size_tiles as usize];
-    Self {
-      tileset,
-      tiles,
-      position,
+  /// Instantiate a new tilemap from with `dimensions`
+  pub fn build(tileset: &Tileset, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>) -> Result<Self, String> {
+    // invariant
+    let tile_count = dimensions.square() as usize;
+    if initial_tiles.len() != tile_count {
+      return Err(String::from("Initial tiles do not match dimensions"));
+    }
+
+    Ok(Self {
+      tiles: tileset.get_tiles(initial_tiles).collect(),
+      entities: HashMap::with_capacity(tile_count),
       dimensions,
+    })
+  }
+
+  /// create the tiles from the tiledata and add them to the world and store references to the entities created
+  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) {
+    for (index, tile) in self.tiles.iter().enumerate() {
+      if let Some(tile) = tile {
+        let coordinate = index_to_coordinate(index, self.dimensions);
+        let (tile_width, tile_height) = tile.src.size.destructure();
+        let tile_position = Vec2::new(
+          coordinate.x as f32 * tile_width as f32,
+          coordinate.y as f32 * tile_height as f32,
+        ) + position;
+
+        let entity =
+          world.add((
+            Position::new(tile_position.x, tile_position.y),
+            Tile::new(tile.tile_key),
+            Sprite::new(tile.texture_key, tile.src),
+            // collision, metadata, etc.
+          ));
+
+        self.entities.insert(coordinate, entity);
+      }
     }
   }
 
-  /// Get the tile at `coordinate`
-  pub fn get_at_coord(&self, coordinate: &Coordinate) -> Option<&Tile> {
-    let index = coordinate_to_index(coordinate, self.dimensions);
-    self.get_at_index(index)
-  }
-  /// Get the tile at `index`
-  pub fn get_at_index(&self, index: usize) -> Option<&Tile> {
-    if let Some(tile) = self.tiles.get(index) {
-      return tile.as_ref();
+  pub fn remove_from_world(&mut self, world: &mut World) -> Result<(), String> {
+    for entity in self.entities.values().into_iter() {
+      world.free_now(*entity)?
     }
-    None
-  }
 
-  /// Set the tile at `coordinate` to `data`
-  pub fn set_tile_at_coord(&mut self, coordinate: &Coordinate, data: TileData) {
-    let position = self.coord_to_worldspace(&coordinate);
-    let tile = Tile::new(data, position);
-    let index = coordinate_to_index(&coordinate, self.dimensions);
-
-    if let Some(current_tile) = self.tiles.get_mut(index) {
-      // bound check
-      *current_tile = Some(tile);
-    }
-  }
-  /// Set the tile at `index` to `data`
-  pub fn set_tile_at_index(&mut self, index: usize, data: TileData) {
-    let dimensions = Coordinate::new(self.dimensions.x as i32, self.dimensions.y as i32);
-    let coordinate = index_to_coordinate(index, &dimensions);
-
-    self.set_tile_at_coord(&coordinate, data);
-  }
-
-  /// Clear the tile at `coordinate`
-  pub fn clear_tile_at_coord(&mut self, coordinate: &Coordinate) {
-    let index = coordinate_to_index(&coordinate, self.dimensions);
-
-    if let Some(tile) = self.tiles.get_mut(index) {
-      // bound check
-      *tile = None;
-    }
-  }
-  ///
-  pub fn clear_tile_at_index(&mut self, index: usize) {
-    let dimensions = Coordinate::new(self.dimensions.x as i32, self.dimensions.y as i32);
-    let coordinate = index_to_coordinate(index, &dimensions);
-    self.clear_tile_at_coord(&coordinate);
-  }
-
-  /// Clear all tiles
-  pub fn clear_tiles(&mut self) {
-    for tile in &mut self.tiles {
-      *tile = None;
-    }
-  }
-
-  /// Convert `coordinate` to worldspace
-  fn coord_to_worldspace(&self, coordinate: &Coordinate) -> Vec2<i32> {
-    let (tile_width, tile_height) = self.tileset.tile_size.destructure();
-    Vec2::new(
-      self.position.x + (coordinate.x * tile_width as i32),
-      self.position.y + (coordinate.y * tile_height as i32),
-    )
+    Ok(())
   }
 
   /// Check if `coordinate` is within the bounds of the tilemap
@@ -100,29 +78,5 @@ impl Tilemap {
     let y_bound = coordinate.y >= 0 && coordinate.y < self.dimensions.y as i32;
     x_bound && y_bound
   }
-
-  /// Check if `coordinate` is occupied
-  pub fn is_occupied(&self, coordinate: &Coordinate) -> bool {
-    self.get_at_coord(coordinate).is_some()
-  }
 }
 
-// iterate over the tiles in tilemap
-impl<'a> IntoIterator for &'a Tilemap {
-  type Item = &'a Option<Tile>;
-  type IntoIter = std::slice::Iter<'a, Option<Tile>>;
-
-  fn into_iter(self) -> Self::IntoIter {
-    self.tiles.iter()
-  }
-}
-
-// iterate mutably over the tiles in tilemap
-impl<'a> IntoIterator for &'a mut Tilemap {
-  type Item = &'a mut Option<Tile>;
-  type IntoIter = std::slice::IterMut<'a, Option<Tile>>;
-
-  fn into_iter(self) -> Self::IntoIter {
-    self.tiles.iter_mut()
-  }
-}

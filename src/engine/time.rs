@@ -1,8 +1,50 @@
 use std::time::{Duration, Instant};
 
+use crate::engine::application::SIMULATION_FPS;
+use crate::engine::utility::alias::DeltaMS;
+
 /**
  * Time utilities
  */
+
+// Constants //
+
+pub const SECOND_MICRO: f32 = 1_000_000.0;
+
+// Types //
+
+/// Represents a frame of time
+pub struct Frame {
+  start: Instant,
+  end: Instant,
+}
+
+impl Default for Frame {
+  /// Instantiate a new frame
+  fn default() -> Self {
+    Self {
+      start: Instant::now(),
+      end: Instant::now(),
+    }
+  }
+}
+
+impl Frame {
+  /// Update the frame and compute the alpha and delta time
+  pub fn next(&mut self) -> (DeltaMS, DeltaMS) {
+    self.end = Instant::now();
+    let delta = self.end.duration_since(self.start).as_micros() as DeltaMS / SECOND_MICRO;
+    let alpha = delta % SIMULATION_FPS;
+    self.start = self.end;
+    (alpha, delta)
+  }
+}
+
+/// What to do when a done timer is consumed
+pub enum ConsumeAction {
+  Restart,
+  Disable,
+}
 
 /// A stateful timer
 #[derive(Debug)]
@@ -10,12 +52,6 @@ pub struct Timer {
   enabled: bool,
   start: Instant,
   duration: Duration,
-}
-
-/// What to do when a done timer is consumed
-pub enum ConsumeAction {
-  Restart,
-  Disable,
 }
 
 impl Timer {

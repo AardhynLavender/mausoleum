@@ -1,4 +1,4 @@
-use crate::engine::asset::texture::TextureKey;
+use crate::engine::asset::texture::{SrcRect, TextureKey};
 
 /**
  * Engine components for rendering
@@ -8,10 +8,11 @@ use crate::engine::asset::texture::TextureKey;
 #[derive(Clone)]
 pub struct Sprite {
   pub texture: TextureKey,
+  pub src: SrcRect,
 }
 
 impl Sprite {
-  pub fn new(texture: TextureKey) -> Self {
-    Self { texture }
+  pub fn new(texture: TextureKey, src: SrcRect) -> Self {
+    Self { texture, src }
   }
 }

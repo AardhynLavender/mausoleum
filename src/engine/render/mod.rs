@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use sdl2::rect::Rect;
 use sdl2::render::TextureCreator;
 use sdl2::video::{FullscreenType, WindowContext};
@@ -129,7 +127,7 @@ impl Renderer {
   /// Draw `from` `texture` to the screen at `position`
   pub fn draw_from_texture<T: IntConvertable>(
     &mut self,
-    texture: &Rc<Texture>,
+    texture: &Texture,
     position: Vec2<T>,
     from: SrcRect,
   ) {

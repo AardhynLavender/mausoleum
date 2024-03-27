@@ -17,6 +17,7 @@ pub struct EventStore {
   held_keys: KeyStore,
   pressed_keys: KeyStore,
   mouse_position: Vec2<i32>,
+  quit: bool,
 }
 
 impl EventStore {
@@ -26,6 +27,7 @@ impl EventStore {
       pressed_keys: HashSet::new(),
       held_keys: HashSet::new(),
       mouse_position: Vec2::default(),
+      quit: false,
     }
   }
 
@@ -56,6 +58,13 @@ impl EventStore {
   pub fn is_key_held(&self, keycode: Keycode) -> bool {
     self.held_keys.contains(&keycode)
   }
+
+  pub fn queue_quit(&mut self) {
+    self.quit = true;
+  }
+  pub fn should_quit(&self) -> bool {
+    self.quit
+  }
 }
 
 /// Manage events polled by SDL2
@@ -77,6 +86,11 @@ impl Events {
   /// Poll for events and update `event_store`
   pub fn update(&mut self, event_store: &mut EventStore) {
     event_store.clear_pressed_keys();
+
+    if event_store.should_quit() {
+      self.is_quit = true;
+      return;
+    }
 
     let events = self.event_pump.poll_iter();
     for event in events {

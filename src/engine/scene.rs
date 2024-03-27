@@ -1,4 +1,4 @@
-use crate::engine::internal::add_internal_systems;
+use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::LifecycleArgs;
 
 /**
@@ -38,18 +38,21 @@ impl SceneManager {
 
   /// Destroy the current scene and set up the next
   pub fn next(&mut self, args: &mut LifecycleArgs) {
-    println!("Next Scene...");
-
+    println!("Clearing world and systems.");
+    // clear the world and systems
     args.world.free_all_now();
     args.system.clear();
     add_internal_systems(args.system);
+    add_internal_entities(&mut args.world);
 
     // destroy the current scene
     if let Some(current) = self.scene.as_mut() {
+      println!("Destroying scene.");
       current.destroy(args);
     }
     // set up the next scene
     if let Some(next) = self.next.take() {
+      println!("Setting up Scene");
       next.setup(args);
       self.scene = self.next.take();
     }

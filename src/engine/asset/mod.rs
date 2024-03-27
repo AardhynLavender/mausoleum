@@ -1,10 +1,9 @@
 use sdl2::ttf::Sdl2TtfContext;
 
 use crate::engine::asset::audio::{AudioPlayer, SoundType};
-use crate::engine::asset::texture::{TextureLoader, TextureStore};
+use crate::engine::asset::texture::TextureLoader;
 use crate::engine::asset::typography::TypefaceLoader;
 use crate::engine::render::Renderer;
-use crate::engine::tile::tileset::TilesetStore;
 
 pub mod audio;
 /**
@@ -24,7 +23,6 @@ pub enum AssetType {
 pub struct AssetManager<'ttf> {
   pub texture: TextureLoader,
   pub audio: AudioPlayer,
-  pub tileset: TilesetStore,
   pub typeface: TypefaceLoader<'ttf, 'ttf>,
 }
 
@@ -34,13 +32,7 @@ impl<'ttf> AssetManager<'ttf> {
     Self {
       texture: TextureLoader::new(renderer.new_texture_creator()),
       audio: AudioPlayer::new(),
-      tileset: TilesetStore::new(),
       typeface: TypefaceLoader::new(&ttf_context),
     }
-  }
-
-  /// Deconstruct the manager into its stores and loaders
-  pub fn use_store(&mut self) -> (&TextureStore, &AudioPlayer, &mut TilesetStore) {
-    (self.texture.use_store(), &self.audio, &mut self.tileset)
   }
 }

@@ -2,7 +2,7 @@ use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
 use crate::engine::render::Renderer;
 use crate::engine::scene::SceneManager;
-use crate::engine::utility::alias::MSDelta;
+use crate::engine::utility::alias::DeltaMS;
 use crate::engine::world::World;
 
 pub enum Schedule {
@@ -16,7 +16,7 @@ pub enum Schedule {
 
 /// Arguments passed to systems
 pub struct SysArgs<'app, 'fonts> {
-  pub delta: MSDelta,
+  pub delta: DeltaMS,
   pub world: &'app mut World,
   pub render: &'app mut Renderer,
   pub event: &'app mut EventStore,
@@ -27,7 +27,7 @@ pub struct SysArgs<'app, 'fonts> {
 impl<'app, 'fonts> SysArgs<'app, 'fonts> {
   /// Instantiate a new system args wrapper
   pub fn new(
-    delta: MSDelta,
+    delta: DeltaMS,
     world: &'app mut World,
     render: &'app mut Renderer,
     event: &'app mut EventStore,
