@@ -114,7 +114,7 @@ pub fn make_text<'font, 'app>(
   let text = Text::new(color).with_content(content, &typeface, texture_loader);
   let position = aligner.align(position, text.get_dimensions());
 
-  (Position(position), text, )
+  (Position(position), text)
 }
 
 /// Helper struct for creating multiple text entities
