@@ -1,32 +1,36 @@
-use crate::engine::asset::texture::SrcRect;
-use crate::engine::geometry::Vec2;
+use crate::engine::asset::texture::{SrcRect, TextureKey};
+use crate::engine::render::component::Sprite;
+use crate::engine::store::Key;
 
 /**
  * Tile structure for rendering segments of a tileset to the screen
  */
 
 /// A unique identifier for a tile
-pub type TileId = u32;
+pub type TileKey = Key;
 
-/// Data required to render a tile
+/// Data to create a tile entity (Sprite + Tile)
 #[derive(Clone, Copy, Debug)]
 pub struct TileData {
-  pub id: TileId,
-  pub src: SrcRect, // segment of the tileset to be rendered
+  pub texture_key: TextureKey,
+  pub src: SrcRect,
+  pub tile_key: TileKey,
 }
 
 /// A tile object that can be rendered to the screen
 #[derive(Clone, Debug)]
-pub struct Tile {
-  pub id: TileId,
-  pub src: SrcRect,
-  pub position: Vec2<i32>, // worldspace
-}
+pub struct Tile(pub TileKey);
 
 impl Tile {
-  /// Instantiate a new tile from `data` at `position`
-  pub fn new(data: TileData, position: Vec2<i32>) -> Self {
-    let TileData { src, id } = data;
-    Self { src, id, position }
+  /// Instantiate a new tile of `tile_key` that references `tileset_key`
+  pub fn new(tile_key: TileKey) -> Self {
+    Self(tile_key)
   }
+}
+
+pub fn make_tile_entity(data: TileData) -> (Tile, Sprite) {
+  (
+    Tile::new(data.tile_key),
+    Sprite::new(data.texture_key, data.src)
+  )
 }

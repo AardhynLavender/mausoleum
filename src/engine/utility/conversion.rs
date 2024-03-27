@@ -10,7 +10,7 @@ pub fn coordinate_to_index(position: &Coordinate, dimensions: Size2) -> usize {
 }
 
 /// Convert an index to a coordinate
-pub fn index_to_coordinate(index: usize, dimensions: &Coordinate) -> Coordinate {
+pub fn index_to_coordinate(index: usize, dimensions: Size2) -> Coordinate {
   let x = index % dimensions.x as usize;
   let y = index / dimensions.x as usize;
   Coordinate::new(x as i32, y as i32)

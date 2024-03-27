@@ -11,9 +11,9 @@ use sdl2::rect::{Point, Rect};
 // Traits //
 
 /// Primitive type for geometric shapes
-pub trait UnitPrimitive: Num + AddAssign + SubAssign + DivAssign + MulAssign + Copy {}
+pub trait UnitPrimitive: Num + AddAssign + SubAssign + DivAssign + MulAssign + Copy + Default {}
 
-impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign> UnitPrimitive for T {}
+impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign + Default> UnitPrimitive for T {}
 
 /// Primitive type for geometric sizes
 pub trait SizePrimitive: UnitPrimitive + Unsigned + Into<u32> {}
@@ -30,7 +30,7 @@ impl<T: UnitPrimitive + Into<i32>> IntConvertable for T {}
 // Vector 2D //
 
 /// A vector representation in 2D space of some numeric type `T`
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq, Default)]
 pub struct Vec2<T>
   where
     T: UnitPrimitive,
@@ -47,6 +47,10 @@ impl<T: UnitPrimitive> Vec2<T> {
   /// Deconstruct the vector into its component.rs
   pub fn destructure(&self) -> (T, T) {
     (self.x, self.y)
+  }
+
+  pub fn square(&self) -> T {
+    self.x * self.y
   }
 }
 
@@ -87,6 +91,14 @@ impl From<Vec2<i32>> for Vec2<f32> {
   fn from(value: Vec2<i32>) -> Self {
     let (x, y) = value.destructure();
     Vec2::new(x as f32, y as f32)
+  }
+}
+
+impl<T> Into<Rec2<T, T>> for Vec2<T> where T: UnitPrimitive + Unsigned + Into<u32> {
+  /// Convert a Vec2 of T into a Rec2 of T where the values of the Vec2 are the size of the Rec2,
+  /// and the origin is `Vec2::default()`
+  fn into(self) -> Rec2<T, T> {
+    Rec2::new(Vec2::default(), self)
   }
 }
 

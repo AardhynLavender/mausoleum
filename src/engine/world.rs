@@ -1,24 +1,35 @@
-use hecs::{DynamicBundle, Entity as HEntity, Query, QueryOneError, World as HWorld};
+use hecs::{Bundle, DynamicBundle, Entity, Query, QueryMut, QueryOneError, SpawnBatchIter, World as HecsWorld};
 
 /**
  * A World is a collection of entities
  */
 
-type InternalWorld = HWorld;
-type Entity = HEntity;
+/// define a manager of entities
+/// implements how to add and remove its entities from the world
+pub trait EntityManager {
+  type Manager;
+  type ComponentQuery<'q>: Query where Self: 'q; // the queried entities must live at least as long as the manager
 
-/// A collection of entities and their component.rs
+  /// Add the manager's components to the world
+  fn add_to_world(&mut self, world: &mut World);
+  /// Remove the manager's components from the world
+  fn remove_from_world(&mut self, world: &mut World) -> Result<(), String>;
+  /// query the world for the entities of the manager
+  fn query_entities<'q>(&'q mut self, world: &'q mut World) -> QueryMut<Self::ComponentQuery<'q>>;
+}
+
+/// A collection of entities and their components
 /// > I'm interested in writing my own ECS, but for now I will use a wrapper around hecs as I like its API.
 /// >
 /// > An ECS is ridiculously complex for my tiny brain, and I don't want to spend time on it right now
 pub struct World {
-  world: InternalWorld,
+  world: HecsWorld,
 }
 
 impl World {
   pub fn new() -> Self {
     Self {
-      world: InternalWorld::new(),
+      world: HecsWorld::new(),
     }
   }
 
@@ -26,6 +37,23 @@ impl World {
   pub fn add(&mut self, components: impl DynamicBundle) -> Entity {
     self.world.spawn(components)
   }
+  pub fn add_many<I>(&mut self, components: I) -> SpawnBatchIter<'_, I::IntoIter>
+    where
+      I: IntoIterator,
+      I::Item: DynamicBundle,
+      <I as IntoIterator>::Item: Bundle,
+      <I as IntoIterator>::Item: 'static
+  {
+    self.world.spawn_batch(components)
+  }
+  /// Add a manager and its entities to the world
+  pub fn add_manager<M>(&mut self, mut manager: M)
+    where M: Send + Sync + EntityManager + 'static
+  {
+    manager.add_to_world(self);
+    self.add((manager, ));
+  }
+
   /// free an entity immediately (not recommended)
   pub fn free_now(&mut self, entity: Entity) -> Result<(), String> {
     self.world.despawn(entity).map_err(|e| e.to_string())
@@ -36,7 +64,7 @@ impl World {
   }
 
   /// Mutably query the world for entities of a certain component set
-  pub fn query<Q: Query>(&mut self) -> hecs::QueryMut<'_, Q> {
+  pub fn query<Q: Query>(&mut self) -> QueryMut<'_, Q> {
     self.world.query_mut::<Q>()
   }
   /// Mutably query the world for a single entity of a certain component set
@@ -46,16 +74,22 @@ impl World {
 }
 
 /// Push default T state into the world
-pub fn push_state<T>(world: &mut World) where T: Default + Send + Sync + 'static {
+pub fn push_state<T>(world: &mut World)
+  where T: Default + Send + Sync + 'static
+{
   world.add((T::default(), ));
 }
 
 /// Push T state into the world
-pub fn push_state_with<T>(world: &mut World, state: T) where T: Send + Sync + 'static {
+pub fn push_state_with<T>(world: &mut World, state: T)
+  where T: Send + Sync + 'static
+{
   world.add((state, ));
 }
 
-pub fn use_state<T>(world: &mut World) -> &mut T where T: Send + Sync + 'static {
+pub fn use_state<T>(world: &mut World) -> &mut T
+  where T: Send + Sync + 'static
+{
   world.query::<&mut T>()
     .into_iter()
     .next()

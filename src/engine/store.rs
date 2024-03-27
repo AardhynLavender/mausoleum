@@ -6,6 +6,7 @@ use std::rc::Rc;
  * Generic stores for both the stack and heap
  */
 
+/// Generic unique identifier
 pub type Key = usize;
 
 static mut NEXT_KEY: Key = 0;
