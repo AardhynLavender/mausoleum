@@ -11,9 +11,22 @@ use sdl2::rect::{Point, Rect};
 // Traits //
 
 /// Primitive type for geometric shapes
-pub trait UnitPrimitive: Num + AddAssign + SubAssign + DivAssign + MulAssign + Copy + Default {}
+pub trait UnitPrimitive: Num
++ AddAssign
++ SubAssign
++ DivAssign
++ MulAssign
++ Copy
++ PartialOrd
++ Default {}
 
-impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign + Default> UnitPrimitive for T {}
+impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign + PartialOrd + Default> UnitPrimitive for T where T: AddAssign
++ SubAssign
++ DivAssign
++ MulAssign
++ Copy
++ PartialOrd
++ Default {}
 
 /// Primitive type for geometric sizes
 pub trait SizePrimitive: UnitPrimitive + Unsigned + Into<u32> {}

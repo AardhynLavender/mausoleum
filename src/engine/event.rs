@@ -3,7 +3,7 @@ use std::collections::hash_set::HashSet;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 
 /**
  * Manage and query events

@@ -5,7 +5,7 @@ use sdl2::render::{TextureCreator, TextureQuery};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 
-use crate::engine::geometry::Rec2;
+use crate::engine::geometry::shape::Rec2;
 use crate::engine::store::{next_key, Store};
 use crate::engine::utility::alias::{Size, Size2};
 

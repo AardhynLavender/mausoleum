@@ -1,7 +1,7 @@
 use hecs::Or;
 
 use crate::engine::component::text::Text;
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::render::component::Sprite;
 use crate::engine::system::SysArgs;
 use crate::game::component::position::Position;

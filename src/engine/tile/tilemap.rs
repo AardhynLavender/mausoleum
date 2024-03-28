@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use hecs::Entity;
 
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::render::component::Sprite;
 use crate::engine::tile::tile::{Tile, TileData, TileKey};
 use crate::engine::tile::tileset::Tileset;

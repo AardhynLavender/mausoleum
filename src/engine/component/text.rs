@@ -2,7 +2,7 @@ use hecs::DynamicBundle;
 use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::render::color::RGBA;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use hecs::QueryMut;
 
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::render::component::Sprite;
 use crate::engine::scene::Scene;

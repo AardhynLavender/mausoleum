@@ -3,7 +3,7 @@ use sdl2::render::TextureCreator;
 use sdl2::video::{FullscreenType, WindowContext};
 
 use crate::engine::asset::texture::{SrcRect, Texture};
-use crate::engine::geometry::{IntConvertable, Rec2, SizePrimitive, Vec2};
+use crate::engine::geometry::shape::{IntConvertable, Rec2, SizePrimitive, Vec2};
 use crate::engine::render::color::RGBA;
 
 /**

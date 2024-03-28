@@ -1,4 +1,4 @@
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::utility::alignment::Aligner;
 
 // Tile //

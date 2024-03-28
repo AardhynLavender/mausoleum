@@ -1,4 +1,4 @@
-use crate::engine::geometry::Vec2;
+use crate::engine::geometry::shape::Vec2;
 
 type GravityPrimitive = f32;
 

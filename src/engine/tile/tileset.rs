@@ -1,5 +1,5 @@
 use crate::engine::asset::texture::TextureKey;
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::tile::tile::{TileData, TileKey};
 use crate::engine::utility::alias::Size2;
 

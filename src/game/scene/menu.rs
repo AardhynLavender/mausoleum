@@ -1,7 +1,7 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::{Text, TextBuilder};
 use crate::engine::component::ui::Selection;
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::render::color::color;
 use crate::engine::scene::Scene;
