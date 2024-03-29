@@ -12,10 +12,13 @@ use crate::engine::tile::parse::TiledParser;
 use crate::engine::tile::tile::Tile;
 use crate::engine::tile::tilemap::Tilemap;
 use crate::engine::world::{EntityManager, World};
-use crate::game::component::physics::Gravity;
-use crate::game::component::position::Position;
+use crate::game::constant::GRAVITY;
+use crate::game::physics::gravity::Gravity;
+use crate::game::physics::gravity::sys_gravity;
+use crate::game::physics::position::Position;
+use crate::game::physics::velocity::{sys_velocity, Velocity};
+use crate::game::player::controls::{Player, sys_player_controller};
 use crate::game::scene::menu::MenuScene;
-use crate::game::system::physics::sys_gravity;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /**
@@ -74,12 +77,16 @@ impl Scene for LevelScene {
 
     println!("Level {} Initialized.", self.level_key);
     system.add(Schedule::FrameUpdate, sys_gravity);
+    system.add(Schedule::FrameUpdate, sys_velocity);
     system.add(Schedule::FrameUpdate, sys_level_listener);
+    system.add(Schedule::PostUpdate, sys_player_controller);
 
     world.add((
       Position::new(80.0, 90.0),
-      Gravity::new(0.0, 1.0),
-      Sprite::new(asset.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"), Vec2::new(8, 8).into())
+      Gravity::new(GRAVITY),
+      Sprite::new(asset.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"), Vec2::new(8, 8).into()),
+      Player::default(),
+      Velocity::default(),
     ));
   }
   /// Clean up the level scene
@@ -91,5 +98,4 @@ pub fn sys_level_listener(SysArgs { event, scene, .. }: &mut SysArgs) {
   if is_control(Control::Escape, Behaviour::Pressed, event) {
     scene.queue_next(MenuScene);
   }
-  if is_control(Control::Select, Behaviour::Pressed, event) {}
 }

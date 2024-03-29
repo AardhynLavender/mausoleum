@@ -32,5 +32,11 @@ pub const WINDOW: Aligner = Aligner::new(Rec2::new(Vec2::const_default(), LOGICA
 
 // Physics //
 
-pub const JUMP_HEIGHT: f32 = 10.0;
-pub const JUMP_LENGTH: f32 = 10.0;
+pub const JUMP_HEIGHT: f32 = 6.0 * TILE_SIZE.y as f32;
+pub const JUMP_WIDTH: f32 = 4.0 * TILE_SIZE.x as f32;
+pub const WALK_SPEED: f32 = 7.0 * TILE_SIZE.x as f32;
+
+pub const JUMP_ACCELERATION: Vec2<f32> = Vec2::new(0.0, (-2.0 * JUMP_HEIGHT * WALK_SPEED) / (JUMP_WIDTH));
+
+pub const GRAVITY: Vec2<f32> = Vec2::new(0.0, (2.0 * JUMP_HEIGHT * (WALK_SPEED * WALK_SPEED)) / (JUMP_WIDTH * JUMP_WIDTH));
+pub const MAX_GRAVITY: f32 = 256.0;

@@ -9,7 +9,7 @@ use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::index_to_coordinate;
 use crate::engine::world::World;
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 /**
  * Tilemap structure and utilities

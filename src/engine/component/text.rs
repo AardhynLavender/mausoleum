@@ -7,7 +7,7 @@ use crate::engine::render::color::RGBA;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Aligner, Alignment};
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 pub struct Text {
   content: String,

@@ -4,7 +4,7 @@ use crate::engine::component::text::Text;
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::render::component::Sprite;
 use crate::engine::system::SysArgs;
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 /// Entities with a sprite and position are rendered
 pub fn sys_render(SysArgs { world, render, asset, .. }: &mut SysArgs) {

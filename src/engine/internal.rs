@@ -6,7 +6,7 @@ use crate::engine::render::color::color;
 use crate::engine::render::system::sys_render;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
 use crate::engine::world::World;
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 /**
  * Internal engine systems

@@ -8,8 +8,8 @@ use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::{push_state_with, use_state, World};
-use crate::game::component::position::Position;
 use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
+use crate::game::physics::position::Position;
 use crate::game::scene::level::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 

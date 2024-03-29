@@ -1,7 +1,7 @@
 use std::marker::Copy;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
-use num::{Num, Unsigned};
+use num::{abs, clamp, Num, Signed, Unsigned};
 use sdl2::rect::{Point, Rect};
 
 /**
@@ -57,13 +57,27 @@ impl<T: UnitPrimitive> Vec2<T> {
   pub const fn new(x: T, y: T) -> Self {
     Self { x, y }
   }
-  /// Deconstruct the vector into its component.rs
+  /// Deconstruct the vector into its physics.rs
   pub fn destructure(&self) -> (T, T) {
     (self.x, self.y)
   }
 
+  /// Square the `x` and `y` components of the vector
   pub fn square(&self) -> T {
     self.x * self.y
+  }
+
+  /// clamp the vector to a minimum and maximum value
+  pub fn clamp(&mut self, min: &Vec2<T>, max: &Vec2<T>) {
+    self.x = clamp(self.x, min.x, max.x);
+    self.y = clamp(self.y, min.y, max.y);
+  }
+}
+
+impl<T> Vec2<T> where T: UnitPrimitive + Signed {
+  /// Get the absolute value of the vector
+  pub fn abs(&self) -> Self {
+    Vec2::new(abs(self.x), abs(self.y))
   }
 }
 
@@ -102,6 +116,22 @@ impl From<Vec2<f32>> for Vec2<i32> {
 impl From<Vec2<i32>> for Vec2<f32> {
   /// Convert Vec2 i32 to Vec2 float
   fn from(value: Vec2<i32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as f32, y as f32)
+  }
+}
+
+impl From<Vec2<f32>> for Vec2<u32> {
+  /// Convert Vec2 i32 to Vec2 u32
+  fn from(value: Vec2<f32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as u32, y as u32)
+  }
+}
+
+impl From<Vec2<u32>> for Vec2<f32> {
+  /// Convert Vec2 u32 to Vec2 i32
+  fn from(value: Vec2<u32>) -> Self {
     let (x, y) = value.destructure();
     Vec2::new(x as f32, y as f32)
   }
@@ -210,7 +240,7 @@ impl<T: UnitPrimitive, U: SizePrimitive> Rec2<T, U> {
   pub const fn new(origin: Vec2<T>, size: Vec2<U>) -> Self {
     Self { origin, size }
   }
-  /// Deconstruct the rectangle into its component.rs
+  /// Deconstruct the rectangle into its physics.rs
   pub fn destructure(&self) -> ((T, T), (U, U)) {
     (self.origin.destructure(), self.size.destructure())
   }
