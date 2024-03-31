@@ -62,10 +62,6 @@ impl Collision {
       left,
     })
   }
-  /// Build a collision where `collision` collided with `collider`, with the penetration values inverted
-  pub fn invert(&self) -> Self {
-    todo!()
-  }
   /// Get the shortest side of the collision
   pub fn get_resolution(&self) -> Vec2<f32> {
     // apply the collision mask to the penetration values
