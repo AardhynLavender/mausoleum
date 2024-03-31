@@ -1,9 +1,15 @@
 use crate::engine::geometry::shape::Vec2;
 
+/**
+ *  Position component
+ */
+
+/// Adds a Position to an entity
 #[derive(Default, Debug)]
 pub struct Position(pub Vec2<f32>);
 
 impl Position {
+  /// Instantiate a new Position component
   pub fn new(x: f32, y: f32) -> Self {
     Self(Vec2::new(x, y))
   }

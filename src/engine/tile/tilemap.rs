@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use hecs::Entity;
 
-use crate::engine::geometry::shape::Vec2;
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::render::component::Sprite;
-use crate::engine::tile::tile::{Tile, TileData, TileKey};
+use crate::engine::tile::tile::{Tile, TileCollider, TileData, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::index_to_coordinate;
@@ -34,14 +34,14 @@ impl Tilemap {
     }
 
     Ok(Self {
-      tiles: tileset.get_tiles(initial_tiles).collect(),
+      tiles: tileset.tiledata_from::<Vec<Option<TileData>>>(&initial_tiles, dimensions)?.collect(),
       entities: HashMap::with_capacity(tile_count),
       dimensions,
     })
   }
-
-  /// create the tiles from the tiledata and add them to the world and store references to the entities created
-  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) {
+  /// create the tiles from the tiledata and add them to the world storing references to the created
+  /// entities
+  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) -> Result<(), String> {
     for (index, tile) in self.tiles.iter().enumerate() {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
@@ -51,19 +51,34 @@ impl Tilemap {
           coordinate.y as f32 * tile_height as f32,
         ) + position;
 
-        let entity =
-          world.add((
-            Position::new(tile_position.x, tile_position.y),
-            Tile::new(tile.tile_key),
-            Sprite::new(tile.texture_key, tile.src),
-            // collision, metadata, etc.
-          ));
+        if let Some(collision_mask) = tile.collision_mask {
+          let entity = if !collision_mask.is_empty() {
+            let collider = TileCollider::new(
+              Rec2::new(Vec2::default(), tile.src.size),
+              collision_mask,
+            );
+            world.add((
+              Tile::new(tile.tile_key),
+              Position::new(tile_position.x, tile_position.y),
+              Sprite::new(tile.texture_key, tile.src),
+              collider,
+            ))
+          } else {
+            world.add((
+              Tile::new(tile.tile_key),
+              Position::new(tile_position.x, tile_position.y),
+              Sprite::new(tile.texture_key, tile.src),
+            ))
+          };
 
-        self.entities.insert(coordinate, entity);
+          self.entities.insert(coordinate, entity);
+        }
       }
     }
-  }
 
+    Ok(())
+  }
+  /// remove the entities from the world
   pub fn remove_from_world(&mut self, world: &mut World) -> Result<(), String> {
     for entity in self.entities.values().into_iter() {
       world.free_now(*entity)?
@@ -71,7 +86,6 @@ impl Tilemap {
 
     Ok(())
   }
-
   /// Check if `coordinate` is within the bounds of the tilemap
   pub fn is_bound(&self, coordinate: &Coordinate) -> bool {
     let x_bound = coordinate.x >= 0 && coordinate.x < self.dimensions.x as i32;

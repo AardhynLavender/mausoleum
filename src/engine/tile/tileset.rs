@@ -1,7 +1,10 @@
 use crate::engine::asset::texture::TextureKey;
+use crate::engine::geometry::collision::CollisionMask;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::tile::tile::{TileData, TileKey};
 use crate::engine::utility::alias::Size2;
+use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate};
+use crate::engine::utility::direction::Direction;
 
 /**
  * Tileset structure and utilities
@@ -27,6 +30,7 @@ fn make_tiles(texture_key: TextureKey, dimensions: Size2, tile_size: Size2) -> R
         texture_key,
         tile_key,
         src,
+        collision_mask: None,
       });
     }
   }
@@ -61,18 +65,32 @@ impl Tileset {
   }
 
   /// Convert a collection of `tile_keys` to `TileData`
-  pub fn get_tiles<'a, I>(&'a self, tile_data: I) -> impl Iterator<Item=Option<TileData>> + 'a
-    where I: IntoIterator<Item=Option<TileKey>>, <I as IntoIterator>::IntoIter: 'a
-  {
-    tile_data
-      .into_iter()
-      .map(|tile_key| {
-        tile_key.map(|key| {
-          self
-            .get_tile(key)
-            .expect("failed to get tile")
-        })
+  pub fn tiledata_from<'a, I>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileData>> + 'a, String> {
+    let result = tile_data
+      .iter()
+      .enumerate()
+      .map(|(index, tile_key)| {
+        if let Some(tile_key) = tile_key {
+          let mut tile = self.get_tile(*tile_key as usize)?;
+
+          let coordinate = index_to_coordinate(index, dimensions);
+          let mask = CollisionMask::new(
+            tile_data.get(coordinate_to_index(&(coordinate + Direction::Up.to_coordinate()), dimensions)).map_or(false, |tile| tile.is_none()),
+            tile_data.get(coordinate_to_index(&(coordinate + Direction::Right.to_coordinate()), dimensions)).map_or(false, |tile| tile.is_none()),
+            tile_data.get(coordinate_to_index(&(coordinate + Direction::Down.to_coordinate()), dimensions)).map_or(false, |tile| tile.is_none()),
+            tile_data.get(coordinate_to_index(&(coordinate + Direction::Left.to_coordinate()), dimensions)).map_or(false, |tile| tile.is_none()),
+          );
+          tile.collision_mask = Some(mask);
+
+          Ok::<Option<TileData>, String>(Some(tile))
+        } else {
+          Ok(None)
+        }
       })
+      .collect::<Result<Vec<_>, _>>()?
+      .into_iter();
+
+    Ok(result)
   }
 }
 

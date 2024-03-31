@@ -1,6 +1,10 @@
 use crate::engine::geometry::shape::Vec2;
 use crate::game::constant::TILE_SIZE;
 
+/**
+ * Math utilities
+ */
+
 /// Convert pixels to tiles
 #[allow(unused)]
 pub fn pixels_to_tiles(pixels: f32) -> f32 {

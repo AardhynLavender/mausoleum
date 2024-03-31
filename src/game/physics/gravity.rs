@@ -4,10 +4,10 @@ use crate::game::constant::MAX_GRAVITY;
 use crate::game::physics::velocity::Velocity;
 
 /**
- * Systems and components relating to gravity physics
+ * Gravity component
  */
 
-/// Add Gravity to an entity
+/// Adds Gravity to an entity
 #[derive(Default, Debug)]
 pub struct Gravity(pub Vec2<f32>);
 
@@ -20,8 +20,8 @@ impl Gravity {
 /// Process gravity in a world
 pub fn sys_gravity(SysArgs { delta, world, .. }: &mut SysArgs) {
   for (_, (gravity, velocity)) in world.query::<(&mut Gravity, &mut Velocity)>() {
-    velocity.0 = velocity.0 + (gravity.0 * *delta);
-    velocity.0.y = velocity.0.y.min(MAX_GRAVITY);
+    let gravity = Vec2::new(gravity.0.x, gravity.0.y.min(MAX_GRAVITY));
+    velocity.0 = velocity.0 + (gravity * *delta);
   }
 }
 

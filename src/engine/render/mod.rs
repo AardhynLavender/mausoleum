@@ -152,6 +152,14 @@ impl Renderer {
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }
+  /// Draw a line from `from` to `to` of `color`
+  pub fn draw_line<T: IntConvertable>(&mut self, from: Vec2<T>, to: Vec2<T>, color: RGBA) {
+    self.set_color(color);
+    self.subsystem
+      .draw_line(from, to)
+      .map_err(|error| eprintln!("{error}"))
+      .ok();
+  }
 }
 
 /// Create a new `sdl2::video::Window` with the given `RendererProperties`

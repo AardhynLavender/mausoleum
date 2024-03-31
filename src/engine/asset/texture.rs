@@ -69,7 +69,7 @@ impl TextureLoader {
 }
 
 /// A rectangle of pixels
-pub type SrcRect = Rec2<u32, u32>;
+pub type SrcRect = Rec2<Size, Size>;
 
 /// A wrapper for a SDL2 texture
 pub struct Texture {
