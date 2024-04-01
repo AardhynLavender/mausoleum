@@ -5,16 +5,16 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::render::color::color;
 use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs, SystemManager};
+use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::{push_state_with, use_state, World};
 use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
 use crate::game::physics::position::Position;
-use crate::game::scene::level::LevelScene;
+use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /**
- * The main menu scene
+ * The game menu
  */
 
 // State //
@@ -56,20 +56,19 @@ pub struct MenuScene;
 
 impl Scene for MenuScene {
   /// Set up the main menu scene
-  fn setup(&self, LifecycleArgs { system, world, asset, .. }: &mut LifecycleArgs) {
+  fn setup(&self, LifecycleArgs { world, asset, .. }: &mut LifecycleArgs) {
     add_ui(world, asset);
-    add_systems(system);
+  }
+  /// Add systems to the main menu scene
+  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
+    system.add(Schedule::FrameUpdate, sys_menu_selection);
+    system.add(Schedule::PostUpdate, sys_render_selected);
   }
   /// Destroy the main menu scene
   fn destroy(&self, _: &mut LifecycleArgs) {}
 }
 
 // Systems //
-
-fn add_systems(system: &mut SystemManager) {
-  system.add(Schedule::FrameUpdate, sys_menu_selection);
-  system.add(Schedule::PostUpdate, sys_render_selected);
-}
 
 /// Manage the selection of the main menu
 pub fn sys_menu_selection(SysArgs { world, scene, event, .. }: &mut SysArgs) {

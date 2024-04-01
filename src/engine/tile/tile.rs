@@ -8,7 +8,7 @@ use crate::game::physics::position::Position;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /**
- * Tile structure for rendering segments of a tileset to the screen
+ * Tile components, structures, and systems
  */
 
 /// A unique identifier for a tile
@@ -20,7 +20,33 @@ pub struct TileData {
   pub texture_key: TextureKey,
   pub src: SrcRect,
   pub tile_key: TileKey,
-  pub collision_mask: Option<CollisionMask>,
+}
+
+impl TileData {
+  /// Instantiate a new tile data with `texture_key`, `src`, and `tile_key`
+  pub fn new(texture_key: TextureKey, src: SrcRect, tile_key: TileKey) -> Self {
+    Self {
+      texture_key,
+      src,
+      tile_key,
+    }
+  }
+}
+
+/// Data used to add a tile to the tilemap
+pub struct TileConcept {
+  pub data: TileData,
+  pub mask: CollisionMask,
+}
+
+impl TileConcept {
+  /// Instantiate a new tile concept with `tile_data` and `collision_mask`
+  pub fn new(data: TileData, mask: CollisionMask) -> Self {
+    Self {
+      data,
+      mask,
+    }
+  }
 }
 
 /// A tile object that can be rendered to the screen
@@ -41,6 +67,7 @@ pub struct TileCollider {
 }
 
 impl TileCollider {
+  /// Instantiate a new tile collider with `collision_box` and `mask`
   pub fn new(collision_box: CollisionBox, mask: CollisionMask) -> Self {
     Self {
       collision_box,
@@ -49,6 +76,7 @@ impl TileCollider {
   }
 }
 
+/// Render the tile colliders to the screen when debug mode is active
 pub fn sys_render_tile_colliders(SysArgs { world, render, event, .. }: &mut SysArgs) {
   if !is_control(Control::Debug, Behaviour::Held, event) {
     return;

@@ -8,6 +8,7 @@ use crate::engine::lifecycle::LifecycleArgs;
 /// A scene is a defined state of the game
 pub trait Scene {
   fn setup(&self, args: &mut LifecycleArgs);
+  fn add_systems(&self, args: &mut LifecycleArgs);
   fn destroy(&self, args: &mut LifecycleArgs);
 }
 
@@ -39,6 +40,7 @@ impl SceneManager {
   /// Destroy the current scene and set up the next
   pub fn next(&mut self, args: &mut LifecycleArgs) {
     println!("Clearing world and systems.");
+
     // clear the world and systems
     args.world.free_all_now();
     args.system.clear();
@@ -54,6 +56,7 @@ impl SceneManager {
     if let Some(next) = self.next.take() {
       println!("Setting up Scene");
       next.setup(args);
+      next.add_systems(args);
       self.scene = self.next.take();
     }
   }

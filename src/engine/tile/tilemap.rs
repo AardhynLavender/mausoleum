@@ -4,7 +4,7 @@ use hecs::Entity;
 
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::render::component::Sprite;
-use crate::engine::tile::tile::{Tile, TileCollider, TileData, TileKey};
+use crate::engine::tile::tile::{Tile, TileCollider, TileConcept, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::index_to_coordinate;
@@ -18,7 +18,7 @@ use crate::game::physics::position::Position;
 /// Manages a grid of entities
 pub struct Tilemap {
   // store the data to build the tilemap
-  tiles: Vec<Option<TileData>>,
+  tiles: Vec<Option<TileConcept>>,
   // store the entities that make up the tilemap
   entities: HashMap<Coordinate, Entity>,
   dimensions: Size2,
@@ -34,7 +34,7 @@ impl Tilemap {
     }
 
     Ok(Self {
-      tiles: tileset.tiledata_from::<Vec<Option<TileData>>>(&initial_tiles, dimensions)?.collect(),
+      tiles: tileset.tiledata_from::<Vec<Option<TileConcept>>>(&initial_tiles, dimensions)?.collect(),
       entities: HashMap::with_capacity(tile_count),
       dimensions,
     })
@@ -45,34 +45,28 @@ impl Tilemap {
     for (index, tile) in self.tiles.iter().enumerate() {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
-        let (tile_width, tile_height) = tile.src.size.destructure();
+        let (tile_width, tile_height) = tile.data.src.size.destructure();
         let tile_position = Vec2::new(
           coordinate.x as f32 * tile_width as f32,
           coordinate.y as f32 * tile_height as f32,
         ) + position;
 
-        if let Some(collision_mask) = tile.collision_mask {
-          let entity = if !collision_mask.is_empty() {
-            let collider = TileCollider::new(
-              Rec2::new(Vec2::default(), tile.src.size),
-              collision_mask,
-            );
-            world.add((
-              Tile::new(tile.tile_key),
-              Position::new(tile_position.x, tile_position.y),
-              Sprite::new(tile.texture_key, tile.src),
-              collider,
-            ))
-          } else {
-            world.add((
-              Tile::new(tile.tile_key),
-              Position::new(tile_position.x, tile_position.y),
-              Sprite::new(tile.texture_key, tile.src),
-            ))
-          };
+        let entity = world.add((
+          Tile::new(tile.data.tile_key),
+          Position::new(tile_position.x, tile_position.y),
+          Sprite::new(tile.data.texture_key, tile.data.src),
+        ));
 
-          self.entities.insert(coordinate, entity);
+        // add a collider if the tile has a mask
+        if !tile.mask.is_empty() {
+          let collider = TileCollider::new(
+            Rec2::new(Vec2::default(), tile.data.src.size),
+            tile.mask,
+          );
+          world.add_components(entity, (collider, ))?;
         }
+
+        self.entities.insert(coordinate, entity);
       }
     }
 

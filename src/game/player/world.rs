@@ -1,12 +1,10 @@
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
-use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::render::component::Sprite;
 use crate::engine::system::{Schedule, SystemManager};
-use crate::engine::utility::alias::Size2;
 use crate::engine::world::World;
-use crate::game::constant::GRAVITY;
+use crate::game::constant::{GRAVITY, PLAYER_COLLIDER, PLAYER_SPRITE, PLAYER_START};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
@@ -35,10 +33,10 @@ pub fn use_player(world: &mut World) -> PlayerComponents {
 
 pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {
   world.add((
-    Position::new(80.0, 90.0),
+    Position::from(PLAYER_START),
     Gravity::new(GRAVITY),
-    Sprite::new(asset.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"), Size2::new(8, 8).into()),
-    Collider::new(Rec2::new(Vec2::default(), Vec2::new(8u32, 8u32))),
+    Sprite::new(asset.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"), PLAYER_SPRITE.into()),
+    Collider::new(PLAYER_COLLIDER),
     PlayerController::default(),
     Velocity::default(),
   ));

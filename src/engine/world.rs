@@ -54,9 +54,32 @@ impl World {
     self.add((manager, ));
   }
 
+  /// Add a set of components to an entity
+  ///
+  /// Returns an error if the entity does not exist
+  pub fn add_components<C>(&mut self, entity: Entity, components: C) -> Result<(), String>
+    where C: Bundle + 'static
+  {
+    self.world
+      .insert(entity, components)
+      .map_err(|e| e.to_string())
+  }
+  /// Remove a set of components from an entity
+  ///
+  /// Returns an error if the entity does not exist
+  pub fn remove_components<C>(&mut self, entity: Entity) -> Result<C, String>
+    where C: Bundle + 'static
+  {
+    self.world
+      .remove::<C>(entity)
+      .map_err(|e| e.to_string())
+  }
+
   /// free an entity immediately (not recommended)
   pub fn free_now(&mut self, entity: Entity) -> Result<(), String> {
-    self.world.despawn(entity).map_err(|e| e.to_string())
+    self.world
+      .despawn(entity)
+      .map_err(|e| e.to_string())
   }
   /// free all entities immediately (not recommended)
   pub fn free_all_now(&mut self) {
