@@ -2,6 +2,7 @@ use hecs::Entity;
 use sdl2::keyboard::Keycode;
 
 use crate::engine::component::text::{Text, TextLayer};
+use crate::engine::rendering::camera::sys_tether;
 use crate::engine::rendering::color::color;
 use crate::engine::rendering::system::sys_render;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
@@ -22,7 +23,9 @@ static mut MAX_FPS: DeltaMS = DeltaMS::MIN;
 /// Add internal systems to the system manager
 pub fn add_internal_systems(systems: &mut SystemManager) {
   systems.add(Schedule::FrameUpdate, sys_fullscreen_toggle);
+
   systems.add(Schedule::PostUpdate, sys_update_fps_text);
+  systems.add(Schedule::PostUpdate, sys_tether); // the camera must be in position *before* rendering
   systems.add(Schedule::PostUpdate, sys_render);
 }
 

@@ -1,6 +1,8 @@
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::rendering::camera::CameraTether;
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
@@ -16,7 +18,10 @@ use crate::game::player::controls::{PlayerController, sys_player_controller};
  * Useful queries for the player entity
  */
 
-type LayerPlayer = layer::Layer4;
+/// Path to the player asset
+const PLAYER_ASSET: &str = "asset/test.png";
+
+pub type LayerPlayer = layer::Layer4;
 
 /// Components of the player entity
 pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut Collider, &'p mut PlayerController);
@@ -35,14 +40,19 @@ pub fn use_player(world: &mut World) -> PlayerComponents {
 }
 
 pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {
+  let player_texture = asset.texture
+    .load(Path::new(PLAYER_ASSET))
+    .expect("Failed to load player texture");
+
   world.add((
-    Position::from(PLAYER_START),
-    Gravity::new(GRAVITY),
-    Sprite::new(asset.texture.load(Path::new("asset/test.png")).expect("Failed to load texture"), PLAYER_SPRITE.into()),
-    Collider::new(PLAYER_COLLIDER),
     PlayerController::default(),
+    Sprite::new(player_texture, PLAYER_SPRITE.into()),
+    Position::from(PLAYER_START),
+    CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)),
+    LayerPlayer {},
+    Gravity::new(GRAVITY),
     Velocity::default(),
-    LayerPlayer {}
+    Collider::new(PLAYER_COLLIDER),
   ));
 
   system.add(Schedule::PostUpdate, sys_player_controller);

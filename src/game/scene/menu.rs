@@ -56,7 +56,8 @@ pub struct MenuScene;
 
 impl Scene for MenuScene {
   /// Set up the main menu scene
-  fn setup(&self, LifecycleArgs { world, asset, .. }: &mut LifecycleArgs) {
+  fn setup(&self, LifecycleArgs { world, camera, asset, .. }: &mut LifecycleArgs) {
+    camera.release(Vec2::default());
     add_ui(world, asset);
   }
   /// Add systems to the main menu scene

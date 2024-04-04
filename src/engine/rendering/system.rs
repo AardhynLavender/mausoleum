@@ -32,21 +32,23 @@ pub fn sys_render(args: &mut SysArgs) {
 }
 
 /// render entities of layer T
-pub fn render_layer<T>(SysArgs { world, render, asset, .. }: &mut SysArgs) where T: Component {
+pub fn render_layer<T>(SysArgs { world, camera, render, asset, .. }: &mut SysArgs) where T: Component {
   for (_, (renderable, position, ..)) in world.query::<QueryRenderableOf<T>>() {
+    let position = camera.translate(Vec2::from(position.0));
     render_renderable(render, asset, renderable, position);
   }
 }
 
 /// render entities without a layer
-pub fn render_unlayered(SysArgs { world, render, asset, .. }: &mut SysArgs) {
+pub fn render_unlayered(SysArgs { world, camera, render, asset, .. }: &mut SysArgs) {
   for (_, (renderable, position)) in world.query::<QueryRenderable>() {
+    let position = camera.translate(Vec2::from(position.0));
     render_renderable(render, asset, renderable, position);
   }
 }
 
 /// render the texture of a `renderable` at `position`
-pub fn render_renderable(render: &mut Renderer, asset: &mut AssetManager, mut renderable: Renderable, position: &Position) {
+pub fn render_renderable(render: &mut Renderer, asset: &mut AssetManager, mut renderable: Renderable, position: Vec2<i32>) {
   let texture_key = match renderable {
     Or::Left(sprite) => sprite.texture,
     Or::Right(ref mut text) => {
@@ -69,10 +71,10 @@ pub fn render_renderable(render: &mut Renderer, asset: &mut AssetManager, mut re
     .expect(format!("Failed to retrieve texture at {}", texture_key).as_str());
   match renderable {
     Or::Left(sprite) => {
-      render.draw_from_texture::<i32>(texture, Vec2::from(position.0), sprite.src);
+      render.draw_from_texture::<i32>(texture, position, sprite.src);
     }
     Or::Right(..) => {
-      render.draw_texture::<i32>(texture, Vec2::from(position.0));
+      render.draw_texture::<i32>(texture, position);
     }
     Or::Both(..) => panic!("Entity has both Sprite and Text components")
   }

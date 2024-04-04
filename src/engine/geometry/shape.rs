@@ -137,6 +137,22 @@ impl From<Vec2<u32>> for Vec2<f32> {
   }
 }
 
+impl From<Vec2<i32>> for Vec2<u32> {
+  /// Convert Vec2 i32 to Vec2 u32
+  fn from(value: Vec2<i32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as u32, y as u32)
+  }
+}
+
+impl From<Vec2<u32>> for Vec2<i32> {
+  /// Convert Vec2 u32 to Vec2 i32
+  fn from(value: Vec2<u32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as i32, y as i32)
+  }
+}
+
 impl<T> Into<Rec2<T, T>> for Vec2<T> where T: UnitPrimitive + Unsigned + Into<u32> {
   /// Convert a Vec2 of T into a Rec2 of T where the values of the Vec2 are the size of the Rec2,
   /// and the origin is `Vec2::default()`

@@ -20,14 +20,15 @@ impl Collider {
 }
 
 /// Render colliders in the world while debugging
-pub fn sys_render_colliders(SysArgs { world, render, event, .. }: &mut SysArgs) {
+pub fn sys_render_colliders(SysArgs { world, camera, render, event, .. }: &mut SysArgs) {
   if !is_control(Control::Debug, Behaviour::Held, event) {
     return;
   }
 
   for (_, (position, collider)) in world.query::<(&Position, &Collider)>() {
+    let new_position = camera.translate(Vec2::from(position.0));
     render.draw_rect(
-      Rec2::<i32, Size>::new(Vec2::new(position.0.x as i32, position.0.y as i32), collider.0.size),
+      Rec2::<i32, Size>::new(new_position, collider.0.size),
       RGBA::new(0, 255, 0, OPAQUE),
     );
   }

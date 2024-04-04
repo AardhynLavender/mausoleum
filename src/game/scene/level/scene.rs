@@ -31,7 +31,7 @@ impl LevelScene {
 
 impl Scene for LevelScene {
   /// Set up the level scene
-  fn setup(&self, LifecycleArgs { world, system, asset, .. }: &mut LifecycleArgs) {
+  fn setup(&self, LifecycleArgs { world, camera, system, asset, .. }: &mut LifecycleArgs) {
     let parser = TiledParser::parse(&Path::new("asset/world.world"))
       .map_err(|e| println!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
@@ -43,6 +43,7 @@ impl Scene for LevelScene {
     println!("Level {} Initialized.", self.level_key);
 
     add_player(world, system, asset);
+    camera.tether();
   }
   /// Add systems to the level scene
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
