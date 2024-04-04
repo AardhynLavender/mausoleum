@@ -43,7 +43,7 @@ impl<T: UnitPrimitive + Into<i32>> IntConvertable for T {}
 // Vector 2D //
 
 /// A vector representation in 2D space of some numeric type `T`
-#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq, PartialOrd, Default)]
 pub struct Vec2<T>
   where
     T: UnitPrimitive,
@@ -342,7 +342,7 @@ mod tests {
   }
 
   #[test]
-  fn vec2_mult_scalar() {
+  fn vec2_multi_scalar() {
     let vec1 = Vec2::new(1, 2);
     let scalar = 3;
     let vec2 = vec1 * scalar;
@@ -384,6 +384,32 @@ mod tests {
     let vec3 = &vec1 / &vec2;
     assert_eq!(vec3.x, 0);
     assert_eq!(vec3.y, 0);
+  }
+
+  // Vec2 Logic //
+
+  #[test]
+  fn vec2_eq() {
+    let vec1 = Vec2::new(1.653, 2.04362);
+    let vec2 = Vec2::new(1.653, 2.04362);
+    let vec3 = Vec2::new(3.0, 4.12);
+
+    assert_eq!(vec1, vec2, "vec1 and vec2 are equal");
+    assert_ne!(vec1, vec3, "vec1 and vec3 are not equal");
+  }
+
+  #[test]
+  fn vec2_ordering() {
+    let vec1 = Vec2::new(1.25345, 2.06);
+    let vec2 = Vec2::new(3.93342, 4.12);
+    let vec3 = Vec2::new(3.93342, 4.12);
+    let vec4 = Vec2::new(3.93342, 4.12);
+
+    // vec1 < vec2
+    assert!(vec1 < vec2, "vec1 is less than vec2");
+    assert!(vec2 > vec1, "vec2 is greater than vec1");
+    assert!(vec3 >= vec4, "vec3 is greater than or equal to vec4");
+    assert!(vec4 <= vec3, "vec4 is less than or equal to vec3");
   }
 
   // Rec2 //
