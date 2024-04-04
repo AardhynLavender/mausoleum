@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::engine::application::Application;
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
-use crate::engine::render::Properties;
+use crate::engine::rendering::renderer::Properties;
 use crate::game::constant::{LOGICAL_SIZE, TYPEFACE_PATH, TYPEFACE_SIZE, WINDOW_SIZE, WINDOW_TITLE};
 use crate::game::scene::menu::MenuScene;
 

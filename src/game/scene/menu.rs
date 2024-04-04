@@ -3,7 +3,7 @@ use crate::engine::component::text::{Text, TextBuilder};
 use crate::engine::component::ui::Selection;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
-use crate::engine::render::color::color;
+use crate::engine::rendering::color::color;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::utility::alignment::{Align, Alignment};

@@ -3,7 +3,8 @@ use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::render::color::RGBA;
+use crate::engine::rendering::color::RGBA;
+use crate::engine::rendering::renderer::layer;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Aligner, Alignment};
@@ -102,6 +103,9 @@ impl Text {
 
 // Helpers //
 
+/// The layer for text entities
+pub type TextLayer = layer::Layer8;
+
 /// Helper function to assemble the components for a text entity
 pub fn make_text<'font, 'app>(
   content: impl Into<String>,
@@ -114,7 +118,7 @@ pub fn make_text<'font, 'app>(
   let text = Text::new(color).with_content(content, &typeface, texture_loader);
   let position = aligner.align(position, text.get_dimensions());
 
-  (Position(position), text)
+  (Position(position), text, layer::Layer8 {}, )
 }
 
 /// Helper struct for creating multiple text entities

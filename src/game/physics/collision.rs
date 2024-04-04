@@ -1,5 +1,5 @@
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::render::color::{OPAQUE, RGBA};
+use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
 use crate::engine::utility::alias::Size;
 use crate::game::physics::position::Position;

@@ -3,7 +3,7 @@ use sdl2::ttf::Sdl2TtfContext;
 use crate::engine::asset::audio::{AudioPlayer, SoundType};
 use crate::engine::asset::texture::TextureLoader;
 use crate::engine::asset::typography::TypefaceLoader;
-use crate::engine::render::Renderer;
+use crate::engine::rendering::renderer::Renderer;
 
 pub mod audio;
 /**

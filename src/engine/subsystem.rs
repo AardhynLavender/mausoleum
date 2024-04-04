@@ -1,5 +1,5 @@
 use crate::engine::event::Events;
-use crate::engine::render::{Properties, Renderer};
+use crate::engine::rendering::renderer::{Properties, Renderer};
 
 pub struct Subsystem {
   pub sdl_context: sdl2::Sdl,

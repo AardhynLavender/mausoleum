@@ -2,7 +2,7 @@ use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
 use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
-use crate::engine::render::Properties;
+use crate::engine::rendering::renderer::Properties;
 use crate::engine::scene::{Scene, SceneManager};
 use crate::engine::subsystem::Subsystem;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};

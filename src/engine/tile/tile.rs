@@ -1,7 +1,7 @@
 use crate::engine::asset::texture::{SrcRect, TextureKey};
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask};
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::render::color::{OPAQUE, RGBA};
+use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::store::Key;
 use crate::engine::system::SysArgs;
 use crate::game::physics::position::Position;

@@ -1,6 +1,6 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
-use crate::engine::render::Renderer;
+use crate::engine::rendering::renderer::Renderer;
 use crate::engine::scene::SceneManager;
 use crate::engine::utility::alias::DeltaMS;
 use crate::engine::world::World;

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use hecs::Entity;
 
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::render::component::Sprite;
+use crate::engine::rendering::component::Sprite;
 use crate::engine::tile::tile::{Tile, TileCollider, TileConcept, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};

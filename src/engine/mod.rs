@@ -1,7 +1,7 @@
 pub mod application;
 pub mod asset;
 pub mod event;
-pub mod render;
+pub mod rendering;
 pub mod store;
 pub mod subsystem;
 pub mod tile;
