@@ -1,7 +1,8 @@
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
-use crate::engine::render::component::Sprite;
+use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
 use crate::engine::world::World;
 use crate::game::constant::{GRAVITY, PLAYER_COLLIDER, PLAYER_SPRITE, PLAYER_START};
@@ -14,6 +15,8 @@ use crate::game::player::controls::{PlayerController, sys_player_controller};
 /**
  * Useful queries for the player entity
  */
+
+type LayerPlayer = layer::Layer4;
 
 /// Components of the player entity
 pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut Collider, &'p mut PlayerController);
@@ -39,6 +42,7 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     Collider::new(PLAYER_COLLIDER),
     PlayerController::default(),
     Velocity::default(),
+    LayerPlayer {}
   ));
 
   system.add(Schedule::PostUpdate, sys_player_controller);
