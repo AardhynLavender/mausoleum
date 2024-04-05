@@ -3,6 +3,7 @@ use hecs::{Component, Or};
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::Text;
 use crate::engine::geometry::shape::Vec2;
+use crate::engine::rendering::camera::StickyLayer;
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::{layer, Renderer};
 use crate::engine::system::SysArgs;
@@ -12,14 +13,13 @@ use crate::game::physics::position::Position;
 type Renderable<'a> = Or<&'a Sprite, &'a mut Text>;
 
 /// Query for entities that should be rendered
-type QueryRenderable<'a> = (Renderable<'a>, &'a Position);
+type QueryRenderable<'a> = (Renderable<'a>, &'a Position, );
 
 /// Query for entities of layer `L`
 type QueryRenderableOf<'a, L> = (Renderable<'a>, &'a Position, &'a L);
 
 /// Entities with a sprite and position are rendered
 pub fn sys_render(args: &mut SysArgs) {
-  render_unlayered(args);
   render_layer::<layer::Layer1>(args);
   render_layer::<layer::Layer2>(args);
   render_layer::<layer::Layer3>(args);
@@ -28,7 +28,7 @@ pub fn sys_render(args: &mut SysArgs) {
   render_layer::<layer::Layer6>(args);
   render_layer::<layer::Layer7>(args);
   render_layer::<layer::Layer8>(args);
-  render_layer::<layer::Layer9>(args);
+  render_sticky(args);
 }
 
 /// render entities of layer T
@@ -43,6 +43,14 @@ pub fn render_layer<T>(SysArgs { world, camera, render, asset, .. }: &mut SysArg
 pub fn render_unlayered(SysArgs { world, camera, render, asset, .. }: &mut SysArgs) {
   for (_, (renderable, position)) in world.query::<QueryRenderable>() {
     let position = camera.translate(Vec2::from(position.0));
+    render_renderable(render, asset, renderable, position);
+  }
+}
+
+/// render entities with a sticky layer
+pub fn render_sticky(SysArgs { world, render, asset, .. }: &mut SysArgs) {
+  for (_, (renderable, position, ..)) in world.query::<QueryRenderableOf<StickyLayer>>() {
+    let position = Vec2::from(position.0);
     render_renderable(render, asset, renderable, position);
   }
 }

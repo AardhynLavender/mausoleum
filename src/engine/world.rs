@@ -33,9 +33,9 @@ impl World {
     self.world.spawn_batch(components)
   }
 
-  /// Attempt to fetch a set of components from an entity
+  /// Attempt to fetch a component from an entity
   ///
-  /// Returns an error if the entity does not exist or the entity does not satisfy the component set
+  /// Returns an error if the entity does not exist or the component is not found
   #[allow(dead_code)]
   pub fn get_component<'a, C>(&self, entity: Entity) -> Result<Ref<C>, String>
     where C: Component
@@ -45,6 +45,18 @@ impl World {
       .map_err(|e| e.to_string())?
       .get::<&C>()
       .ok_or(String::from("Entity does not have component"))
+  }
+
+  /// Check if a component exists on an entity
+  ///
+  /// Returns an error if the entity does not exist
+  pub fn has_component<C>(&self, entity: Entity) -> Result<bool, String>
+    where C: Component
+  {
+    self.world
+      .entity(entity)
+      .map_err(|e| e.to_string())
+      .map(|e| e.get::<&C>().is_some())
   }
 
   /// Add a set of components to an entity

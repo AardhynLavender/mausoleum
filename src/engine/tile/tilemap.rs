@@ -4,6 +4,7 @@ use hecs::Entity;
 
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer;
 use crate::engine::tile::tile::{Tile, TileCollider, TileConcept, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
@@ -55,6 +56,7 @@ impl Tilemap {
           Tile::new(tile.data.tile_key),
           Position::new(tile_position.x, tile_position.y),
           Sprite::new(tile.data.texture_key, tile.data.src),
+          layer::Layer5
         ));
 
         // add a collider if the tile has a mask

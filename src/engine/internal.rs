@@ -1,8 +1,8 @@
 use hecs::Entity;
 use sdl2::keyboard::Keycode;
 
-use crate::engine::component::text::{Text, TextLayer};
-use crate::engine::rendering::camera::sys_tether;
+use crate::engine::component::text::Text;
+use crate::engine::rendering::camera::{StickyLayer, sys_tether};
 use crate::engine::rendering::color::color;
 use crate::engine::rendering::system::sys_render;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
@@ -33,7 +33,7 @@ pub fn add_internal_systems(systems: &mut SystemManager) {
 pub fn add_internal_entities(world: &mut World) {
   let fps_text = Text::new(color::TEXT);
   unsafe {
-    FPS_TEXT = Some(world.add((FpsText, fps_text, Position::new(4.0, 4.0), TextLayer {})));
+    FPS_TEXT = Some(world.add((FpsText, fps_text, Position::new(4.0, 4.0), StickyLayer::default())));
   }
 }
 

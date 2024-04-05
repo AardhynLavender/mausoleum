@@ -48,8 +48,8 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),
-    CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)),
-    LayerPlayer {},
+    CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
+    LayerPlayer::default(),
     Gravity::new(GRAVITY),
     Velocity::default(),
     Collider::new(PLAYER_COLLIDER),

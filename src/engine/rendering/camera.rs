@@ -1,4 +1,5 @@
 use crate::engine::geometry::shape::{Rec2, Vec2};
+use crate::engine::rendering::renderer::layer;
 use crate::engine::system::SysArgs;
 use crate::engine::utility::alias::Size;
 use crate::game::physics::position::Position;
@@ -88,4 +89,4 @@ pub fn sys_tether(SysArgs { camera, world, .. }: &mut SysArgs) {
 }
 
 /// Entities with this component will be positioned relative to the camera
-pub struct CameraSticky;
+pub type StickyLayer = layer::Layer9;

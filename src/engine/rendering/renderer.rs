@@ -14,22 +14,31 @@ use crate::engine::rendering::color::RGBA;
 ///
 /// Highly recommend using alias to attach semantics to units
 pub mod layer {
+  #[derive(Default)]
   pub struct Layer1;
 
+  #[derive(Default)]
   pub struct Layer2;
 
+  #[derive(Default)]
   pub struct Layer3;
 
+  #[derive(Default)]
   pub struct Layer4;
 
+  #[derive(Default)]
   pub struct Layer5;
 
+  #[derive(Default)]
   pub struct Layer6;
 
+  #[derive(Default)]
   pub struct Layer7;
 
+  #[derive(Default)]
   pub struct Layer8;
 
+  #[derive(Default)]
   pub struct Layer9;
 }
 
