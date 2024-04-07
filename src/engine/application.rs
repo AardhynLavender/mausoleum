@@ -86,7 +86,7 @@ impl Application {
     actions: Lifecycle,
     initial_scene: impl Scene + 'static,
   ) -> Result<(), String> {
-    let dimensions = properties.dimensions;
+    let dimensions = properties.logical.unwrap_or(properties.dimensions);
     let mut subsystem = Subsystem::build(properties)?;
     let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
     let mut assets = AssetManager::new(&subsystem.renderer, &ttf_context);

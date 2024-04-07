@@ -41,6 +41,7 @@ impl Scene for LevelScene {
     tilemap.add_to_world(world, Vec2::default()).expect("Failed to add tilemap to world");
 
     println!("Level {} Initialized.", self.level_key);
+    camera.set_bounds(bounds);
 
     add_player(world, system, asset);
     camera.tether();

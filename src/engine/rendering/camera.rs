@@ -13,15 +13,17 @@ pub type CameraBounds = Rec2<i32, Size>;
 /// Camera structure
 pub struct Camera {
   tethered: bool,
-  bounds: CameraBounds,
+  viewport: CameraBounds,
+  bounds: Option<CameraBounds>,
 }
 
 impl Camera {
   /// Instantiate a new camera of `size`
-  pub fn new(bounds: CameraBounds) -> Self {
+  pub fn new(viewport: CameraBounds) -> Self {
     Self {
       tethered: false,
-      bounds,
+      viewport,
+      bounds: None,
     }
   }
   /// Tether the camera to an entity
@@ -33,21 +35,33 @@ impl Camera {
   /// Remove the camera tether and assign a new `position`
   pub fn release(&mut self, new_position: Vec2<i32>) {
     if self.tethered {
-      self.bounds.origin = new_position;
+      self.viewport.origin = new_position;
       self.tethered = false;
     }
   }
+  /// Get the camera viewport
+  pub fn get_viewport(&self) -> &CameraBounds { &self.viewport }
   /// Get the camera bounds
-  pub fn get_bounds(&self) -> &CameraBounds { &self.bounds }
+  pub fn get_bounds(&self) -> &Option<CameraBounds> { &self.bounds }
   /// Get the camera position
-  pub fn get_position(&self) -> Vec2<i32> { self.bounds.origin }
+  pub fn get_position(&self) -> Vec2<i32> { self.viewport.origin }
   /// Center the camera on `position`
   pub fn set_position(&mut self, position: Vec2<i32>) {
-    self.bounds.origin = position - Vec2::from(self.bounds.size) / 4;
+    let mut new_position = position - Vec2::from(self.viewport.size) / 2;
+    if let Some(bounds) = &self.bounds {
+      new_position.clamp(&bounds.origin, &Vec2::<i32>::from((bounds.origin + Vec2::<i32>::from(bounds.size)) - Vec2::<i32>::from(self.viewport.size)));
+    }
+    self.viewport.origin = new_position;
   }
-  /// Translate a `position` to the camera's coordinate system
+  /// Set the camera bounds
+  pub fn set_bounds(&mut self, bounds: CameraBounds) {
+    self.bounds = Some(bounds);
+  }
+  /// remove the bounds from the camera
+  pub fn remove_bounds(&mut self) { self.bounds = None; }
+  /// Translate a `position` to the camera viewport coordinate system
   pub fn translate(&self, position: Vec2<f32>) -> Vec2<i32> {
-    Vec2::<i32>::from(position) - self.bounds.origin
+    Vec2::<i32>::from(position) - self.viewport.origin
   }
 }
 
