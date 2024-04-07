@@ -24,7 +24,7 @@ const PLAYER_ASSET: &str = "asset/test.png";
 pub type LayerPlayer = layer::Layer4;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut Collider, &'p mut PlayerController);
+pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider);
 
 /// Query the world for the player return its components
 ///

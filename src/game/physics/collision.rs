@@ -1,3 +1,4 @@
+use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
@@ -10,11 +11,11 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
  */
 
 /// Add a collision box to an entity
-pub struct Collider(pub Rec2<f32, Size>);
+pub struct Collider(pub CollisionBox);
 
 impl Collider {
   /// Instantiate a new Collider component
-  pub fn new(bounds: Rec2<f32, Size>) -> Self {
+  pub fn new(bounds: CollisionBox) -> Self {
     Self(bounds)
   }
 }

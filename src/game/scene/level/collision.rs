@@ -10,7 +10,7 @@ pub fn sys_tile_collision(SysArgs { world, .. }: &mut SysArgs) {
   let mut phase = 0;
   'resolving: loop {
     phase += 1;
-    let (position, _, collider, ..) = use_player(world);
+    let (position, _, _, collider, ..) = use_player(world);
     let player_rect = Rec2::new(position.0 + collider.0.origin, collider.0.size);
 
     let collision = get_tile_collisions(world, &player_rect).next();
