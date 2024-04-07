@@ -4,6 +4,8 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use num::{abs, clamp, Num, Signed, Unsigned};
 use sdl2::rect::{Point, Rect};
 
+use crate::engine::utility::alias::Size;
+
 /**
  * Geometric primitives
  */
@@ -178,6 +180,22 @@ impl<T> Add for &Vec2<T> where T: UnitPrimitive {
   }
 }
 
+impl<T> Add<T> for Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Add a scalar to a vector of `T`
+  fn add(self, scalar: T) -> Self {
+    Vec2::new(self.x + scalar, self.y + scalar)
+  }
+}
+
+impl<T> Add<T> for &Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Add a scalar to a vector of `T`
+  fn add(self, scalar: T) -> Vec2<T> {
+    *self + scalar
+  }
+}
+
 impl<T> Sub for Vec2<T> where T: UnitPrimitive {
   type Output = Vec2<T>;
   /// Subtract two vectors of `T` from each other
@@ -191,6 +209,22 @@ impl<T> Sub for &Vec2<T> where T: UnitPrimitive {
   /// Subtract two vectors of `T` from each other
   fn sub(self, other: Self) -> Vec2<T> {
     *self - *other
+  }
+}
+
+impl<T> Sub<T> for Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Subtract a scalar from a vector of `T`
+  fn sub(self, scalar: T) -> Self {
+    Vec2::new(self.x - scalar, self.y - scalar)
+  }
+}
+
+impl<T> Sub<T> for &Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Subtract a scalar from a vector of `T`
+  fn sub(self, scalar: T) -> Vec2<T> {
+    *self - scalar
   }
 }
 
@@ -259,6 +293,13 @@ impl<T: UnitPrimitive, U: SizePrimitive> Rec2<T, U> {
   /// Deconstruct the rectangle into its physics.rs
   pub fn destructure(&self) -> ((T, T), (U, U)) {
     (self.origin.destructure(), self.size.destructure())
+  }
+}
+
+impl Rec2<f32, Size> {
+  /// Clamp the rectangle within the bounds of a greater rectangle
+  pub fn clamp_position(&mut self, bounds: &Rec2<f32, Size>) {
+    self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
 }
 

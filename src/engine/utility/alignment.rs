@@ -69,7 +69,7 @@ impl Aligner {
         Align::End(offset) => (self.bounds.size.y - size.y) as f32 - offset,
         Align::At(unit) => unit,
       },
-    ) + self.bounds.origin.into()
+    ) + Vec2::<f32>::from(self.bounds.origin)
   }
 }
 
