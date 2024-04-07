@@ -22,6 +22,7 @@ pub fn sys_gravity(SysArgs { delta, world, .. }: &mut SysArgs) {
   for (_, (gravity, velocity)) in world.query::<(&mut Gravity, &mut Velocity)>() {
     let gravity = Vec2::new(gravity.0.x, gravity.0.y.min(MAX_GRAVITY));
     velocity.0 = velocity.0 + (gravity * *delta);
+    velocity.0.y = velocity.0.y.max(MAX_GRAVITY);
   }
 }
 
