@@ -1,4 +1,7 @@
+use std::path::Path;
+
 use crate::engine::store::Store;
+use crate::game::utility::path::get_filename;
 
 /**
  * Loading and playing music and sfx
@@ -26,7 +29,7 @@ pub enum Loop {
 pub struct Audio {
   pub sound: Sound,
   pub name: String,
-  pub path: String,
+  pub path: Box<Path>,
 }
 
 /// Store music and sfx
@@ -49,33 +52,35 @@ impl AudioPlayer {
   }
 
   /// Load a sfx or music file
-  pub fn load(&mut self, sound_type: SoundType, filepath: String) -> Result<AudioKey, &str> {
-    let path = filepath.clone();
-    let filename = path.split("/").last().ok_or("Failed to get filename")?;
-    let basename = filename.split(".").next().ok_or("Failed to get basename")?;
+  pub fn load(&mut self, sound_type: SoundType, filepath: impl AsRef<Path>) -> Result<AudioKey, String> {
+    let basename = get_filename(&filepath)?;
 
     match sound_type {
       SoundType::Music => {
         let music =
-          sdl2::mixer::Music::from_file(filepath.clone()).expect("Failed to load music");
+          sdl2::mixer::Music::from_file(&filepath).expect("Failed to load music");
         let audio = Audio {
           sound: Sound::Music { data: music },
-          name: String::from(basename),
-          path: filepath,
+          name: basename.clone(),
+          path: filepath
+            .as_ref()
+            .to_path_buf()
+            .into_boxed_path(),
         };
-        self.store.add(String::from(basename), audio);
-        Ok(String::from(basename))
+        Ok(self.store.add(audio.name.clone(), audio).name.clone())
       }
       SoundType::Effect => {
-        let effect = sdl2::mixer::Chunk::from_file(filepath.clone())
+        let effect = sdl2::mixer::Chunk::from_file(&filepath)
           .expect("Failed to load sound effect");
         let audio = Audio {
           sound: Sound::Effect { data: effect },
           name: String::from(basename),
-          path: filepath,
+          path: filepath
+            .as_ref()
+            .to_path_buf()
+            .into_boxed_path(),
         };
-        self.store.add(String::from(basename), audio);
-        Ok(String::from(basename))
+        Ok(self.store.add(audio.name.clone(), audio).name.clone())
       }
     }
   }
