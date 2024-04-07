@@ -83,7 +83,7 @@ pub fn sys_menu_selection(SysArgs { world, scene, event, .. }: &mut SysArgs) {
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
-      0 => scene.queue_next(LevelScene::build(0).expect("Failed to build level scene")),
+      0 => scene.queue_next(LevelScene::build("level_0").expect("Failed to build level scene")),
       1 => println!("Not implemented yet"),
       2 => event.queue_quit(),
       _ => panic!("Invalid selection")

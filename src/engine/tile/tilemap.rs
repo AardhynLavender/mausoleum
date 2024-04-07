@@ -20,6 +20,7 @@ use crate::game::physics::position::Position;
 pub struct Tilemap {
   // store the data to build the tilemap
   tiles: Vec<Option<TileConcept>>,
+  tile_size: Size2,
   // store the entities that make up the tilemap
   entities: HashMap<Coordinate, Entity>,
   dimensions: Size2,
@@ -35,15 +36,18 @@ impl Tilemap {
     }
 
     Ok(Self {
+      tile_size: tileset.tile_size,
       tiles: tileset.tiledata_from::<Vec<Option<TileConcept>>>(&initial_tiles, dimensions)?.collect(),
       entities: HashMap::with_capacity(tile_count),
       dimensions,
     })
   }
-  /// create the tiles from the tiledata and add them to the world storing references to the created
-  /// entities
+  /// Add the tiles to the world
   pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) -> Result<(), String> {
-    for (index, tile) in self.tiles.iter().enumerate() {
+    for (index, tile) in self.tiles
+      .iter()
+      .enumerate()
+    {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
         let (tile_width, tile_height) = tile.data.src.size.destructure();
@@ -82,11 +86,9 @@ impl Tilemap {
 
     Ok(())
   }
-  /// Check if `coordinate` is within the bounds of the tilemap
-  pub fn is_bound(&self, coordinate: &Coordinate) -> bool {
-    let x_bound = coordinate.x >= 0 && coordinate.x < self.dimensions.x as i32;
-    let y_bound = coordinate.y >= 0 && coordinate.y < self.dimensions.y as i32;
-    x_bound && y_bound
+  /// get the dimensions of the tilemap in worldspace
+  pub fn get_dimensions(&self) -> Size2 {
+    self.dimensions * self.tile_size
   }
 }
 
