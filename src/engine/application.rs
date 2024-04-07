@@ -6,6 +6,7 @@ use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::rendering::renderer::Properties;
 use crate::engine::scene::{Scene, SceneManager};
+use crate::engine::state::State;
 use crate::engine::subsystem::Subsystem;
 use crate::engine::system::{Schedule, SysArgs, SystemManager};
 use crate::engine::time::Frame;
@@ -27,6 +28,7 @@ struct Engine<'a> {
   world: World,
   lifecycle: Lifecycle,
   last_frame: Frame,
+  state: State,
 }
 
 impl<'a> Engine<'a> {
@@ -37,6 +39,7 @@ impl<'a> Engine<'a> {
       events: EventStore::new(),
       scenes: SceneManager::new(scene),
       camera: Camera::new(CameraBounds::new(Vec2::default(), dimensions)),
+      state: State::default(),
       world: World::new(),
       lifecycle,
       last_frame: Frame::default(),
@@ -50,14 +53,14 @@ impl<'a> Engine<'a> {
     add_internal_systems(&mut systems);
     add_internal_entities(&mut self.world);
 
-    (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, assets));
+    (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets));
 
     loop {
       // compute delta time
       let (delta, ..) = self.last_frame.next();
 
       if self.scenes.is_queue() {
-        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, assets))
+        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets))
       }
 
       self.subsystem.events.update(&mut self.events);
@@ -65,7 +68,7 @@ impl<'a> Engine<'a> {
         break;
       }
 
-      let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, assets);
+      let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
       systems.update(Schedule::FrameUpdate, &mut args);
       systems.update(Schedule::PostUpdate, &mut args);
 
