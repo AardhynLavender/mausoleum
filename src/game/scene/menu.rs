@@ -66,7 +66,9 @@ impl Scene for MenuScene {
     system.add(Schedule::PostUpdate, sys_render_selected);
   }
   /// Destroy the main menu scene
-  fn destroy(&self, _: &mut LifecycleArgs) {}
+  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
+    state.remove::<MenuState>().expect("Failed to remove menu state")
+  }
 }
 
 // Systems //

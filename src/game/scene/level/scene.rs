@@ -51,7 +51,7 @@ impl Scene for LevelScene {
     add_player(world, system, asset);
     camera.tether();
 
-    state.add(room_registry).expect("Failed to add level state");
+    state.add(room_registry).expect("Failed to add level state")
   }
   /// Add systems to the level scene
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
@@ -67,7 +67,9 @@ impl Scene for LevelScene {
     system.add(Schedule::PostUpdate, sys_exit_level);
   }
   /// Clean up the level scene
-  fn destroy(&self, _: &mut LifecycleArgs) {}
+  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
+    state.remove::<RoomRegistry>().expect("Failed to remove level state");
+  }
 }
 
 /// Exit the level scene
