@@ -1,7 +1,5 @@
 # Credits
 
-## Developers
-
 Aardhyn Lavender
 
 ## Toolset
@@ -25,19 +23,11 @@ Aardhyn Lavender
 - Windows 11
 - macOS Sonoma
 
-## Artwork
+## Artwork and Level Design
 
 Aardhyn Lavender
 
-## Level Design
-
-Aardhyn Lavender
-
-## Soundtrack
-
-Aardhyn Lavender
-
-## Sound Design
+## Score and Sound Design
 
 Aardhyn Lavender
 
@@ -48,3 +38,5 @@ QuinqureFive by GGBotNet
 ## Thanks
 
 "The Rust Programming Language" by Steve Klabnik and Carol Nichols
+
+"Math for Game Programmers: Building a Better Jump" by Kyle Pittman

@@ -1,2 +1,2 @@
-pub mod level;
 pub mod menu;
+pub mod level;

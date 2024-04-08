@@ -1,7 +1,10 @@
 use crate::engine::asset::texture::TextureKey;
-use crate::engine::geometry::{Rec2, Vec2};
-use crate::engine::tile::tile::{TileData, TileKey};
-use crate::engine::utility::alias::Size2;
+use crate::engine::geometry::collision::CollisionMask;
+use crate::engine::geometry::shape::{Rec2, Vec2};
+use crate::engine::tile::tile::{TileConcept, TileData, TileKey};
+use crate::engine::utility::alias::{Coordinate, Size2};
+use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate};
+use crate::engine::utility::direction::Direction;
 
 /**
  * Tileset structure and utilities
@@ -23,11 +26,7 @@ fn make_tiles(texture_key: TextureKey, dimensions: Size2, tile_size: Size2) -> R
       let tile_key: TileKey = (y * (width / tile_size.x) + x) as TileKey;
       let tile_position = Vec2::new(x, y) * tile_size;
       let src = Rec2::new(tile_position, tile_size);
-      tiles.push(TileData {
-        texture_key,
-        tile_key,
-        src,
-      });
+      tiles.push(TileData::new(texture_key, src, tile_key));
     }
   }
 
@@ -61,18 +60,37 @@ impl Tileset {
   }
 
   /// Convert a collection of `tile_keys` to `TileData`
-  pub fn get_tiles<'a, I>(&'a self, tile_data: I) -> impl Iterator<Item=Option<TileData>> + 'a
-    where I: IntoIterator<Item=Option<TileKey>>, <I as IntoIterator>::IntoIter: 'a
-  {
-    tile_data
-      .into_iter()
-      .map(|tile_key| {
-        tile_key.map(|key| {
-          self
-            .get_tile(key)
-            .expect("failed to get tile")
-        })
+  pub fn tiledata_from<'a, I>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileConcept>> + 'a, String> {
+    let result = tile_data
+      .iter()
+      .enumerate()
+      .map(|(index, tile_key)| {
+        if let Some(tile_key) = tile_key {
+          let data = self.get_tile(*tile_key as usize)?;
+          let coordinate = index_to_coordinate(index, dimensions);
+          let mask = CollisionMask::new(
+            has_tile_at(tile_data, &(coordinate + Direction::Up.to_coordinate()), &dimensions),
+            has_tile_at(tile_data, &(coordinate + Direction::Right.to_coordinate()), &dimensions),
+            has_tile_at(tile_data, &(coordinate + Direction::Down.to_coordinate()), &dimensions),
+            has_tile_at(tile_data, &(coordinate + Direction::Left.to_coordinate()), &dimensions),
+          );
+          let concept = TileConcept::new(data.clone(), mask.clone());
+          Ok::<Option<TileConcept>, String>(Some(concept))
+        } else {
+          Ok(None)
+        }
       })
+      .collect::<Result<Vec<_>, _>>()?
+      .into_iter();
+
+    Ok(result)
   }
 }
 
+/// Check if the tile at `coordinate` is valid and contains a tile
+fn has_tile_at(data: &Vec<Option<TileKey>>, coordinate: &Coordinate, dimensions: &Size2) -> bool {
+  let index = coordinate_to_index(coordinate, *dimensions);
+  data
+    .get(index)
+    .map_or(false, |tile| tile.is_none())
+}

@@ -3,6 +3,7 @@ use std::path::Path;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 
 use crate::engine::store::Store;
+use crate::game::utility::path::{get_filename, get_path};
 
 /**
  * Typeface loading, storage, and retrieval
@@ -28,17 +29,11 @@ impl<'ttf, 'l> TypefaceLoader<'ttf, 'l> {
 
   /// Loads a typeface from a file and adds it to the store
   pub fn load(&mut self, filepath: &Path, size: u16) -> Result<(), String> {
-    let path_str = filepath
-      .to_str()
-      .ok_or("Failed to convert path to str")?;
-    let basename = filepath
-      .file_stem()
-      .ok_or("Could not extract file stem")?
-      .to_str()
-      .ok_or("Could not convert OsStr to str")?;
+    let path_str = get_path(filepath)?;
+    let filename = get_filename(filepath)?;
 
     let font = self.subsystem.load_font(path_str, size)?;
-    self.store.add(String::from(basename), font);
+    self.store.add(String::from(filename), font);
 
     Ok(())
   }

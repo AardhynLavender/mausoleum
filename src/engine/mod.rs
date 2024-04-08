@@ -1,8 +1,7 @@
 pub mod application;
 pub mod asset;
 pub mod event;
-pub mod geometry;
-pub mod render;
+pub mod rendering;
 pub mod store;
 pub mod subsystem;
 pub mod tile;
@@ -14,3 +13,5 @@ pub mod internal;
 pub mod scene;
 pub mod lifecycle;
 pub mod component;
+pub mod geometry;
+pub mod state;

@@ -5,7 +5,7 @@ use sdl2::render::{TextureCreator, TextureQuery};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 
-use crate::engine::geometry::Rec2;
+use crate::engine::geometry::shape::Rec2;
 use crate::engine::store::{next_key, Store};
 use crate::engine::utility::alias::{Size, Size2};
 
@@ -34,15 +34,12 @@ impl TextureLoader {
   }
 
   /// Loads a texture from a file and adds it to the store
-  pub fn load(&mut self, filepath: &Path) -> Result<TextureKey, String> {
+  pub fn load(&mut self, filepath: impl AsRef<Path>) -> Result<TextureKey, String> {
     // load texture
-    let parsed_filepath = filepath
-      .to_str()
-      .ok_or(String::from("Invalid filepath"))?;
     let internal_texture = self
       .subsystem
-      .load_texture(parsed_filepath)
-      .map_err(|_| String::from(format!("Failed to load texture: '{}'", parsed_filepath)))?;
+      .load_texture(filepath)
+      .map_err(|_| "Failed to load texture")?;
 
     // store texture
     let texture = Texture::new(internal_texture);
@@ -69,7 +66,7 @@ impl TextureLoader {
 }
 
 /// A rectangle of pixels
-pub type SrcRect = Rec2<u32, u32>;
+pub type SrcRect = Rec2<Size, Size>;
 
 /// A wrapper for a SDL2 texture
 pub struct Texture {

@@ -1,13 +1,14 @@
-use hecs::DynamicBundle;
+use hecs::{Component, DynamicBundle};
 use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
-use crate::engine::geometry::Vec2;
-use crate::engine::render::color::RGBA;
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::rendering::camera::StickyLayer;
+use crate::engine::rendering::color::RGBA;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Aligner, Alignment};
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 pub struct Text {
   content: String,
@@ -72,8 +73,11 @@ impl Text {
 
   /// Updates the content of a text
   pub fn set_content(&mut self, content: impl Into<String>) {
+    let content = content.into();
+    if self.content == content { return; } // no need to update if the content is the same
+
     self.dirty = true;
-    self.content = content.into();
+    self.content = content;
   }
   /// Updates the content of a text and rebuilds the texture recalculating dimensions
   /// ## Panics
@@ -103,18 +107,20 @@ impl Text {
 // Helpers //
 
 /// Helper function to assemble the components for a text entity
-pub fn make_text<'font, 'app>(
+pub fn make_text<'font, 'app, C>(
   content: impl Into<String>,
   position: Alignment,
   aligner: &Aligner,
   color: RGBA,
   typeface: &Font<'font, 'app>,
   texture_loader: &mut TextureLoader,
-) -> impl DynamicBundle {
+) -> impl DynamicBundle
+  where C: Component + Default + 'static,
+{
   let text = Text::new(color).with_content(content, &typeface, texture_loader);
   let position = aligner.align(position, text.get_dimensions());
 
-  (Position(position), text)
+  (Position(position), text, StickyLayer::default(), C::default(), )
 }
 
 /// Helper struct for creating multiple text entities
@@ -136,8 +142,10 @@ impl<'app, 'fonts> TextBuilder<'app, 'fonts> {
     }
   }
   /// Assemble the components for a text entity
-  pub fn make_text(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle {
-    make_text(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
+  pub fn make_text<C>(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle
+    where C: Component + Default + 'static
+  {
+    make_text::<C>(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
   }
 }
 

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::Path;
 
@@ -7,11 +8,10 @@ use serde::Deserialize;
  * Parse Tiled data into Rust structures.
  */
 
-// Tiled World (*.world) //
+/// A reference to a Tiled tilemap in a Tiled world file
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
-pub struct TiledWorldMap {
+pub struct TiledWorldReferenceMap {
   pub file_name: String,
   pub height: u32,
   pub width: u32,
@@ -19,22 +19,20 @@ pub struct TiledWorldMap {
   pub y: i32,
 }
 
+/// A Tiled world .world file
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
 pub struct TiledWorld {
-  pub maps: Vec<TiledWorldMap>,
+  pub maps: Vec<TiledWorldReferenceMap>,
   pub only_show_adjacent_maps: bool,
   #[serde(rename = "type")]
   pub world_type: String,
 }
 
-// Tiled Tilemap (*.tmx) //
-
+/// A Tiled tilesets image reference
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
-pub struct TiledTilemap {
+pub struct TiledImage {
   #[serde(rename = "@source")]
   pub source: String,
   #[serde(rename = "@width")]
@@ -43,9 +41,9 @@ pub struct TiledTilemap {
   pub height: u32,
 }
 
+/// A Tiled tileset .tsx file
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
 pub struct TiledTileset {
   #[serde(rename = "@version")]
   pub version: String,
@@ -60,21 +58,12 @@ pub struct TiledTileset {
   #[serde(rename = "@columns")]
   pub columns: u32,
 
-  pub image: TiledTilemap,
+  pub image: TiledImage,
 }
 
-// Bundle a Tiled tileset with its path
-#[derive(Debug)]
-pub struct TiledTilesetWithPath {
-  pub path: Box<Path>,
-  pub tileset: TiledTileset,
-}
-
-// Tiled Tileset (*.tsx) //
-
+/// A Tilemaps reference to a Tiled tileset
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
 pub struct TiledTilesetReference {
   #[serde(rename = "@firstgid")]
   pub first_gid: u32,
@@ -82,21 +71,20 @@ pub struct TiledTilesetReference {
   pub source: String,
 }
 
+/// Tiled layer tile data
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
 pub struct TiledLayerData {
-  // attributes //
   #[serde(rename = "@encoding")]
   pub encoding: String,
-  // children //
+
   #[serde(rename = "$value")]
   pub tiles: String,
 }
 
+// A tile layer within a Tiled tilemap
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
 pub struct TiledLayer {
   #[serde(rename = "@id")]
   pub id: u32,
@@ -110,11 +98,10 @@ pub struct TiledLayer {
   pub data: TiledLayerData,
 }
 
+// A Tiled tilemap .tmx file
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-#[allow(unused)]
-pub struct TiledTileMap {
-  // attributes //
+pub struct TiledTilemap {
   #[serde(rename = "@version")]
   pub version: String,
   #[serde(rename = "@tiledversion")]
@@ -140,53 +127,47 @@ pub struct TiledTileMap {
 
 // Parser //
 
-#[allow(unused)]
+/// A parsed Tiled tilemap and a vector of tileset paths it references.
 #[derive(Debug)]
+pub struct ParsedTiledTilemap {
+  pub tilemap: TiledTilemap,
+  pub tileset_paths: Vec<Box<Path>>,
+}
+
 /// Parse Tiled data into Rust structures.
 pub struct TiledParser {
-  pub tilesets: Vec<TiledTilesetWithPath>,
-  pub tilemaps: Vec<TiledTileMap>,
+  pub tilesets: HashMap<Box<Path>, TiledTileset>,
+  pub tilemaps: HashMap<Box<Path>, TiledTilemap>,
   pub world: TiledWorld,
 }
 
-/// Result of parsing a Tiled tilemap.
-#[derive(Debug)]
-pub struct ParsedTiledTilemap {
-  pub tilemap: TiledTileMap,
-  pub tilesets: Vec<Box<Path>>,
-}
-
-#[allow(unused)]
 impl TiledParser {
+  /// Parse a Tiled world file into it's tilemaps and tilesets
   pub fn parse(world_file: &Path) -> Result<Self, String> {
     // parse the world file
     let world = Self::parse_world(world_file).map_err(|e| e.to_string())?;
     let world_parent = world_file.parent().ok_or("Failed to get world directory")?;
 
-    // parse tilemaps of the world
-    let parsed_tilemaps = world.maps.iter().map(|map| {
-      let tilemap_path = world_parent.join(&map.file_name).into_boxed_path();
-      Self::parse_tilemap(&*tilemap_path)
-    }).collect::<Result<Vec<ParsedTiledTilemap>, String>>()?;
+    let mut tilesets = HashMap::new();
+    let mut tilemaps = HashMap::new();
 
-    // separate the tilemaps from their referenced tilesets
-    let (tilemaps, tileset_paths_nested): (Vec<TiledTileMap>, Vec<Vec<Box<Path>>>) = parsed_tilemaps
-      .into_iter()
-      .map(|parsed_tilemap| (parsed_tilemap.tilemap, parsed_tilemap.tilesets))
-      .unzip();
-    let mut tileset_paths = tileset_paths_nested
-      .into_iter()
-      .flatten()
-      .collect::<Vec<Box<Path>>>();
+    // parse tilemaps in the world
+    for tilemap_reference in &world.maps {
+      // parse the tilemap
+      let tilemap_path = world_parent.join(&tilemap_reference.file_name).into_boxed_path();
+      let ParsedTiledTilemap { tilemap, tileset_paths } = Self::parse_tilemap(&*tilemap_path)?;
+      tilemaps.insert(tilemap_path, tilemap);
 
-    // remove duplicate tileset paths
-    tileset_paths.sort();
-    tileset_paths.dedup();
+      // parse the tilesets referenced by the tilemap
+      for tileset_path in tileset_paths {
+        if tilesets.contains_key(&tileset_path) {
+          continue; // already parsed
+        }
 
-    // parse tilesets
-    let tilesets = tileset_paths.into_iter().map(|tileset_path| {
-      Self::parse_tileset(tileset_path).map_err(|e| e.to_string())
-    }).collect::<Result<Vec<TiledTilesetWithPath>, String>>()?;
+        let tileset = Self::parse_tileset(&tileset_path)?;
+        tilesets.insert(tileset_path, tileset);
+      }
+    }
 
     Ok(TiledParser {
       world,
@@ -204,38 +185,44 @@ impl TiledParser {
   }
 
   /// Parse a Tiled tilemap file
-  /// Returns the parsed tilemap and the paths to the tilesets it references.
-  fn parse_tilemap(tilemap_path: &Path) -> Result<ParsedTiledTilemap, String> {
+  /// Returns a parsed tilemap and the paths to the tilesets it references.
+  fn parse_tilemap(path: impl AsRef<Path>) -> Result<ParsedTiledTilemap, String> {
+    let tilemap_path = path.as_ref();
+
     // parse tilemap
     let tilemap_str = std::fs::read_to_string(tilemap_path).map_err(|e| e.to_string())?;
-    let tilemap: TiledTileMap = quick_xml::de::from_str(&tilemap_str).map_err(|e| e.to_string())?;
+    let tilemap: TiledTilemap = quick_xml::de::from_str(&tilemap_str).map_err(|e| e.to_string())?;
 
     // get tileset paths
-    let tileset_paths = tilemap.tileset.iter().map(|tileset| {
-      let parent = tilemap_path
-        .parent()
-        .ok_or("Failed to get tilemap parent")?;
-      let tileset_path = parent
-        .join(&tileset.source)
-        .into_boxed_path();
+    let tileset_paths = tilemap.tileset
+      .iter()
+      .map(|tileset| {
+        let parent = tilemap_path
+          .parent()
+          .ok_or("Failed to get tilemap parent")?;
+        let tileset_path = parent
+          .join(&tileset.source)
+          .into_boxed_path();
 
-      Ok::<Box<Path>, String>(tileset_path)
-    }).collect::<Vec<_>>();
+        Ok::<Box<Path>, String>(tileset_path)
+      }).collect::<Vec<_>>();
 
-    // handle errors in the tileset paths
-    let tilesets = tileset_paths.into_iter().collect::<Result<Vec<_>, _>>()?;
+    // handle any errors in the tileset paths
+    let tilesets = tileset_paths
+      .into_iter()
+      .collect::<Result<Vec<_>, _>>()?;
 
     Ok(ParsedTiledTilemap {
       tilemap,
-      tilesets,
+      tileset_paths: tilesets,
     })
   }
 
   /// Parse a Tiled tileset file
-  fn parse_tileset(path: Box<Path>) -> Result<TiledTilesetWithPath, String> {
-    let tileset_str = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+  fn parse_tileset(path: impl AsRef<Path>) -> Result<TiledTileset, String> {
+    let tileset_str = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
     let tileset = quick_xml::de::from_str(&tileset_str).map_err(|e| e.to_string())?;
 
-    Ok(TiledTilesetWithPath { tileset, path })
+    Ok(tileset)
   }
 }

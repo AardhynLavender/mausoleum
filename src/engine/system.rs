@@ -1,7 +1,9 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
-use crate::engine::render::Renderer;
+use crate::engine::rendering::camera::Camera;
+use crate::engine::rendering::renderer::Renderer;
 use crate::engine::scene::SceneManager;
+use crate::engine::state::State;
 use crate::engine::utility::alias::DeltaMS;
 use crate::engine::world::World;
 
@@ -20,8 +22,10 @@ pub struct SysArgs<'app, 'fonts> {
   pub world: &'app mut World,
   pub render: &'app mut Renderer,
   pub event: &'app mut EventStore,
+  pub camera: &'app mut Camera,
   pub scene: &'app mut SceneManager,
   pub asset: &'app mut AssetManager<'fonts>,
+  pub state: &'app mut State,
 }
 
 impl<'app, 'fonts> SysArgs<'app, 'fonts> {
@@ -31,15 +35,19 @@ impl<'app, 'fonts> SysArgs<'app, 'fonts> {
     world: &'app mut World,
     render: &'app mut Renderer,
     event: &'app mut EventStore,
+    camera: &'app mut Camera,
     scene: &'app mut SceneManager,
+    state: &'app mut State,
     asset: &'app mut AssetManager<'fonts>,
   ) -> Self {
     Self {
       delta,
       world,
       render,
+      camera,
       event,
       scene,
+      state,
       asset,
     }
   }

@@ -2,14 +2,15 @@ use std::collections::HashMap;
 
 use hecs::Entity;
 
-use crate::engine::geometry::Vec2;
-use crate::engine::render::component::Sprite;
-use crate::engine::tile::tile::{Tile, TileData, TileKey};
+use crate::engine::geometry::shape::{Rec2, Vec2};
+use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer;
+use crate::engine::tile::tile::{Tile, TileCollider, TileConcept, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::index_to_coordinate;
 use crate::engine::world::World;
-use crate::game::component::position::Position;
+use crate::game::physics::position::Position;
 
 /**
  * Tilemap structure and utilities
@@ -18,7 +19,8 @@ use crate::game::component::position::Position;
 /// Manages a grid of entities
 pub struct Tilemap {
   // store the data to build the tilemap
-  tiles: Vec<Option<TileData>>,
+  tiles: Vec<Option<TileConcept>>,
+  tile_size: Size2,
   // store the entities that make up the tilemap
   entities: HashMap<Coordinate, Entity>,
   dimensions: Size2,
@@ -34,36 +36,49 @@ impl Tilemap {
     }
 
     Ok(Self {
-      tiles: tileset.get_tiles(initial_tiles).collect(),
+      tile_size: tileset.tile_size,
+      tiles: tileset.tiledata_from::<Vec<Option<TileConcept>>>(&initial_tiles, dimensions)?.collect(),
       entities: HashMap::with_capacity(tile_count),
       dimensions,
     })
   }
-
-  /// create the tiles from the tiledata and add them to the world and store references to the entities created
-  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) {
-    for (index, tile) in self.tiles.iter().enumerate() {
+  /// Add the tiles to the world
+  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) -> Result<(), String> {
+    for (index, tile) in self.tiles
+      .iter()
+      .enumerate()
+    {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
-        let (tile_width, tile_height) = tile.src.size.destructure();
+        let (tile_width, tile_height) = tile.data.src.size.destructure();
         let tile_position = Vec2::new(
           coordinate.x as f32 * tile_width as f32,
           coordinate.y as f32 * tile_height as f32,
         ) + position;
 
-        let entity =
-          world.add((
-            Position::new(tile_position.x, tile_position.y),
-            Tile::new(tile.tile_key),
-            Sprite::new(tile.texture_key, tile.src),
-            // collision, metadata, etc.
-          ));
+        let entity = world.add((
+          Tile::new(tile.data.tile_key),
+          Position::new(tile_position.x, tile_position.y),
+          Sprite::new(tile.data.texture_key, tile.data.src),
+          layer::Layer5
+        ));
+
+        // add a collider if the tile has a mask
+        if !tile.mask.is_empty() {
+          let collider = TileCollider::new(
+            Rec2::new(Vec2::default(), tile.data.src.size),
+            tile.mask,
+          );
+          world.add_components(entity, (collider, ))?;
+        }
 
         self.entities.insert(coordinate, entity);
       }
     }
-  }
 
+    Ok(())
+  }
+  /// remove the entities from the world
   pub fn remove_from_world(&mut self, world: &mut World) -> Result<(), String> {
     for entity in self.entities.values().into_iter() {
       world.free_now(*entity)?
@@ -71,12 +86,9 @@ impl Tilemap {
 
     Ok(())
   }
-
-  /// Check if `coordinate` is within the bounds of the tilemap
-  pub fn is_bound(&self, coordinate: &Coordinate) -> bool {
-    let x_bound = coordinate.x >= 0 && coordinate.x < self.dimensions.x as i32;
-    let y_bound = coordinate.y >= 0 && coordinate.y < self.dimensions.y as i32;
-    x_bound && y_bound
+  /// get the dimensions of the tilemap in worldspace
+  pub fn get_dimensions(&self) -> Size2 {
+    self.dimensions * self.tile_size
   }
 }
 

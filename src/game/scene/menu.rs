@@ -1,20 +1,21 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::{Text, TextBuilder};
 use crate::engine::component::ui::Selection;
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
-use crate::engine::render::color::color;
+use crate::engine::rendering::color::color;
 use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs, SystemManager};
+use crate::engine::state::State;
+use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::utility::alignment::{Align, Alignment};
-use crate::engine::world::{push_state_with, use_state, World};
-use crate::game::component::position::Position;
+use crate::engine::world::World;
 use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
-use crate::game::scene::level::LevelScene;
+use crate::game::physics::position::Position;
+use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /**
- * The main menu scene
+ * The game menu
  */
 
 // State //
@@ -26,7 +27,7 @@ struct MenuState {
 // World //
 
 /// Add the main menu UI to the world
-pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
+pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   let textures = &mut asset.texture;
   let typeface = asset.typeface
     .use_store()
@@ -35,18 +36,17 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
   let mut builder = TextBuilder::new(typeface, textures, color::TEXT, &WINDOW);
 
   // static text
-  world.add(builder.make_text("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
-  world.add(builder.make_text("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
+  world.add(builder.make_text::<()>("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
+  world.add(builder.make_text::<()>("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
   // add buttons
-  let state = MenuState {
+  state.add(MenuState {
     interface: Selection::build([
-      world.add(builder.make_text("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
-      world.add(builder.make_text("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
-      world.add(builder.make_text("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
+      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
+      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
     ]).expect("Failed to build selection")
-  };
-  push_state_with::<MenuState>(world, state);
+  }).expect("Failed to add menu state");
 }
 
 // Scene //
@@ -56,24 +56,26 @@ pub struct MenuScene;
 
 impl Scene for MenuScene {
   /// Set up the main menu scene
-  fn setup(&self, LifecycleArgs { system, world, asset, .. }: &mut LifecycleArgs) {
-    add_ui(world, asset);
-    add_systems(system);
+  fn setup(&self, LifecycleArgs { world, camera, asset, state, .. }: &mut LifecycleArgs) {
+    camera.release(Vec2::default());
+    add_ui(world, asset, state);
+  }
+  /// Add systems to the main menu scene
+  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
+    system.add(Schedule::FrameUpdate, sys_menu_selection);
+    system.add(Schedule::PostUpdate, sys_render_selected);
   }
   /// Destroy the main menu scene
-  fn destroy(&self, _: &mut LifecycleArgs) {}
+  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
+    state.remove::<MenuState>().expect("Failed to remove menu state")
+  }
 }
 
 // Systems //
 
-fn add_systems(system: &mut SystemManager) {
-  system.add(Schedule::FrameUpdate, sys_menu_selection);
-  system.add(Schedule::PostUpdate, sys_render_selected);
-}
-
 /// Manage the selection of the main menu
-pub fn sys_menu_selection(SysArgs { world, scene, event, .. }: &mut SysArgs) {
-  let state = use_state::<MenuState>(world);
+pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
+  let state = state.get_mut::<MenuState>().expect("Failed to get menu state");
   if is_control(Control::Down, Behaviour::Pressed, event) {
     state.interface += 1;
   }
@@ -83,7 +85,7 @@ pub fn sys_menu_selection(SysArgs { world, scene, event, .. }: &mut SysArgs) {
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
-      0 => scene.queue_next(LevelScene::build(0).expect("Failed to build level scene")),
+      0 => scene.queue_next(LevelScene::build("room_0").expect("Failed to build level scene")),
       1 => println!("Not implemented yet"),
       2 => event.queue_quit(),
       _ => panic!("Invalid selection")
@@ -92,8 +94,8 @@ pub fn sys_menu_selection(SysArgs { world, scene, event, .. }: &mut SysArgs) {
 }
 
 /// Render a box around the selected item
-pub fn sys_render_selected(SysArgs { world, render, .. }: &mut SysArgs) {
-  let state = use_state::<MenuState>(world);
+pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) {
+  let state = state.get::<MenuState>().expect("Failed to get menu state");
   let (.., entity) = state.interface.get_selection();
   let (position, text) = world.query_entity::<(&Position, &Text)>(entity).expect("Failed to get selection");
   let rect = Rec2::new(

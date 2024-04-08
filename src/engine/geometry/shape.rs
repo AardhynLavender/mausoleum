@@ -1,8 +1,10 @@
 use std::marker::Copy;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
-use num::{Num, Unsigned};
+use num::{abs, clamp, Num, Signed, Unsigned};
 use sdl2::rect::{Point, Rect};
+
+use crate::engine::utility::alias::Size;
 
 /**
  * Geometric primitives
@@ -11,9 +13,22 @@ use sdl2::rect::{Point, Rect};
 // Traits //
 
 /// Primitive type for geometric shapes
-pub trait UnitPrimitive: Num + AddAssign + SubAssign + DivAssign + MulAssign + Copy + Default {}
+pub trait UnitPrimitive: Num
++ AddAssign
++ SubAssign
++ DivAssign
++ MulAssign
++ Copy
++ PartialOrd
++ Default {}
 
-impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign + Default> UnitPrimitive for T {}
+impl<T: Num + Copy + SubAssign + AddAssign + DivAssign + MulAssign + PartialOrd + Default> UnitPrimitive for T where T: AddAssign
++ SubAssign
++ DivAssign
++ MulAssign
++ Copy
++ PartialOrd
++ Default {}
 
 /// Primitive type for geometric sizes
 pub trait SizePrimitive: UnitPrimitive + Unsigned + Into<u32> {}
@@ -30,7 +45,7 @@ impl<T: UnitPrimitive + Into<i32>> IntConvertable for T {}
 // Vector 2D //
 
 /// A vector representation in 2D space of some numeric type `T`
-#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Hash, Copy, Eq, PartialEq, PartialOrd, Default)]
 pub struct Vec2<T>
   where
     T: UnitPrimitive,
@@ -44,13 +59,27 @@ impl<T: UnitPrimitive> Vec2<T> {
   pub const fn new(x: T, y: T) -> Self {
     Self { x, y }
   }
-  /// Deconstruct the vector into its component.rs
+  /// Deconstruct the vector into its physics.rs
   pub fn destructure(&self) -> (T, T) {
     (self.x, self.y)
   }
 
+  /// Square the `x` and `y` components of the vector
   pub fn square(&self) -> T {
     self.x * self.y
+  }
+
+  /// clamp the vector to a minimum and maximum value
+  pub fn clamp(&mut self, min: &Vec2<T>, max: &Vec2<T>) {
+    self.x = clamp(self.x, min.x, max.x);
+    self.y = clamp(self.y, min.y, max.y);
+  }
+}
+
+impl<T> Vec2<T> where T: UnitPrimitive + Signed {
+  /// Get the absolute value of the vector
+  pub fn abs(&self) -> Self {
+    Vec2::new(abs(self.x), abs(self.y))
   }
 }
 
@@ -94,6 +123,38 @@ impl From<Vec2<i32>> for Vec2<f32> {
   }
 }
 
+impl From<Vec2<f32>> for Vec2<u32> {
+  /// Convert Vec2 i32 to Vec2 u32
+  fn from(value: Vec2<f32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as u32, y as u32)
+  }
+}
+
+impl From<Vec2<u32>> for Vec2<f32> {
+  /// Convert Vec2 u32 to Vec2 i32
+  fn from(value: Vec2<u32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as f32, y as f32)
+  }
+}
+
+impl From<Vec2<i32>> for Vec2<u32> {
+  /// Convert Vec2 i32 to Vec2 u32
+  fn from(value: Vec2<i32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as u32, y as u32)
+  }
+}
+
+impl From<Vec2<u32>> for Vec2<i32> {
+  /// Convert Vec2 u32 to Vec2 i32
+  fn from(value: Vec2<u32>) -> Self {
+    let (x, y) = value.destructure();
+    Vec2::new(x as i32, y as i32)
+  }
+}
+
 impl<T> Into<Rec2<T, T>> for Vec2<T> where T: UnitPrimitive + Unsigned + Into<u32> {
   /// Convert a Vec2 of T into a Rec2 of T where the values of the Vec2 are the size of the Rec2,
   /// and the origin is `Vec2::default()`
@@ -119,6 +180,22 @@ impl<T> Add for &Vec2<T> where T: UnitPrimitive {
   }
 }
 
+impl<T> Add<T> for Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Add a scalar to a vector of `T`
+  fn add(self, scalar: T) -> Self {
+    Vec2::new(self.x + scalar, self.y + scalar)
+  }
+}
+
+impl<T> Add<T> for &Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Add a scalar to a vector of `T`
+  fn add(self, scalar: T) -> Vec2<T> {
+    *self + scalar
+  }
+}
+
 impl<T> Sub for Vec2<T> where T: UnitPrimitive {
   type Output = Vec2<T>;
   /// Subtract two vectors of `T` from each other
@@ -132,6 +209,22 @@ impl<T> Sub for &Vec2<T> where T: UnitPrimitive {
   /// Subtract two vectors of `T` from each other
   fn sub(self, other: Self) -> Vec2<T> {
     *self - *other
+  }
+}
+
+impl<T> Sub<T> for Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Subtract a scalar from a vector of `T`
+  fn sub(self, scalar: T) -> Self {
+    Vec2::new(self.x - scalar, self.y - scalar)
+  }
+}
+
+impl<T> Sub<T> for &Vec2<T> where T: UnitPrimitive {
+  type Output = Vec2<T>;
+  /// Subtract a scalar from a vector of `T`
+  fn sub(self, scalar: T) -> Vec2<T> {
+    *self - scalar
   }
 }
 
@@ -197,9 +290,16 @@ impl<T: UnitPrimitive, U: SizePrimitive> Rec2<T, U> {
   pub const fn new(origin: Vec2<T>, size: Vec2<U>) -> Self {
     Self { origin, size }
   }
-  /// Deconstruct the rectangle into its component.rs
+  /// Deconstruct the rectangle into its physics.rs
   pub fn destructure(&self) -> ((T, T), (U, U)) {
     (self.origin.destructure(), self.size.destructure())
+  }
+}
+
+impl Rec2<f32, Size> {
+  /// Clamp the rectangle within the bounds of a greater rectangle
+  pub fn clamp_position(&mut self, bounds: &Rec2<f32, Size>) {
+    self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
 }
 
@@ -299,7 +399,7 @@ mod tests {
   }
 
   #[test]
-  fn vec2_mult_scalar() {
+  fn vec2_multi_scalar() {
     let vec1 = Vec2::new(1, 2);
     let scalar = 3;
     let vec2 = vec1 * scalar;
@@ -341,6 +441,32 @@ mod tests {
     let vec3 = &vec1 / &vec2;
     assert_eq!(vec3.x, 0);
     assert_eq!(vec3.y, 0);
+  }
+
+  // Vec2 Logic //
+
+  #[test]
+  fn vec2_eq() {
+    let vec1 = Vec2::new(1.653, 2.04362);
+    let vec2 = Vec2::new(1.653, 2.04362);
+    let vec3 = Vec2::new(3.0, 4.12);
+
+    assert_eq!(vec1, vec2, "vec1 and vec2 are equal");
+    assert_ne!(vec1, vec3, "vec1 and vec3 are not equal");
+  }
+
+  #[test]
+  fn vec2_ordering() {
+    let vec1 = Vec2::new(1.25345, 2.06);
+    let vec2 = Vec2::new(3.93342, 4.12);
+    let vec3 = Vec2::new(3.93342, 4.12);
+    let vec4 = Vec2::new(3.93342, 4.12);
+
+    // vec1 < vec2
+    assert!(vec1 < vec2, "vec1 is less than vec2");
+    assert!(vec2 > vec1, "vec2 is greater than vec1");
+    assert!(vec3 >= vec4, "vec3 is greater than or equal to vec4");
+    assert!(vec4 <= vec3, "vec4 is less than or equal to vec3");
   }
 
   // Rec2 //

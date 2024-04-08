@@ -3,8 +3,15 @@
         {
             "fileName": "room_0.tmx",
             "height": 352,
-            "width": 640,
+            "width": 1280,
             "x": 0,
+            "y": 0
+        },
+        {
+            "fileName": "room_1.tmx",
+            "height": 1408,
+            "width": 640,
+            "x": -640,
             "y": 0
         }
     ],

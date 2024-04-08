@@ -44,7 +44,7 @@ leaks.
 
 ## Compilation
 
-build and run executable for your platform.
+Build and run the executable on your platform.
 
 ```bash
 make

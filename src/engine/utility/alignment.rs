@@ -1,4 +1,4 @@
-use crate::engine::geometry::{Rec2, Vec2};
+use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::utility::alias::{Size, Size2};
 
 /**
@@ -69,7 +69,7 @@ impl Aligner {
         Align::End(offset) => (self.bounds.size.y - size.y) as f32 - offset,
         Align::At(unit) => unit,
       },
-    ) + self.bounds.origin.into()
+    ) + Vec2::<f32>::from(self.bounds.origin)
   }
 }
 

@@ -3,15 +3,44 @@ use sdl2::render::TextureCreator;
 use sdl2::video::{FullscreenType, WindowContext};
 
 use crate::engine::asset::texture::{SrcRect, Texture};
-use crate::engine::geometry::{IntConvertable, Rec2, SizePrimitive, Vec2};
-use crate::engine::render::color::RGBA;
+use crate::engine::geometry::shape::{IntConvertable, Rec2, SizePrimitive, Vec2};
+use crate::engine::rendering::color::RGBA;
 
 /**
  * Rendering subsystem
  */
-pub mod color;
-pub mod system;
-pub mod component;
+
+/// Z layer for rendering
+///
+/// Highly recommend using alias to attach semantics to units
+pub mod layer {
+  #[derive(Default)]
+  pub struct Layer1;
+
+  #[derive(Default)]
+  pub struct Layer2;
+
+  #[derive(Default)]
+  pub struct Layer3;
+
+  #[derive(Default)]
+  pub struct Layer4;
+
+  #[derive(Default)]
+  pub struct Layer5;
+
+  #[derive(Default)]
+  pub struct Layer6;
+
+  #[derive(Default)]
+  pub struct Layer7;
+
+  #[derive(Default)]
+  pub struct Layer8;
+
+  #[derive(Default)]
+  pub struct Layer9;
+}
 
 /// Properties required to create a new `Renderer`
 #[derive(Clone)]
@@ -149,6 +178,14 @@ impl Renderer {
     self.set_color(color);
     self.subsystem
       .draw_rect(Rect::from(rect))
+      .map_err(|error| eprintln!("{error}"))
+      .ok();
+  }
+  /// Draw a line from `from` to `to` of `color`
+  pub fn draw_line<T: IntConvertable>(&mut self, from: Vec2<T>, to: Vec2<T>, color: RGBA) {
+    self.set_color(color);
+    self.subsystem
+      .draw_line(from, to)
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }
