@@ -106,22 +106,21 @@ impl Text {
 
 // Helpers //
 
-/// The layer for text entities
-pub type TextLayer = layer::Layer8;
-
 /// Helper function to assemble the components for a text entity
-pub fn make_text<'font, 'app>(
+pub fn make_text<'font, 'app, C>(
   content: impl Into<String>,
   position: Alignment,
   aligner: &Aligner,
   color: RGBA,
   typeface: &Font<'font, 'app>,
   texture_loader: &mut TextureLoader,
-) -> impl DynamicBundle {
+) -> impl DynamicBundle
+  where C: Component + Default + 'static,
+{
   let text = Text::new(color).with_content(content, &typeface, texture_loader);
   let position = aligner.align(position, text.get_dimensions());
 
-  (Position(position), text, layer::Layer8 {}, )
+  (Position(position), text, StickyLayer::default(), C::default(), )
 }
 
 /// Helper struct for creating multiple text entities
@@ -143,8 +142,10 @@ impl<'app, 'fonts> TextBuilder<'app, 'fonts> {
     }
   }
   /// Assemble the components for a text entity
-  pub fn make_text(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle {
-    make_text(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
+  pub fn make_text<C>(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle
+    where C: Component + Default + 'static
+  {
+    make_text::<C>(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
   }
 }
 
