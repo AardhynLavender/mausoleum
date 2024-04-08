@@ -7,6 +7,7 @@ use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
 use crate::engine::world::World;
+use crate::game::combat::health::Health;
 use crate::game::constant::{GRAVITY, PLAYER_COLLIDER, PLAYER_SPRITE, PLAYER_START};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
@@ -20,11 +21,13 @@ use crate::game::player::controls::{PlayerController, sys_player_controller};
 
 /// Path to the player asset
 const PLAYER_ASSET: &str = "asset/test.png";
+/// The player's starting health
+const PLAYER_HEALTH: i32 = 100;
 
 pub type LayerPlayer = layer::Layer4;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider);
+pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
 
 /// Query the world for the player return its components
 ///
@@ -53,6 +56,7 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     Gravity::new(GRAVITY),
     Velocity::default(),
     Collider::new(PLAYER_COLLIDER),
+    Health::build(PLAYER_HEALTH).expect("Failed to build player health"),
   ));
 
   system.add(Schedule::PostUpdate, sys_player_controller);

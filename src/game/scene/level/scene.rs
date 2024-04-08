@@ -5,10 +5,12 @@ use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::tile::parse::TiledParser;
 use crate::engine::tile::tile::sys_render_tile_colliders;
+use crate::game::combat::health::LiveState;
+use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
-use crate::game::player::world::add_player;
+use crate::game::player::world::{add_player, use_player};
 use crate::game::room::{RoomRegistry, sys_render_room_colliders, sys_room_transition};
 use crate::game::scene::level::collision::sys_tile_collision;
 use crate::game::scene::menu::MenuScene;
@@ -51,6 +53,8 @@ impl Scene for LevelScene {
     add_player(world, system, asset);
     camera.tether();
 
+    make_player_health_text(world, asset);
+
     state.add(room_registry).expect("Failed to add level state")
   }
   /// Add systems to the level scene
@@ -63,6 +67,7 @@ impl Scene for LevelScene {
     system.add(Schedule::PostUpdate, sys_render_tile_colliders);
     system.add(Schedule::PostUpdate, sys_render_colliders);
     system.add(Schedule::PostUpdate, sys_render_room_colliders);
+    system.add(Schedule::PostUpdate, sys_render_player_health);
 
     system.add(Schedule::PostUpdate, sys_exit_level);
   }
@@ -73,9 +78,10 @@ impl Scene for LevelScene {
 }
 
 /// Exit the level scene
-pub fn sys_exit_level(SysArgs { event, scene, .. }: &mut SysArgs) {
-  if is_control(Control::Escape, Behaviour::Pressed, event) {
-    scene.queue_next(MenuScene)
-  }
+pub fn sys_exit_level(SysArgs { event, scene, world, .. }: &mut SysArgs) {
+  let (.., health) = use_player(world);
+  let dead = health.get_state() == LiveState::Dead;
+  let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
+  if dead || exit { scene.queue_next(MenuScene) }
 }
 
