@@ -24,13 +24,15 @@ static mut MAX_FPS: DeltaMS = DeltaMS::MIN;
 pub fn add_internal_systems(systems: &mut SystemManager) {
   systems.add(Schedule::FrameUpdate, sys_fullscreen_toggle);
 
-  systems.add(Schedule::PostUpdate, sys_update_fps_text);
+  //systems.add(Schedule::PostUpdate, sys_update_fps_text);
   systems.add(Schedule::PostUpdate, sys_tether); // the camera must be in position *before* rendering
   systems.add(Schedule::PostUpdate, sys_render);
 }
 
 /// Add internal entities to the world
+#[allow(unreachable_code, unused_variables)]
 pub fn add_internal_entities(world: &mut World) {
+  return;
   let fps_text = Text::new(color::TEXT);
   unsafe {
     FPS_TEXT = Some(world.add((FpsText, fps_text, Position::new(4.0, 4.0), StickyLayer::default())));
@@ -46,16 +48,13 @@ fn sys_fullscreen_toggle(SysArgs { render, event, .. }: &mut SysArgs) {
 
 pub const SECOND_MS: DeltaMS = 10_000.0;
 
+#[allow(dead_code)]
 fn sys_update_fps_text(SysArgs { delta, world, .. }: &mut SysArgs) {
   unsafe {
     if let Some(entity) = FPS_TEXT {
       let fps_text = world.query_entity::<&mut Text>(entity).expect("Failed to get fps text");
-      if *delta < MIN_FPS {
-        MIN_FPS = *delta;
-      }
-      if *delta > MAX_FPS {
-        MAX_FPS = *delta;
-      }
+      if *delta < MIN_FPS { MIN_FPS = *delta; }
+      if *delta > MAX_FPS { MAX_FPS = *delta; }
       let fps_string = format!("FPS {:0>6.2} SLOW {:0>3.0} FAST {:0>3.0}", *delta * SECOND_MS, MIN_FPS * SECOND_MS, MAX_FPS * SECOND_MS);
       // println!("{}", fps_string);
       fps_text.set_content(fps_string);
