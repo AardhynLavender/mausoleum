@@ -1,10 +1,10 @@
-use hecs::DynamicBundle;
+use hecs::{Component, DynamicBundle};
 use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
 use crate::engine::geometry::shape::Vec2;
+use crate::engine::rendering::camera::StickyLayer;
 use crate::engine::rendering::color::RGBA;
-use crate::engine::rendering::renderer::layer;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Aligner, Alignment};
@@ -73,8 +73,11 @@ impl Text {
 
   /// Updates the content of a text
   pub fn set_content(&mut self, content: impl Into<String>) {
+    let content = content.into();
+    if self.content == content { return; } // no need to update if the content is the same
+
     self.dirty = true;
-    self.content = content.into();
+    self.content = content;
   }
   /// Updates the content of a text and rebuilds the texture recalculating dimensions
   /// ## Panics

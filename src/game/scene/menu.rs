@@ -36,15 +36,15 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   let mut builder = TextBuilder::new(typeface, textures, color::TEXT, &WINDOW);
 
   // static text
-  world.add(builder.make_text("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
-  world.add(builder.make_text("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
+  world.add(builder.make_text::<()>("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
+  world.add(builder.make_text::<()>("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
   // add buttons
   state.add(MenuState {
     interface: Selection::build([
-      world.add(builder.make_text("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
-      world.add(builder.make_text("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
-      world.add(builder.make_text("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
+      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
+      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
     ]).expect("Failed to build selection")
   }).expect("Failed to add menu state");
 }
