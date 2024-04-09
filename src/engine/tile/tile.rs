@@ -4,6 +4,7 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::store::Key;
 use crate::engine::system::SysArgs;
+use crate::engine::utility::alias::Coordinate;
 use crate::game::physics::position::Position;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -36,14 +37,16 @@ impl TileData {
 /// Data used to add a tile to the tilemap
 pub struct TileConcept {
   pub data: TileData,
+  pub coordinate: Coordinate,
   pub mask: CollisionMask,
 }
 
 impl TileConcept {
   /// Instantiate a new tile concept with `tile_data` and `collision_mask`
-  pub fn new(data: TileData, mask: CollisionMask) -> Self {
+  pub fn new(data: TileData, coordinate: Coordinate, mask: CollisionMask) -> Self {
     Self {
       data,
+      coordinate,
       mask,
     }
   }

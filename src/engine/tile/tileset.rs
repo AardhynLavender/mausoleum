@@ -74,7 +74,7 @@ impl Tileset {
             has_tile_at(tile_data, &(coordinate + Direction::Down.to_coordinate()), &dimensions),
             has_tile_at(tile_data, &(coordinate + Direction::Left.to_coordinate()), &dimensions),
           );
-          let concept = TileConcept::new(data.clone(), mask.clone());
+          let concept = TileConcept::new(data.clone(), coordinate, mask.clone());
           Ok::<Option<TileConcept>, String>(Some(concept))
         } else {
           Ok(None)
