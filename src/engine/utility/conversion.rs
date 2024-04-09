@@ -1,3 +1,4 @@
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::utility::alias::{Coordinate, Size2};
 
 /**
@@ -14,4 +15,9 @@ pub fn index_to_coordinate(index: usize, dimensions: Size2) -> Coordinate {
   let x = index % dimensions.x as usize;
   let y = index / dimensions.x as usize;
   Coordinate::new(x as i32, y as i32)
+}
+
+/// convert a position to a coordinate
+pub fn position_to_coordinate(position: Vec2<f32>, tile_size: Size2) -> Coordinate {
+  Coordinate::from(position / Vec2::<f32>::from(tile_size))
 }
