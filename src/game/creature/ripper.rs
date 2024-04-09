@@ -1,3 +1,8 @@
+/**
+ * Ripper
+ * A small, fast enemy that moves horizontally and bounces off walls
+ */
+
 use std::collections::HashMap;
 use std::path::Path;
 
