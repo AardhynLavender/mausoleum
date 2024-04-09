@@ -11,10 +11,11 @@ use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_colli
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
+use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::consume::{tilemap_from_tiled, tileset_from_tiled};
 use crate::engine::tile::parse::TiledParser;
-use crate::engine::tile::tilemap::Tilemap;
+use crate::engine::tile::tilemap::{Tilemap, TileQuery, TileQueryResult};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
@@ -52,13 +53,12 @@ pub struct ActiveRoom;
 pub struct Room {
   position: Vec2<f32>,
   tilemap: Tilemap,
-  #[allow(unused)]
-  save: bool,
 }
 
 impl Room {
+  /// Instantiate a new room
   pub fn build(tilemap: Tilemap, position: Vec2<f32>) -> Self {
-    Self { tilemap, position, save: false }
+    Self { tilemap, position }
   }
   /// Add the tilemap to the world
   fn add_to_world(&mut self, world: &mut World) -> Result<(), String> {
@@ -73,6 +73,24 @@ impl Room {
     let position = Vec2::from(self.position);
     let dimensions = self.tilemap.get_dimensions();
     CameraBounds::new(position, dimensions)
+  }
+
+  // Tile Concept Getters //
+
+  /// Get information about a tile in the current room at a position in worldspace
+  pub fn query_tile(&mut self, get: TileQuery) -> TileQueryResult {
+    let mut result = if let TileQuery::Position(position) = get {
+      let position = position - self.position; // convert to local position
+      self.tilemap.query_tile(TileQuery::Position(position))
+    } else {
+      self.tilemap.query_tile(get)
+    };
+
+    if let Ok((.., position)) = &mut result {
+      *position = *position + self.position; // convert from local position
+    }
+
+    result
   }
 }
 
@@ -190,6 +208,12 @@ impl RoomRegistry {
       .as_ref()
       .and_then(|name| self.rooms.get(name))
   }
+  /// Get the current room if one is active
+  pub fn get_current_mut(&mut self) -> Option<&mut Room> {
+    self.current
+      .as_mut()
+      .and_then(|name| self.rooms.get_mut(name))
+  }
   /// clamp the camera to the bounds of the current room
   pub fn clamp_camera(&self, camera: &mut Camera) {
     if let Some(room) = self.get_current() {
@@ -210,7 +234,7 @@ impl RoomRegistry {
 
 // Systems //
 
-/// Check for room transitions
+/// Check for room collisions and enact room transitions
 pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
   let (_, position, .., player_collider, _) = use_player(world);
   let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
@@ -240,10 +264,24 @@ pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
   position.0 = player_box.origin;
 }
 
+/// Render rectangles around the colliders that start room transitions
 pub fn sys_render_room_colliders(SysArgs { world, render, camera, event, .. }: &mut SysArgs) {
   if !is_control(Control::Debug, Behaviour::Held, event) { return; }
   for (_, room_collider) in world.query::<&RoomCollider>() {
     let pos = Vec2::<i32>::from(camera.translate(room_collider.collision_box.origin));
     render.draw_rect(Rec2::new(pos, room_collider.collision_box.size), RGBA::new(0, 0, 255, OPAQUE));
   }
+}
+
+// Utilities //
+
+/// Use the current room mutably
+/// ## Panics
+/// if the `RoomRegistry` not in state or the current room is `None`
+pub fn use_room(state: &mut State) -> &mut Room {
+  state.get_mut::<RoomRegistry>()
+    .expect("Failed to get RoomRegistry")
+    .get_current_mut()
+    .ok_or("Failed to get current room")
+    .unwrap()
 }
