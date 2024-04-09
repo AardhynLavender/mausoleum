@@ -7,7 +7,7 @@ use crate::game::physics::position::Position;
  */
 
 /// Add Velocity to an entity
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct Velocity(pub Vec2<f32>);
 
 impl Velocity {

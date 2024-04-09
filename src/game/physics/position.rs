@@ -5,7 +5,7 @@ use crate::engine::geometry::shape::Vec2;
  */
 
 /// Adds a Position to an entity
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct Position(pub Vec2<f32>);
 
 impl Position {

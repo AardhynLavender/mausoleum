@@ -1,6 +1,7 @@
 use crate::engine::utility::alias::Coordinate;
 
 /// Direction enum
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
   Up,
   UpRight,

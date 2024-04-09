@@ -1,15 +1,20 @@
 use std::path::Path;
 
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::tile::parse::TiledParser;
 use crate::engine::tile::tile::sys_render_tile_colliders;
+use crate::engine::utility::direction::Direction;
+use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
+use crate::game::creature::ripper::{make_ripper, sys_ripper};
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
+use crate::game::player::component::sys_render_cooldown;
 use crate::game::player::world::{add_player, use_player};
 use crate::game::room::{RoomRegistry, sys_render_room_colliders, sys_room_transition};
 use crate::game::scene::level::collision::sys_tile_collision;
@@ -54,6 +59,8 @@ impl Scene for LevelScene {
     camera.tether();
 
     make_player_health_text(world, asset);
+
+    world.add(make_ripper(asset, Vec2::new(96.0, 96.0), Direction::Left).expect("Failed to create ripper"));
 
     state.add(room_registry).expect("Failed to add level state")
   }

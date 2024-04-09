@@ -56,19 +56,11 @@ pub struct Vec2<T>
 
 impl<T: UnitPrimitive> Vec2<T> {
   /// Instantiate a new vector of T
-  pub const fn new(x: T, y: T) -> Self {
-    Self { x, y }
-  }
+  pub const fn new(x: T, y: T) -> Self { Self { x, y } }
   /// Deconstruct the vector into its physics.rs
-  pub fn destructure(&self) -> (T, T) {
-    (self.x, self.y)
-  }
-
+  pub fn destructure(&self) -> (T, T) { (self.x, self.y) }
   /// Square the `x` and `y` components of the vector
-  pub fn square(&self) -> T {
-    self.x * self.y
-  }
-
+  pub fn square(&self) -> T { self.x * self.y }
   /// clamp the vector to a minimum and maximum value
   pub fn clamp(&mut self, min: &Vec2<T>, max: &Vec2<T>) {
     self.x = clamp(self.x, min.x, max.x);
@@ -80,6 +72,11 @@ impl<T> Vec2<T> where T: UnitPrimitive + Signed {
   /// Get the absolute value of the vector
   pub fn abs(&self) -> Self {
     Vec2::new(abs(self.x), abs(self.y))
+  }
+  /// Invert the components of the vector
+  pub fn invert(&mut self) {
+    self.x = -self.x;
+    self.y = -self.y;
   }
 }
 
