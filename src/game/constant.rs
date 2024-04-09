@@ -46,6 +46,8 @@ pub const JUMP_ACCELERATION: Vec2<f32> = Vec2::new(0.0, ((2.0 * JUMP_HEIGHT) * W
 pub const GRAVITY: Vec2<f32> = Vec2::new(0.0, (-2.0 * JUMP_HEIGHT * (WALK_SPEED * WALK_SPEED)) / ((JUMP_WIDTH / 2.0) * (JUMP_WIDTH / 2.0)));
 pub const MAX_GRAVITY: f32 = -400.0;
 
+pub const HIT_COOLDOWN_MS: u32 = 500;
+
 pub const PLAYER_START: Vec2<f32> = Vec2::new(40.0, 24.0);
 pub const PLAYER_SIZE: Size2 = Size2::new(12, 28);
 pub const PLAYER_SPRITE: SrcRect = SrcRect::new(Vec2::new(0, 0), PLAYER_SIZE);

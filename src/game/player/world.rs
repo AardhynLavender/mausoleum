@@ -13,7 +13,7 @@ use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::controls::{PlayerController, sys_player_controller};
+use crate::game::player::component::{PlayerController, PlayerData, sys_player_controller};
 
 /**
  * Useful queries for the player entity
@@ -27,7 +27,7 @@ const PLAYER_HEALTH: i32 = 100;
 pub type LayerPlayer = layer::Layer4;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
+pub type PlayerComponents<'p> = (&'p mut PlayerData, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
 
 /// Query the world for the player return its components
 ///
@@ -48,6 +48,7 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     .expect("Failed to load player texture");
 
   world.add((
+    PlayerData::new(),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),

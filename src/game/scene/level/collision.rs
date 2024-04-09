@@ -10,7 +10,7 @@ pub fn sys_tile_collision(SysArgs { world, .. }: &mut SysArgs) {
   let mut phase = 0;
   'resolving: loop {
     phase += 1;
-    let (position, _, _, collider, ..) = use_player(world);
+    let (_, position, _, _, collider, ..) = use_player(world);
     let player_rect = Rec2::new(position.0 + collider.0.origin, collider.0.size);
 
     let collision = get_tile_collisions(world, &player_rect).next();
@@ -19,7 +19,7 @@ pub fn sys_tile_collision(SysArgs { world, .. }: &mut SysArgs) {
         panic!("Infinite collision resolution loop detected, what do?");
       }
 
-      let (position, v, ..) = use_player(world);
+      let (_, position, v, ..) = use_player(world);
       let resolution = collision.get_resolution();
 
       position.0 = position.0 - resolution;

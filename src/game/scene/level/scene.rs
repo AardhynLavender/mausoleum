@@ -59,15 +59,28 @@ impl Scene for LevelScene {
   }
   /// Add systems to the level scene
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
+    // physics //
+
     system.add(Schedule::FrameUpdate, sys_gravity);
     system.add(Schedule::FrameUpdate, sys_velocity);
     system.add(Schedule::FrameUpdate, sys_tile_collision);
     system.add(Schedule::FrameUpdate, sys_room_transition);
 
+    // rendering //
+
     system.add(Schedule::PostUpdate, sys_render_tile_colliders);
     system.add(Schedule::PostUpdate, sys_render_colliders);
     system.add(Schedule::PostUpdate, sys_render_room_colliders);
     system.add(Schedule::PostUpdate, sys_render_player_health);
+    system.add(Schedule::PostUpdate, sys_render_cooldown);
+
+    // combat //
+
+    system.add(Schedule::FrameUpdate, sys_ripper);
+
+    system.add(Schedule::FrameUpdate, sys_damage);
+
+    // misc //
 
     system.add(Schedule::PostUpdate, sys_exit_level);
   }

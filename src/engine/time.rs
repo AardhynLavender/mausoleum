@@ -63,23 +63,20 @@ impl Timer {
       duration,
     }
   }
-
+  /// Start the timer
+  pub fn start(&mut self) {
+    self.reset();
+    self.enabled = true;
+  }
+  /// Reset the timer to the start
+  pub fn reset(&mut self) {
+    self.start = Instant::now();
+  }
   /// Check if the timer has expired regardless of enabled state
   pub fn done(&self) -> bool {
     self.start.elapsed() >= self.duration
   }
-
-  /// Start the timer
-  pub fn start(&mut self) {
-    self.start = Instant::now();
-    self.enabled = true;
-  }
-  /// set the start time to now
-  pub fn restart(&mut self) {
-    self.start = Instant::now();
-  }
-
-  /// Check if the timer has expired then perform `action`
+  /// Check if the timer has expired, then disable or restart it
   pub fn consume(&mut self, action: ConsumeAction) -> bool {
     if !self.enabled {
       return false;
@@ -88,20 +85,17 @@ impl Timer {
     let done = self.done();
     if done {
       match action {
-        ConsumeAction::Restart => self.restart(), // timer will be done again after duration
+        ConsumeAction::Restart => self.reset(), // timer will be done again after duration
         ConsumeAction::Disable => self.enabled = false, // timer will not be done again
       }
     }
     done
   }
 
-  /// Check if the timer has expired and disable it if it has.
-  /// If the timer has expired, invoke the callback.
-  pub fn consume_map(&mut self, action: ConsumeAction, callback: &mut dyn FnMut()) -> bool {
+  /// Check if the timer has expired and call a function if it has, then disable or restart it
+  pub fn consume_map(&mut self, action: ConsumeAction, mut callback: impl FnMut()) -> bool {
     let done = self.consume(action);
-    if done {
-      (callback)();
-    }
+    if done { (callback)(); }
     done
   }
 }

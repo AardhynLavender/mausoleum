@@ -11,6 +11,7 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
  */
 
 /// Add a collision box to an entity
+#[derive(Debug, Clone, Copy)]
 pub struct Collider(pub CollisionBox);
 
 impl Collider {

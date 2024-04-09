@@ -1,2 +1,2 @@
-mod controls;
+pub mod component;
 pub mod world;
