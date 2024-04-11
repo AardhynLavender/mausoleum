@@ -9,7 +9,7 @@ use std::path::Path;
 use hecs::DynamicBundle;
 
 use crate::engine::asset::AssetManager;
-use crate::engine::geometry::collision::{CollisionBox, rec2_collision};
+use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::system::SysArgs;
@@ -67,18 +67,23 @@ pub fn sys_ripper(SysArgs { world, .. }: &mut SysArgs) {
     let tile_box = CollisionBox::new(position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);
     for (ripper, velocity, position, collider) in &rippers {
       let ripper_box = CollisionBox::new(collider.0.origin + position.0, collider.0.size);
-      if rec2_collision(&tile_box, &ripper_box, tile_collider.mask).is_some() {
+      if let Some(collision) = rec2_collision(&tile_box, &ripper_box, CollisionMask::new(false, true, false, true)) {
         let mut new_velocity = velocity.0.clone();
         new_velocity.invert();
-        collisions.insert(ripper, new_velocity);
+        let resolution = collision.get_resolution();
+        collisions.insert(ripper, (new_velocity, resolution));
       }
     }
   }
   if collisions.is_empty() { return; }
-  for (ripper, new_velocity) in collisions {
+  for (ripper, (new_velocity, resolution)) in collisions {
     world
       .get_component_mut::<Velocity>(*ripper)
       .expect("failed to find ripper velocity")
       .0 = new_velocity;
+    let mut position = world
+      .get_component_mut::<Position>(*ripper)
+      .expect("failed to find ripper position");
+    position.0 = position.0 + resolution;
   }
 }
