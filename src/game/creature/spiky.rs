@@ -10,7 +10,7 @@ use hecs::DynamicBundle;
 use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::rendering::color::RGBA;
+use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::tilemap::TileQuery;
@@ -26,7 +26,7 @@ use crate::game::physics::velocity::Velocity;
 use crate::game::room::use_room;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-const SPIKY_SPEED: f32 = 64.0;
+const SPIKY_SPEED: f32 = 48.0;
 const SPIKY_ASSET: &str = "asset/spiky.png";
 const DIMENSIONS: Size2 = Size2::new(16, 16);
 const WIDTH: Vec2<f32> = Vec2::new(DIMENSIONS.x as f32, 0.0);
@@ -57,7 +57,7 @@ pub fn make_spiky(asset_manager: &mut AssetManager, position: Vec2<f32>, initial
 
 pub fn sys_spiky(SysArgs { world, render, state, camera, event, .. }: &mut SysArgs) {
   let room = use_room(state);
-  let debug = is_control(Control::Debug, Behaviour::Pressed, event);
+  let debug = is_control(Control::Debug, Behaviour::Held, event);
   for (_, (velocity, position)) in world
     .query::<(&mut Velocity, &Position)>()
     .with::<&Spiky>()
@@ -65,11 +65,11 @@ pub fn sys_spiky(SysArgs { world, render, state, camera, event, .. }: &mut SysAr
     let leading_top_corner = if !velocity.is_going_right() { position.0 + WIDTH } else { position.0 };
     let leading_bottom_corner = leading_top_corner + HEIGHT;
     if let Ok((tile, .., position)) = room.query_tile(TileQuery::Position(leading_top_corner)) {
-      if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(255, 255, 0, 255)); }
+      if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(255, 128, 0, OPAQUE)); }
       if tile.is_some() { velocity.reverse_x(); }
     }
     if let Ok((tile, .., position)) = room.query_tile(TileQuery::Position(leading_bottom_corner)) {
-      if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(255, 255, 0, 255)); }
+      if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(0, 255, 128, OPAQUE)); }
       if tile.is_none() { velocity.reverse_x(); }
     }
   }
