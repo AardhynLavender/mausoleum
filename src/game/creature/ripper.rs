@@ -21,6 +21,7 @@ use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
+use crate::game::room::use_room;
 
 const RIPPER_SPEED: f32 = 128.0;
 const RIPPER_ASSET: &str = "asset/ripper.png";
@@ -49,17 +50,30 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
 }
 
 /// Process Ripper logic each frame
-pub fn sys_ripper(SysArgs { world, .. }: &mut SysArgs) {
+pub fn sys_ripper(SysArgs { world, state, .. }: &mut SysArgs) {
   // to prevent borrowing issues, we copy information about Rippers into this vector before checking
   // tile collisions. We also collect the new velocities for each ripper in a hashmap so we can
   // update them after the collision query stops borrowing `world`
   // todo: is there a better way to do this? Seems pretty inefficient...
+
 
   let rippers = world.query::<(&Ripper, &Velocity, &Position, &Collider)>()
     .into_iter()
     .map(|(e, (.., velocity, position, collider))| (e, *velocity, *position, *collider))
     .collect::<Vec<_>>();
   if rippers.is_empty() { return; }
+
+  let bounds = use_room(state).get_bounds();
+  for (ripper, _, position, collider) in &rippers {
+    let ripper_box = CollisionBox::new(position.0 + collider.0.origin, collider.0.size);
+    let world_box = CollisionBox::from(bounds);
+    if !world_box.contains(&ripper_box) {
+      world
+        .get_component_mut::<Velocity>(*ripper)
+        .expect("failed to find ripper velocity")
+        .reverse_x();
+    }
+  }
 
   // tiles
   let mut collisions = HashMap::new();

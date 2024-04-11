@@ -298,6 +298,13 @@ impl Rec2<f32, Size> {
   pub fn clamp_position(&mut self, bounds: &Rec2<f32, Size>) {
     self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
+
+  /// Does the rectangle contain another rectangle
+  pub fn contains(&self, other: &Rec2<f32, Size>) -> bool {
+    let origin = self.origin <= other.origin;
+    let extent = self.origin + Vec2::from(self.size) >= other.origin + Vec2::from(other.size);
+    return origin && extent;
+  }
 }
 
 impl<T: IntConvertable, U: SizePrimitive> From<Rec2<T, U>> for Rect {
@@ -305,6 +312,20 @@ impl<T: IntConvertable, U: SizePrimitive> From<Rec2<T, U>> for Rect {
   fn from(value: Rec2<T, U>) -> Self {
     let ((x, y), (w, h)) = value.destructure();
     Rect::new(x.into(), y.into(), w.into(), h.into())
+  }
+}
+
+impl From<Rec2<f32, Size>> for Rec2<i32, Size> {
+  /// Convert Rec2 float to Rec2 i32
+  fn from(value: Rec2<f32, Size>) -> Self {
+    Rec2::new(Vec2::from(value.origin), value.size)
+  }
+}
+
+impl From<Rec2<i32, Size>> for Rec2<f32, Size> {
+  /// Convert Rec2 i32 to Rec2 float
+  fn from(value: Rec2<i32, Size>) -> Self {
+    Rec2::new(Vec2::from(value.origin), value.size)
   }
 }
 

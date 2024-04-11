@@ -61,7 +61,7 @@ impl Scene for LevelScene {
 
     make_player_health_text(world, asset);
 
-    world.add(make_ripper(asset, Vec2::new(96.0, 96.0), Direction::Left).expect("Failed to create ripper"));
+    world.add(make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
     world.add(make_spiky(asset, Vec2::new(96.0, 128.0), Direction::Left).expect("Failed to create spiky"));
 
     state.add(room_registry).expect("Failed to add level state")
