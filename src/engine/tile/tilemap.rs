@@ -22,7 +22,7 @@ pub enum TileQuery {
   Index(usize),
 }
 
-pub type TileQueryResult<'r> = Result<(Option<&'r TileConcept>, Option<Entity>, Vec2<f32>), String>;
+pub type TileQueryResult<'r> = (Option<&'r TileConcept>, Option<Entity>, Vec2<f32>, Coordinate);
 
 /// Manages a grid of entities
 pub struct Tilemap {
@@ -102,11 +102,11 @@ impl Tilemap {
   // Concept Getters //
 
   /// Get a tile at a coordinate
-  fn get_concept(&self, index: usize) -> Result<Option<&TileConcept>, String> {
-    if index >= self.tiles.len() { return Err(String::from("Index out of bounds")); }
-    Ok(self.tiles
+  fn get_concept(&self, index: usize) -> Option<&TileConcept> {
+    if index >= self.tiles.len() { return None; }
+    self.tiles
       .get(index)
-      .map_or(None, |tile| tile.as_ref()))
+      .map_or(None, |tile| tile.as_ref())
   }
   /// Query for a tile concept
   ///
@@ -123,10 +123,11 @@ impl Tilemap {
         self.query_tile(TileQuery::Index(index))
       }
       TileQuery::Index(index) => {
-        let concept = self.get_concept(index)?;
+        let concept = self.get_concept(index);
         let entity = self.entities.get(&index).copied();
-        let position = Vec2::<f32>::from(index_to_coordinate(index, self.dimensions)) * Vec2::<f32>::from(self.tile_size);
-        Ok((concept, entity, position))
+        let coordinate = index_to_coordinate(index, self.dimensions);
+        let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
+        (concept, entity, position, coordinate)
       }
     }
   }

@@ -85,11 +85,7 @@ impl Room {
     } else {
       self.tilemap.query_tile(get)
     };
-
-    if let Ok((.., position)) = &mut result {
-      *position = *position + self.position; // convert from local position
-    }
-
+    result.2 = result.2 + self.position; // convert to world position
     result
   }
 }

@@ -1,4 +1,5 @@
-euse crate::engine::utility::alias::Coordinate;
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::utility::alias::Coordinate;
 
 /**
  * Direction and conversion utilities
