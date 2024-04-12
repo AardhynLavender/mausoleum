@@ -28,14 +28,14 @@ impl PlayerData {
   }
 }
 
-pub fn sys_render_cooldown(SysArgs { world, render, .. }: &mut SysArgs) {
+pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
   let (player_data, position, ..) = use_player(world);
   if !player_data.hit_cooldown.done() {
-    render.draw_rect(Rec2::new(Vec2::<i32>::from(position.0) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
+    render.draw_rect(Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
   }
 }
 
-// controller //
+// Controller //
 
 pub struct PlayerController {
   #[allow(unused)]
@@ -67,9 +67,9 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
     }
 
     if is_control(Control::Left, Behaviour::Held, event) {
-      velocity.0.x = WALK_SPEED;
-    } else if is_control(Control::Right, Behaviour::Held, event) {
       velocity.0.x = -WALK_SPEED;
+    } else if is_control(Control::Right, Behaviour::Held, event) {
+      velocity.0.x = WALK_SPEED;
     } else {
       velocity.0.x = 0.0;
     }
