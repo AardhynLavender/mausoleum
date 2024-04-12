@@ -18,7 +18,7 @@ impl Velocity {
 
   /// Check if the velocity moves horizontally in the positive direction
   pub fn is_going_left(&self) -> bool { self.0.x < 0.0 }
-  /// Check if the velocity moves horiztonally in the negative direction
+  /// Check if the velocity moves horizontally in the negative direction
   pub fn is_going_right(&self) -> bool { self.0.x > 0.0 }
   /// Check if the velocity moves vertically in the positive direction
   pub fn is_going_up(&self) -> bool { self.0.y < 0.0 }
@@ -64,7 +64,7 @@ impl From<Vec2<f32>> for Velocity {
 /// Apply `Velocity` components to `Position` components
 pub fn sys_velocity(SysArgs { delta, world, .. }: &mut SysArgs) {
   for (_, (position, velocity)) in world.query::<(&mut Position, &mut Velocity)>() {
-    position.0 = position.0 - velocity.0 * *delta;
+    position.0 = position.0 + velocity.0 * *delta;
   }
 }
 

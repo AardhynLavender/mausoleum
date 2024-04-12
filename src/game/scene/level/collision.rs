@@ -23,12 +23,12 @@ pub fn sys_tile_collision(SysArgs { world, .. }: &mut SysArgs) {
       let resolution = collision.get_resolution();
 
       position.0 = position.0 - resolution;
-      if resolution.y > 0.0 && v.0.y < 0.0 {
+      if resolution.y > 0.0 && v.0.y > 0.0 {
         // cut vertical acceleration if resolving up while falling
         // eg: landing on a platform
         position.0.y = position.0.y.round();
         v.0.y = 0.0;
-      } else if resolution.y < 0.0 && v.0.y > 0.0 {
+      } else if resolution.y < 0.0 && v.0.y < 0.0 {
         // cut vertical acceleration if resolving down while jumping
         // eg: hitting head on a platform
         position.0.y = position.0.y.round();

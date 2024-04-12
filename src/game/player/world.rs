@@ -24,7 +24,7 @@ const PLAYER_ASSET: &str = "asset/test.png";
 /// The player's starting health
 const PLAYER_HEALTH: i32 = 100;
 
-pub type LayerPlayer = layer::Layer4;
+pub type LayerPlayer = layer::Layer5;
 
 /// Components of the player entity
 pub type PlayerComponents<'p> = (&'p mut PlayerData, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
