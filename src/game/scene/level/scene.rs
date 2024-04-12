@@ -11,6 +11,7 @@ use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
 use crate::game::creature::ripper::{make_ripper, sys_ripper};
 use crate::game::creature::spiky::{make_spiky, sys_spiky};
+use crate::game::creature::zoomer::{make_zoomer, sys_zoomer};
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
@@ -62,7 +63,8 @@ impl Scene for LevelScene {
     make_player_health_text(world, asset);
 
     world.add(make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
-    world.add(make_spiky(asset, Vec2::new(96.0, 128.0), Direction::Left).expect("Failed to create spiky"));
+    world.add(make_spiky(asset, Vec2::new(322.0, 208.0), Direction::Right).expect("Failed to create spiky"));
+    world.add(make_zoomer(asset, Vec2::new(128.0, 128.0), Direction::Right).expect("Failed to create zoomer"));
 
     state.add(room_registry).expect("Failed to add level state")
   }
@@ -87,6 +89,7 @@ impl Scene for LevelScene {
 
     system.add(Schedule::FrameUpdate, sys_ripper);
     system.add(Schedule::FrameUpdate, sys_spiky);
+    system.add(Schedule::FrameUpdate, sys_zoomer);
 
     system.add(Schedule::FrameUpdate, sys_damage);
 
