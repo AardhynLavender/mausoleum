@@ -94,6 +94,9 @@ impl Renderer {
     }
 
     subsystem.set_draw_color(properties.screen_color);
+    subsystem
+      .set_integer_scale(true)
+      .map_err(|e| e.to_string())?;
 
     Ok(Self {
       subsystem,
@@ -114,7 +117,7 @@ impl Renderer {
       self.subsystem
         .window_mut()
         .set_fullscreen(FullscreenType::Desktop)
-        .expect("Failed to set dekstop fullscreen")
+        .expect("Failed to set desktop fullscreen")
     } else {
       self.subsystem
         .window_mut()
