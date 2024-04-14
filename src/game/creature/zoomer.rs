@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::path::Path;
 
 use hecs::DynamicBundle;
@@ -58,7 +56,7 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
 }
 
 /// Process Zoomer pathfinding and debug rendering
-pub fn sys_zoomer(SysArgs { world, render, state, camera, event, delta, .. }: &mut SysArgs) {
+pub fn sys_zoomer(SysArgs { world, render, state, camera, event, .. }: &mut SysArgs) {
   let room = use_room(state);
   let debug = is_control(Control::Debug, Behaviour::Held, event);
   for (_, (zoomer, velocity, position)) in world
@@ -137,7 +135,7 @@ fn compute_cling(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, lea
 ///
 /// Returns None if the zoomer has already turned this cling check
 fn round_bend(zoomer: &mut Zoomer, direction: Direction) -> Option<Vec2<f32>> {
-  if (zoomer.turning) {
+  if zoomer.turning {
     zoomer.turning = false;
     return None;
   }
@@ -145,7 +143,7 @@ fn round_bend(zoomer: &mut Zoomer, direction: Direction) -> Option<Vec2<f32>> {
 
   let new_direction = direction.rotate(zoomer.rotation, QUARTER_ROTATION);
   let new_direction_unit = Vec2::<f32>::from(new_direction.to_coordinate());
-  let new_velocity = Vec2::<f32>::from(new_direction.to_coordinate()) * ZOOMER_SPEED;
+  let new_velocity = new_direction_unit * ZOOMER_SPEED;
 
   Some(new_velocity)
 }
