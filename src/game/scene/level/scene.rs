@@ -9,6 +9,7 @@ use crate::engine::tile::tile::sys_render_tile_colliders;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
+use crate::game::creature::buzz::{make_buzz, sys_buzz};
 use crate::game::creature::ripper::{make_ripper, sys_ripper};
 use crate::game::creature::spiky::{make_spiky, sys_spiky};
 use crate::game::creature::zoomer::{make_zoomer, sys_zoomer};
@@ -65,6 +66,7 @@ impl Scene for LevelScene {
     world.add(make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
     world.add(make_spiky(asset, Vec2::new(322.0, 208.0), Direction::Right).expect("Failed to create spiky"));
     world.add(make_zoomer(asset, Vec2::new(128.0, 128.0), Direction::Right).expect("Failed to create zoomer"));
+    world.add(make_buzz(asset, Vec2::new(64.0, 64.0)).expect("Failed to create zoomer"));
 
     state.add(room_registry).expect("Failed to add level state")
   }
@@ -90,6 +92,7 @@ impl Scene for LevelScene {
     system.add(Schedule::FrameUpdate, sys_ripper);
     system.add(Schedule::FrameUpdate, sys_spiky);
     system.add(Schedule::FrameUpdate, sys_zoomer);
+    system.add(Schedule::FrameUpdate, sys_buzz);
 
     system.add(Schedule::FrameUpdate, sys_damage);
 
