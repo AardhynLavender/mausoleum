@@ -1,48 +1,68 @@
+use std::collections::HashMap;
+
 use crate::engine::geometry::collision::{Collision, CollisionBox, rec2_collision};
-use crate::engine::geometry::shape::Rec2;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::world::World;
+use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
-use crate::game::player::world::use_player;
+use crate::game::physics::velocity::Velocity;
+
+pub const MAX_COLLISION_PHASES: u32 = 10;
+
+#[derive(Default)]
+/// Entities with this component will collide with room tiles and be resolved
+pub struct RoomCollision;
 
 pub fn sys_tile_collision(SysArgs { world, .. }: &mut SysArgs) {
-  let mut phase = 0;
-  'resolving: loop {
-    phase += 1;
-    let (_, position, _, _, collider, ..) = use_player(world);
-    let player_rect = Rec2::new(position.0 + collider.0.origin, collider.0.size);
+  let entities = world
+    .query::<(&Position, &Collider, &RoomCollision)>().with::<&RoomCollision>()
+    .into_iter()
+    .map(|(entity, (position, collider, ..))| {
+      (entity, (*position, *collider))
+    })
+    .collect::<HashMap<_, _>>();
 
-    let collision = get_tile_collisions(world, &player_rect).next();
-    if let Some(collision) = collision {
-      if phase > 10 {
-        panic!("Infinite collision resolution loop detected, what do?");
+  for (entity, (position, collider)) in &entities {
+    let mut collision_box = make_collision_box(position, collider);
+    let mut phase = 0;
+    'resolving: loop {
+      phase += 1;
+      let collision = get_tile_collisions(world, &collision_box).next();
+      if let Some(collision) = collision {
+        if phase > MAX_COLLISION_PHASES { panic!("Infinite collision resolution loop detected, what do?"); }
+        let mut position = world.get_component_mut::<Position>(*entity).expect("Failed to retrieve the entity");
+        let mut velocity = world.get_component_mut::<Velocity>(*entity).expect("Failed to retrieve the entity");
+
+        let resolution = collision.get_resolution();
+        position.0 = position.0 - resolution;
+        if resolution.y > 0.0 && velocity.0.y > 0.0 {
+          // cut vertical acceleration if resolving up while falling
+          // eg: landing on a platform
+          position.0.y = position.0.y.round();
+          velocity.0.y = 0.0;
+        } else if resolution.y < 0.0 && velocity.0.y < 0.0 {
+          // cut vertical acceleration if resolving down while jumping
+          // eg: hitting head on a platform
+          position.0.y = position.0.y.round();
+          velocity.0.y = 0.0;
+        } else if resolution.x != 0.0 {
+          // cut horizontal acceleration if resolving left or right
+          // eg: hitting a wall
+          position.0.x = position.0.x.round();
+          velocity.0.x = 0.0;
+        }
+
+        collision_box = make_collision_box(&position, collider); // update the collision box with the new position
+      } else {
+        break 'resolving;
       }
+    };
+  }
+}
 
-      let (_, position, v, ..) = use_player(world);
-      let resolution = collision.get_resolution();
-
-      position.0 = position.0 - resolution;
-      if resolution.y > 0.0 && v.0.y > 0.0 {
-        // cut vertical acceleration if resolving up while falling
-        // eg: landing on a platform
-        position.0.y = position.0.y.round();
-        v.0.y = 0.0;
-      } else if resolution.y < 0.0 && v.0.y < 0.0 {
-        // cut vertical acceleration if resolving down while jumping
-        // eg: hitting head on a platform
-        position.0.y = position.0.y.round();
-        v.0.y = 0.0;
-      } else if resolution.x != 0.0 {
-        // cut horizontal acceleration if resolving left or right
-        // eg: hitting a wall
-        position.0.x = position.0.x.round();
-        v.0.x = 0.0;
-      }
-    } else {
-      break 'resolving;
-    }
-  };
+fn make_collision_box(position: &Position, collider: &Collider) -> CollisionBox {
+  CollisionBox::new(position.0 + collider.0.origin, collider.0.size)
 }
 
 fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox) -> impl Iterator<Item=Collision> + 'a {

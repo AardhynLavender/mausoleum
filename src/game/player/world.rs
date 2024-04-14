@@ -14,6 +14,7 @@ use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::component::{PlayerController, PlayerData, sys_player_controller};
+use crate::game::scene::level::collision::RoomCollision;
 
 /**
  * Useful queries for the player entity
@@ -56,6 +57,7 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     LayerPlayer::default(),
     Gravity::new(GRAVITY),
     Velocity::default(),
+    RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),
     Health::build(PLAYER_HEALTH).expect("Failed to build player health"),
   ));
