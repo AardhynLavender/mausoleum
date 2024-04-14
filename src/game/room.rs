@@ -2,9 +2,9 @@
  * Room creation and management
  */
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use hecs::{Entity, Without};
+use hecs::{DynamicBundle, Entity, Without};
 
 use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
@@ -53,29 +53,32 @@ pub struct ActiveRoom;
 pub struct Room {
   position: Vec2<f32>,
   tilemap: Tilemap,
+  entities: HashSet<Entity>,
 }
 
 impl Room {
   /// Instantiate a new room
   pub fn build(tilemap: Tilemap, position: Vec2<f32>) -> Self {
-    Self { tilemap, position }
-  }
-  /// Add the tilemap to the world
-  fn add_to_world(&mut self, world: &mut World) -> Result<(), String> {
-    self.tilemap.add_to_world(world, self.position)
-  }
-  /// Remove the tilemap from the world
-  fn remove_from_world(&mut self, world: &mut World) -> Result<(), String> {
-    self.tilemap.remove_from_world(world)
-  }
-  /// Get the bounds of the tilemap in worldspace
-  pub fn get_bounds(&self) -> CameraBounds {
-    let position = Vec2::from(self.position);
-    let dimensions = self.tilemap.get_dimensions();
-    CameraBounds::new(position, dimensions)
+    Self { tilemap, position, entities: HashSet::new() }
   }
 
-  // Tile Concept Getters //
+  /// Add the tilemap to the world
+  fn add_tilemap(&mut self, world: &mut World) -> Result<(), String> { self.tilemap.add_to_world(world, self.position) }
+  /// Remove the tilemap from the world
+  fn remove_tilemap(&mut self, world: &mut World) -> Result<(), String> { self.tilemap.remove_from_world(world) }
+  /// Add an entity registered with this room
+  pub fn add_entity(&mut self, world: &mut World, components: impl DynamicBundle) { self.entities.insert(world.add(components)); }
+  /// Remove an entity from the world that is registered with this room
+  pub fn remove_entity(&mut self, entity: Entity, world: &mut World) -> Result<(), String> {
+    world.free_now(entity)?;
+    if self.entities.remove(&entity) { return Ok(()); }
+    Err(String::from("Entity not registered with room"))
+  }
+  /// Remove all entities registered with this room
+  fn remove_entities(&mut self, world: &mut World) -> Result<(), String> {
+    for entity in self.entities.drain() { world.free_now(entity)?; }
+    Ok(())
+  }
 
   /// Get information about a tile in the current room at a position in worldspace
   pub fn query_tile(&mut self, get: TileQuery) -> TileQueryResult {
@@ -87,6 +90,12 @@ impl Room {
     };
     result.2 = result.2 + self.position; // convert to world position
     result
+  }
+  /// Get the bounds of the tilemap in worldspace
+  pub fn get_bounds(&self) -> CameraBounds {
+    let position = Vec2::from(self.position);
+    let dimensions = self.tilemap.get_dimensions();
+    CameraBounds::new(position, dimensions)
   }
 }
 
@@ -151,13 +160,15 @@ impl RoomRegistry {
       colliders,
     })
   }
-  /// clear the `ActiveRoom` entity to the current room
+  /// clear the `ActiveRoom` entity from the current room
   fn clear_active_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     let name = name.into();
     let entity = self.colliders
       .get(&name)
       .ok_or("Room collider not found")?;
+
     world.remove_components::<(ActiveRoom, )>(*entity)?;
+
     Ok(())
   }
   /// Add the `ActiveRoom` component to an entity
@@ -166,21 +177,26 @@ impl RoomRegistry {
     let entity = self.colliders
       .get(&name)
       .ok_or("Room collider not found")?;
+
     world.add_components(*entity, (ActiveRoom::default(), ))
   }
-  /// Remove a room from the world
+  /// Remove a room and it's entities from the world
   fn remove_room_from_world(&mut self, name: &String, world: &mut World) -> Result<(), String> {
-    Ok(self.rooms
+    let room = self.rooms
       .get_mut(name)
-      .ok_or("Current room not found")?
-      .remove_from_world(world)?)
+      .ok_or("Current room not found")?;
+
+    room.remove_tilemap(world)?;
+    room.remove_entities(world)?;
+
+    Ok(())
   }
   /// Add a room to the world
   fn add_room_to_world(&mut self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     self.rooms
       .get_mut(&name.into())
       .ok_or("Room not found")?
-      .add_to_world(world)
+      .add_tilemap(world)
   }
   /// Change the current room
   pub fn set_current(&mut self, world: &mut World, name: impl Into<String>) -> Result<(), String> {

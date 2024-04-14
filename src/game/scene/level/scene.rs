@@ -54,19 +54,21 @@ impl Scene for LevelScene {
       .map_err(|e| println!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
 
+    add_player(world, system, asset);
+    make_player_health_text(world, asset);
+
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
     room_registry.set_current(world, &self.level_key).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
-
-    add_player(world, system, asset);
     camera.tether();
 
-    make_player_health_text(world, asset);
-
-    world.add(make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
-    world.add(make_spiky(asset, Vec2::new(322.0, 208.0), Direction::Right).expect("Failed to create spiky"));
-    world.add(make_zoomer(asset, Vec2::new(128.0, 128.0), Direction::Right).expect("Failed to create zoomer"));
-    world.add(make_buzz(asset, Vec2::new(64.0, 64.0)).expect("Failed to create zoomer"));
+    let room = room_registry
+      .get_current_mut()
+      .expect("Failed to get current room");
+    room.add_entity(world, make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
+    room.add_entity(world, make_spiky(asset, Vec2::new(322.0, 208.0), Direction::Right).expect("Failed to create spiky"));
+    room.add_entity(world, make_zoomer(asset, Vec2::new(128.0, 128.0), Direction::Right).expect("Failed to create zoomer"));
+    room.add_entity(world, make_buzz(asset, Vec2::new(64.0, 64.0)).expect("Failed to create zoomer"));
 
     state.add(room_registry).expect("Failed to add level state")
   }
@@ -106,7 +108,7 @@ impl Scene for LevelScene {
   }
 }
 
-/// Exit the level scene
+/// Listen for level exit
 pub fn sys_exit_level(SysArgs { event, scene, world, .. }: &mut SysArgs) {
   let (.., health) = use_player(world);
   let dead = health.get_state() == LiveState::Dead;
