@@ -2,6 +2,7 @@ use std::marker::Copy;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use num::{abs, clamp, Num, Signed, Unsigned};
+use num::pow::Pow;
 use sdl2::rect::{Point, Rect};
 
 use crate::engine::utility::alias::Size;
@@ -66,6 +67,13 @@ impl<T: UnitPrimitive> Vec2<T> {
     self.x = clamp(self.x, min.x, max.x);
     self.y = clamp(self.y, min.y, max.y);
   }
+}
+
+impl Vec2<f32> {
+  /// Get the size of the vector
+  pub fn magnitude(&self) -> f32 { ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt() }
+  /// Normalize version of the vector
+  pub fn normalize(&self) -> Self { *self / self.magnitude() }
 }
 
 impl<T> Vec2<T> where T: UnitPrimitive + Signed {
@@ -299,7 +307,7 @@ impl Rec2<f32, Size> {
     self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
 
-  /// Does the rectangle contain another rectangle
+  /// Does the rectangle contain another rectangle?
   pub fn contains(&self, other: &Rec2<f32, Size>) -> bool {
     let origin = self.origin <= other.origin;
     let extent = self.origin + Vec2::from(self.size) >= other.origin + Vec2::from(other.size);
