@@ -9,6 +9,7 @@ use crate::engine::tile::tile::sys_render_tile_colliders;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
+use crate::game::combat::projectile::sys_ttl;
 use crate::game::creature::buzz::{make_buzz, sys_buzz};
 use crate::game::creature::ripper::{make_ripper, sys_ripper};
 use crate::game::creature::spiky::{make_spiky, sys_spiky};
@@ -100,6 +101,7 @@ impl Scene for LevelScene {
 
     // misc //
 
+    system.add(Schedule::FrameUpdate, sys_ttl);
     system.add(Schedule::PostUpdate, sys_exit_level);
   }
   /// Clean up the level scene

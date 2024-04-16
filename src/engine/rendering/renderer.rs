@@ -87,16 +87,11 @@ impl Renderer {
     let mut subsystem = builder.build().map_err(|e| e.to_string())?;
 
     // apply post-construction properties
-    if let Some(size) = properties.logical {
-      subsystem
-        .set_logical_size(size.x, size.y)
-        .map_err(|e| e.to_string())?;
-    }
-
+    subsystem.set_integer_scale(true).map_err(|e| e.to_string())?;
     subsystem.set_draw_color(properties.screen_color);
-    subsystem
-      .set_integer_scale(true)
-      .map_err(|e| e.to_string())?;
+    if let Some(size) = properties.logical {
+      subsystem.set_logical_size(size.x, size.y).map_err(|e| e.to_string())?;
+    }
 
     Ok(Self {
       subsystem,
@@ -162,13 +157,14 @@ impl Renderer {
     texture: &Texture,
     position: Vec2<T>,
     from: SrcRect,
+    rotation: f64,
   ) {
     let (x, y) = position.destructure();
     let ((sx, sy), (w, h)) = from.destructure();
     let dest = Rect::new(x.into(), y.into(), w, h);
     let src = Rect::new(sx as i32, sy as i32, w, h);
     self.subsystem
-      .copy(&texture.internal, src, dest)
+      .copy_ex(&texture.internal, src, dest, rotation, None, false, false)
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }

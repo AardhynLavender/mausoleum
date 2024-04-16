@@ -6,4 +6,4 @@ pub mod room;
 pub mod combat;
 pub mod interface;
 pub mod creature;
-mod player;
+pub mod player;

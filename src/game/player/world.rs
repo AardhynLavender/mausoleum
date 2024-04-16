@@ -47,9 +47,12 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
+  let projectile_texture = asset.texture
+    .load(Path::new("asset/plasma_burst.png"))
+    .expect("Failed to load projectile texture");
 
   world.add((
-    PlayerData::new(),
+    PlayerData::new(projectile_texture),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),
@@ -64,3 +67,4 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
 
   system.add(Schedule::PostUpdate, sys_player_controller);
 }
+
