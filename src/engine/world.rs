@@ -18,7 +18,7 @@ impl World {
       world: HecsWorld::new(),
     }
   }
-  /// Spawn an entity with the given component.rs
+  /// Spawn an entity with the given component
   pub fn add(&mut self, components: impl DynamicBundle) -> Entity {
     self.world.spawn(components)
   }

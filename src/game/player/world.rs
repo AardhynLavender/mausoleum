@@ -13,7 +13,8 @@ use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::component::{PlayerController, PlayerData, sys_player_controller};
+use crate::game::player::combat::{PLAYER_HEALTH, PlayerCombat};
+use crate::game::player::controller::{PlayerController, sys_player_controller};
 use crate::game::scene::level::collision::RoomCollision;
 
 /**
@@ -22,13 +23,11 @@ use crate::game::scene::level::collision::RoomCollision;
 
 /// Path to the player asset
 const PLAYER_ASSET: &str = "asset/test.png";
-/// The player's starting health
-const PLAYER_HEALTH: i32 = 100;
 
 pub type LayerPlayer = layer::Layer5;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut PlayerData, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
+pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
 
 /// Query the world for the player return its components
 ///
@@ -52,7 +51,7 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
     .expect("Failed to load projectile texture");
 
   world.add((
-    PlayerData::new(projectile_texture),
+    PlayerCombat::new(projectile_texture),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),

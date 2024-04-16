@@ -1,2 +1,3 @@
-pub mod component;
+pub mod controller;
 pub mod world;
+pub mod combat;

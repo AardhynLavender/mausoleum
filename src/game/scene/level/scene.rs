@@ -18,7 +18,7 @@ use crate::game::interface::hud::{make_player_health_text, sys_render_player_hea
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
-use crate::game::player::component::sys_render_cooldown;
+use crate::game::player::combat::sys_render_cooldown;
 use crate::game::player::world::{add_player, use_player};
 use crate::game::room::{RoomRegistry, sys_render_room_colliders, sys_room_transition};
 use crate::game::scene::level::collision::sys_tile_collision;

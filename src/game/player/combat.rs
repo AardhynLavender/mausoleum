@@ -1,5 +1,5 @@
 /**
- * Player controls
+ * Player combat components and systems
  */
 
 use std::time::Duration;
@@ -15,27 +15,26 @@ use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
 use crate::engine::world::World;
 use crate::game::combat::projectile::make_projectile;
-use crate::game::constant::{JUMP_ACCELERATION, PLAYER_SIZE, WALK_SPEED};
+use crate::game::constant::PLAYER_SIZE;
 use crate::game::player::world::use_player;
-use crate::game::utility::controls::{Behaviour, Control, get_direction, is_control};
+
+/// The player's starting health
+pub const PLAYER_HEALTH: i32 = 100;
 
 const PLASMA_DAMAGE: u32 = 10;
 const PLASMA_LIFETIME_MS: u64 = 1000;
 const PLASMA_SPEED: f32 = 300.0;
 const PLASMA_DIMENSIONS: Size2 = Size2::new(8, 2);
 
-const INITIAL_DIRECTION: Direction = Direction::Right;
-
-// data //
-
 /// Store player specific data
-pub struct PlayerData {
+pub struct PlayerCombat {
   pub hit_cooldown: Timer,
   pub trigger_cooldown: Timer,
   pub projectile_texture: TextureKey,
 }
 
-impl PlayerData {
+impl PlayerCombat {
+  // Instantiate a new player combat component
   pub fn new(projectile_texture: TextureKey) -> Self {
     Self {
       hit_cooldown: Timer::new(Duration::from_millis(500), true),
@@ -45,6 +44,7 @@ impl PlayerData {
   }
 }
 
+/// Render the player's hit cooldown
 pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
   let (player_data, position, ..) = use_player(world);
   if !player_data.hit_cooldown.done() {
@@ -52,84 +52,18 @@ pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) 
   }
 }
 
+/// Available weapon types for the player
+pub enum Weapon {
+  Plasma,
+  Rocket,
+}
+
+/// Mark an entity as a player projectile
 #[derive(Default)]
 pub struct PlayerProjectile;
 
-// Controller //
-
-pub struct PlayerController {
-  #[allow(unused)]
-  jumping: bool,
-  #[allow(unused)]
-  can_jump: bool,
-  last_walk: Direction,
-  last_aim: Direction,
-  locked: bool,
-}
-
-impl Default for PlayerController {
-  fn default() -> Self {
-    Self {
-      jumping: false,
-      can_jump: true,
-      last_walk: INITIAL_DIRECTION,
-      last_aim: INITIAL_DIRECTION,
-      locked: false,
-    }
-  }
-}
-
-impl PlayerController {
-  /// Set the last direction the player walked
-  fn set_walked(&mut self, direction: Direction) { self.last_walk = direction; }
-  /// Set the last direction the player aimed
-  fn set_aimed(&mut self, direction: Direction) { self.last_aim = direction; }
-}
-
-pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
-  let (_, _, velocity, controller, ..) = use_player(world);
-  let aim = get_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
-
-  // Jump //
-
-  if is_control(Control::Select, Behaviour::Pressed, event) {
-    velocity.0.y = JUMP_ACCELERATION.y;
-  }
-
-  // Walk //
-
-  let left = is_control(Control::Left, Behaviour::Held, event);
-  let right = is_control(Control::Right, Behaviour::Held, event);
-
-  if left && !right {
-    controller.set_walked(Direction::Left);
-    velocity.0.x = -WALK_SPEED;
-  } else if right && !left {
-    controller.set_walked(Direction::Right);
-    velocity.0.x = WALK_SPEED;
-  } else {
-    velocity.remove_x();
-  }
-
-  // Lock //
-
-  if is_control(Control::Lock, Behaviour::Held, event) {
-    velocity.remove_x();
-    controller.locked = true;
-  } else {
-    controller.locked = false;
-  }
-
-  // Aim //
-
-  controller.set_aimed(aim);
-
-  if is_control(Control::Trigger, Behaviour::Pressed, event) {
-    fire_plasma(world, aim);
-  }
-}
-
-pub fn fire_plasma(world: &mut World, aim: Direction) {
+/// Fire a plasma projectile in the direction the player is aiming
+pub fn fire_weapon(world: &mut World, aim: Direction, _weapon: Weapon) {
   let (data, position, ..) = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 

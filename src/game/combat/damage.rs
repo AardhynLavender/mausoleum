@@ -11,7 +11,7 @@ use crate::game::combat::health::{Health, LiveState};
 use crate::game::creature::Creature;
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
-use crate::game::player::component::PlayerProjectile;
+use crate::game::player::combat::PlayerProjectile;
 use crate::game::player::world::use_player;
 use crate::game::room::use_room;
 
