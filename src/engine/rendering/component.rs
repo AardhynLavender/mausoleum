@@ -5,7 +5,7 @@ use crate::engine::asset::texture::{SrcRect, TextureKey};
  */
 
 /// Render a texture to the screen each frame
-feat#[derive(Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct Sprite {
   pub texture: TextureKey,
   pub src: SrcRect,
