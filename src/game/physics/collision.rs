@@ -14,6 +14,10 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
 #[derive(Debug, Clone, Copy)]
 pub struct Collider(pub CollisionBox);
 
+/// *Fragile* entities should be destroyed on collision
+#[derive(Debug, Clone, Copy)]
+pub struct Fragile;
+
 impl Collider {
   /// Instantiate a new Collider component
   pub fn new(bounds: CollisionBox) -> Self {
