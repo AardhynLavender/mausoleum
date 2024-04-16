@@ -120,6 +120,22 @@ impl Direction {
   pub fn is_ordinal(&self) -> bool { get_direction_index(self) % 2 != 0 }
 }
 
+impl From<Direction> for f32 {
+  // Convert a direction to an angle where `Direction::Up` is 0.0
+  fn from(direction: Direction) -> f32 {
+    match direction {
+      Direction::Up => 0.0,
+      Direction::UpRight => 45.0,
+      Direction::Right => 90.0,
+      Direction::DownRight => 135.0,
+      Direction::Down => 180.0,
+      Direction::DownLeft => 225.0,
+      Direction::Left => 270.0,
+      Direction::UpLeft => 315.0,
+    }
+  }
+}
+
 impl TryFrom<Vec2<f32>> for Direction {
   type Error = String;
   fn try_from(v: Vec2<f32>) -> Result<Self, Self::Error> {
@@ -186,6 +202,18 @@ mod tests {
     assert_eq!(Direction::try_from(Vec2::new(-37.0, 0.0)), Ok(Direction::Left), "Vector is moving Left");
     assert_eq!(Direction::try_from(Vec2::new(-1.0, -1.0)), Ok(Direction::UpLeft), "Vector is moving UpLeft");
     assert_eq!(Direction::try_from(Vec2::new(0.0, 0.0)), Err(String::from("Vector is not moving")), "Vector is not moving");
+  }
+
+  #[test]
+  fn test_direction_to_angle() {
+    assert_eq!(f32::from(Direction::Up), 0.0);
+    assert_eq!(f32::from(Direction::UpRight), 45.0);
+    assert_eq!(f32::from(Direction::Right), 90.0);
+    assert_eq!(f32::from(Direction::DownRight), 135.0);
+    assert_eq!(f32::from(Direction::Down), 180.0);
+    assert_eq!(f32::from(Direction::DownLeft), 225.0);
+    assert_eq!(f32::from(Direction::Left), 270.0);
+    assert_eq!(f32::from(Direction::UpLeft), 315.0);
   }
 
   #[test]
