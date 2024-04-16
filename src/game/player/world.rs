@@ -29,17 +29,34 @@ pub type LayerPlayer = layer::Layer5;
 /// Components of the player entity
 pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
 
+/// Query structure for the player entity
+pub struct PQ<'p> {
+  pub combat: &'p mut PlayerCombat,
+  pub position: &'p mut Position,
+  pub velocity: &'p mut Velocity,
+  pub controller: &'p mut PlayerController,
+  pub collider: &'p mut Collider,
+  pub health: &'p mut Health,
+}
+
 /// Query the world for the player return its components
 ///
 /// This mutably borrows the `world`, so a user will probably invoke this multiple times within a *system*
 /// ## Panics
 /// This function will panic if the player entity is not found
-pub fn use_player(world: &mut World) -> PlayerComponents {
+pub fn use_player(world: &mut World) -> PQ {
   let (_, components) = world.query::<PlayerComponents>()
     .into_iter()
     .next()
     .expect("Failed to get player");
-  components
+  PQ {
+    combat: components.0,
+    position: components.1,
+    velocity: components.2,
+    controller: components.3,
+    collider: components.4,
+    health: components.5,
+  }
 }
 
 pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {

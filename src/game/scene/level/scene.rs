@@ -19,7 +19,7 @@ use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
 use crate::game::player::combat::sys_render_cooldown;
-use crate::game::player::world::{add_player, use_player};
+use crate::game::player::world::{add_player, PQ, use_player};
 use crate::game::room::{RoomRegistry, sys_render_room_colliders, sys_room_transition};
 use crate::game::scene::level::collision::sys_tile_collision;
 use crate::game::scene::menu::MenuScene;
@@ -112,7 +112,7 @@ impl Scene for LevelScene {
 
 /// Listen for level exit
 pub fn sys_exit_level(SysArgs { event, scene, world, .. }: &mut SysArgs) {
-  let (.., health) = use_player(world);
+  let PQ { health, .. } = use_player(world);
   let dead = health.get_state() == LiveState::Dead;
   let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
   if dead || exit { scene.queue_next(MenuScene) }

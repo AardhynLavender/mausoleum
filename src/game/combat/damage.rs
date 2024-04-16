@@ -12,7 +12,7 @@ use crate::game::creature::Creature;
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerProjectile;
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 use crate::game::room::use_room;
 
 pub struct Damage {
@@ -46,14 +46,14 @@ pub fn sys_damage(SysArgs { world, state, .. }: &mut SysArgs) {
 
 // Damage the player when colliding with dangerous entities
 pub fn player_damage(world: &mut World) {
-  let (_, position, .., collider, _) = use_player(world);
+  let PQ { position, collider, .. } = use_player(world);
   let player_box = CollisionBox::new(position.0, collider.0.size);
 
   let damage = get_damage::<Creature>(world, &player_box);
   if let Some((damage, _)) = damage {
-    let (data, .., health) = use_player(world);
-    if data.hit_cooldown.consume_map(ConsumeAction::Restart, || { health.deal(damage); }) {
-      data.hit_cooldown.reset();
+    let PQ { combat, health, .. } = use_player(world);
+    if combat.hit_cooldown.consume_map(ConsumeAction::Restart, || { health.deal(damage); }) {
+      combat.hit_cooldown.reset();
     }
   }
 }

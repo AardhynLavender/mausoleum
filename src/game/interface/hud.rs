@@ -5,13 +5,13 @@ use crate::engine::system::SysArgs;
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
 use crate::game::constant::WINDOW;
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 
 #[derive(Default)]
 pub struct PlayerHealth;
 
 pub fn make_player_health_text(world: &mut World, asset: &mut AssetManager) {
-  let (.., health) = use_player(world);
+  let PQ { health, .. } = use_player(world);
   let text = format!("{}", health);
   let font = asset.typeface
     .use_store()
@@ -23,7 +23,7 @@ pub fn make_player_health_text(world: &mut World, asset: &mut AssetManager) {
 }
 
 pub fn sys_render_player_health(SysArgs { world, .. }: &mut SysArgs) {
-  let (.., health) = use_player(world);
+  let PQ { health, .. } = use_player(world);
   let text = format!("{}", health);
   let (_, (health_text, ..)) = world.query::<(&mut Text, &PlayerHealth)>()
     .into_iter()

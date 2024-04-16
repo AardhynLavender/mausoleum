@@ -21,7 +21,7 @@ use crate::game::creature::{Creature, CreatureLayer};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -81,9 +81,9 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
 
 /// Buzz system
 pub fn sys_buzz(SysArgs { world, render, event, camera, .. }: &mut SysArgs) {
-  let (_, player, ..) = use_player(world);
+  let PQ { position: player_position, .. } = use_player(world);
   let debug = is_control(Control::Debug, Behaviour::Held, event);
-  let player_position = player.0;
+  let player_position = player_position.0;
   for (_, (buzz, buzz_position, buzz_velocity)) in world.query::<(&mut Buzz, &Position, &mut Velocity)>() {
     let transform = player_position - buzz_position.0;
     if buzz.0.update(buzz_position.0, player_position) == BuzzState::Follow {

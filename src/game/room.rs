@@ -20,7 +20,7 @@ use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
 use crate::game::constant::TILE_SIZE;
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 use crate::game::utility::path::{get_basename, get_filename};
 
@@ -248,7 +248,7 @@ impl RoomRegistry {
 
 /// Check for room collisions and enact room transitions
 pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
-  let (_, position, .., player_collider, _) = use_player(world);
+  let PQ { position, collider: player_collider, .. } = use_player(world);
   let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
   let mut room_collisions = Vec::new();
   for (_, room_collider) in world.query::<Without<&RoomCollider, &ActiveRoom>>() {
@@ -270,7 +270,7 @@ pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
   room_registry.clamp_camera(camera);
 
   let entry_bounds = room_registry.get_entry_bounds().expect("Failed to get entry bounds");
-  let (_, position, .., collider, _) = use_player(world);
+  let PQ { position, collider, .. } = use_player(world);
   let mut player_box = Rec2::new(position.0 + collider.0.origin, collider.0.size);
   player_box.clamp_position(&Rec2::new(Vec2::<f32>::from(entry_bounds.origin), entry_bounds.size));
   position.0 = player_box.origin;

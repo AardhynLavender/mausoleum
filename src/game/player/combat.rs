@@ -16,7 +16,7 @@ use crate::engine::utility::direction::Direction;
 use crate::engine::world::World;
 use crate::game::combat::projectile::make_projectile;
 use crate::game::constant::PLAYER_SIZE;
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 
 /// The player's starting health
 pub const PLAYER_HEALTH: i32 = 100;
@@ -46,8 +46,8 @@ impl PlayerCombat {
 
 /// Render the player's hit cooldown
 pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
-  let (player_data, position, ..) = use_player(world);
-  if !player_data.hit_cooldown.done() {
+  let PQ { combat, position, .. } = use_player(world);
+  if !combat.hit_cooldown.done() {
     render.draw_rect(Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
   }
 }
@@ -64,16 +64,16 @@ pub struct PlayerProjectile;
 
 /// Fire a plasma projectile in the direction the player is aiming
 pub fn fire_weapon(world: &mut World, aim: Direction, _weapon: Weapon) {
-  let (data, position, ..) = use_player(world);
+  let PQ { combat, position, .. } = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 
   let collision_box = CollisionBox::new(Vec2::new(0.0, 0.0), PLASMA_DIMENSIONS);
 
-  let mut sprite = Sprite::new(data.projectile_texture, SrcRect::new(Vec2::new(0, 0), PLASMA_DIMENSIONS));
+  let mut sprite = Sprite::new(combat.projectile_texture, SrcRect::new(Vec2::new(0, 0), PLASMA_DIMENSIONS));
   sprite.rotate(rotation.into());
 
-  if data.trigger_cooldown.done() {
-    data.trigger_cooldown.reset();
+  if combat.trigger_cooldown.done() {
+    combat.trigger_cooldown.reset();
     world.add(make_projectile::<PlayerProjectile>(
       PLASMA_DAMAGE,
       collision_box,

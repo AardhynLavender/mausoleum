@@ -2,7 +2,7 @@ use crate::engine::system::SysArgs;
 use crate::engine::utility::direction::Direction;
 use crate::game::constant::{JUMP_ACCELERATION, WALK_SPEED};
 use crate::game::player::combat::{fire_weapon, Weapon};
-use crate::game::player::world::use_player;
+use crate::game::player::world::{PQ, use_player};
 use crate::game::utility::controls::{Behaviour, Control, get_direction, is_control};
 
 const INITIAL_DIRECTION: Direction = Direction::Right;
@@ -39,7 +39,7 @@ impl PlayerController {
 }
 
 pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
-  let (_, _, velocity, controller, ..) = use_player(world);
+  let PQ { velocity, controller, .. } = use_player(world);
   let aim = get_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
 
   // Jump //
