@@ -17,8 +17,9 @@ use crate::engine::tile::tilemap::TileQuery;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
 use crate::game::combat::damage::Damage;
+use crate::game::combat::health::Health;
 use crate::game::constant::TILE_SIZE;
-use crate::game::creature::CreatureLayer;
+use crate::game::creature::{Creature, CreatureLayer};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
@@ -44,6 +45,7 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   if initial_direction.is_ordinal() { return Err(String::from("Zoomer must be initialized with an ordinal direction")); }
   let zoomer = asset_manager.texture.load(Path::new(ZOOMER_ASSET))?;
   Ok((
+    Creature::default(),
     Zoomer { rotation: Rotation::Right, last_cling: None, last_lead: None, turning: false },
     Sprite::new(zoomer, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(position),
@@ -52,6 +54,7 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
     Damage::new(10),
+    Health::build(10).expect("Failed to build health")
   ))
 }
 

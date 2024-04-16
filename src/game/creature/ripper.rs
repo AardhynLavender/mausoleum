@@ -17,7 +17,8 @@ use crate::engine::tile::tile::TileCollider;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::Damage;
-use crate::game::creature::CreatureLayer;
+use crate::game::combat::health::Health;
+use crate::game::creature::{Creature, CreatureLayer};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
@@ -39,6 +40,7 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   let ripper = asset_manager.texture.load(Path::new(RIPPER_ASSET))?;
 
   Ok((
+    Creature::default(),
     Ripper::default(),
     Sprite::new(ripper, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(position),
@@ -46,6 +48,7 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
     Damage::new(10),
+    Health::build(10).expect("Failed to build health")
   ))
 }
 
