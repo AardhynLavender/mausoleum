@@ -17,8 +17,10 @@ use crate::engine::system::SysArgs;
 use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::tile::tilemap::{TileHandle, Tilemap, TileQuery, TileQueryResult};
 use crate::engine::world::World;
+use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
 use crate::game::physics::position::Position;
+use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::meta::{Soft, Strong, TileBreakability, TileMeta};
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
@@ -88,6 +90,11 @@ impl Room {
         world.add_components(entity, (Soft, ))?;
       } else if tile.data.meta.breakability == TileBreakability::Strong {
         world.add_components(entity, (Strong, ))?;
+      }
+
+      let damage = tile.data.meta.damage;
+      if damage > 0 {
+        world.add_components(entity, (PlayerHostile::default(), Damage::new(damage)))?;
       }
 
       Ok(entity)

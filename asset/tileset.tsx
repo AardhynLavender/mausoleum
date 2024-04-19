@@ -142,7 +142,11 @@
     <tile id="125" type="Tile"/>
     <tile id="126" type="Tile"/>
     <tile id="127" type="Tile"/>
-    <tile id="128" type="Tile"/>
+    <tile id="128" type="Tile">
+        <properties>
+            <property name="damage" type="int" value="12"/>
+        </properties>
+    </tile>
     <tile id="129" type="Tile"/>
     <tile id="130" type="Tile"/>
     <tile id="131" type="Tile"/>

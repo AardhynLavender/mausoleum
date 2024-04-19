@@ -12,7 +12,7 @@ use crate::engine::tile::tilemap::Tilemap;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::text::{COMMA, strip_newlines};
-use crate::game::scene::level::meta::{TileBreakability, TILED_TILE_CLASS, TileMeta, use_breakability};
+use crate::game::scene::level::meta::{TILED_TILE_CLASS, TileMeta, use_breakability, use_damage};
 
 /// Delimiter for tile data in .Tiled tmx files
 const DELIMITER: char = COMMA;
@@ -28,8 +28,9 @@ pub fn tileset_meta_from_tiled(tiled_tileset: &TiledTileset) -> Result<HashMap<T
   for tile in &tiled_tileset.tiles {
     let tile_key = tile.id as TileKey;
     if tile._type != TILED_TILE_CLASS { return Err(format!("Invalid tile type: {}, for tile: {}", tile._type, tile_key)); }
-    let breakability = use_breakability::<TileBreakability>(&tile.properties)?;
-    meta.insert(tile_key, TileMeta { breakability });
+    let breakability = use_breakability(&tile.properties)?;
+    let damage = use_damage(&tile.properties)?;
+    meta.insert(tile_key, TileMeta { breakability, damage });
   }
   Ok(meta)
 }

@@ -17,7 +17,9 @@ pub struct TiledProperty {
   #[serde(rename = "@name")]
   pub name: String,
   #[serde(rename = "@propertytype")]
-  pub property_type: String,
+  pub property_type: Option<String>,
+  #[serde(rename = "@type")]
+  pub primitive_type: Option<String>,
   #[serde(rename = "@value")]
   pub value: String,
 }

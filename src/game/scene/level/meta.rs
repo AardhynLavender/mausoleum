@@ -28,6 +28,7 @@ pub const TILED_TILE_CLASS: &str = "Tile";
 #[derive(Clone, Copy, Debug)]
 pub struct TileMeta {
   pub breakability: TileBreakability,
+  pub damage: u32,
 }
 
 /// Extract a specific property from a collection of properties
@@ -42,16 +43,24 @@ pub fn use_property(name: impl Into<String>, properties: &Option<TiledProperties
 }
 
 /// Extract the breakability property from a collection of properties
-pub fn use_breakability<T>(properties: &Option<TiledProperties>) -> Result<TileBreakability, String> {
+pub fn use_breakability(properties: &Option<TiledProperties>) -> Result<TileBreakability, String> {
   let prop = use_property("breakability", properties);
-  return if let Some(prop) = prop {
-    match prop {
+  if let Some(prop) = prop {
+    return match prop {
       "Solid" => Ok(TileBreakability::Solid),
       "Strong" => Ok(TileBreakability::Strong),
       "Soft" => Ok(TileBreakability::Soft),
       other => Err(format!("Invalid breakability: {}", other)),
-    }
-  } else {
-    Ok(TileBreakability::default())
-  };
+    };
+  }
+  Ok(TileBreakability::default())
+}
+
+/// Extract the damage property from a collection of properties
+pub fn use_damage(properties: &Option<TiledProperties>) -> Result<u32, String> {
+  if let Some(prop) = use_property("damage", properties) {
+    let value = prop.parse::<u32>().map_err(|err| err.to_string())?;
+    return Ok(value);
+  }
+  Ok(u32::default())
 }
