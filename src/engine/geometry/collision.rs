@@ -1,5 +1,6 @@
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::utility::alias::Size;
+use crate::engine::utility::direction::Direction;
 
 /// The maximum value of a resolvable collision
 ///
@@ -28,6 +29,17 @@ impl CollisionMask {
   /// Check if the collision mask is empty
   pub const fn is_empty(&self) -> bool {
     !self.top && !self.right && !self.bottom && !self.left
+  }
+  /// Clear a specific side of the mask
+  pub fn set_side(&mut self, side: Direction, value: bool) -> Result<(), String> {
+    match side {
+      Direction::Up => self.top = value,
+      Direction::Right => self.right = value,
+      Direction::Down => self.bottom = value,
+      Direction::Left => self.left = value,
+      _ => return Err(String::from("Ordinal direction is not supported for collision masks"))
+    }
+    Ok(())
   }
 }
 
