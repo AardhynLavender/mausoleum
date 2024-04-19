@@ -60,66 +60,41 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
       return Err(String::from("Initial tiles do not match dimensions"));
     }
 
+    let tiles = tileset
+      .tiledata_from::<Vec<Option<TileConcept<Meta>>>>(&initial_tiles, dimensions)?
+      .collect();
+
     Ok(Self {
       tile_size: tileset.tile_size,
-      tiles: tileset.tiledata_from::<Vec<Option<TileConcept>>>(&initial_tiles, dimensions)?.collect(),
-      entities: HashMap::with_capacity(tile_count),
       dimensions,
+      tiles,
+      entities: HashMap::with_capacity(tile_count),
     })
   }
-  /// Add the tiles to the world
-  pub fn add_to_world(&mut self, world: &mut World, position: Vec2<f32>) -> Result<(), String> {
-    for (index, tile) in self.tiles
-      .iter()
-      .enumerate()
-    {
+
+  /// Add tiles to the world by invoking an injected add function on each concept
+  pub fn add_tiles(&mut self, mut add: impl FnMut(&TileConcept<Meta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
+    for (index, tile) in self.tiles.iter().enumerate() {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
-        let (tile_width, tile_height) = tile.data.src.size.destructure();
-        let tile_position = Vec2::new(
-          coordinate.x as f32 * tile_width as f32,
-          coordinate.y as f32 * tile_height as f32,
-        ) + position;
-
-        let entity = world.add((
-          Tile::new(tile.data.tile_key),
-          Position::new(tile_position.x, tile_position.y),
-          Sprite::new(tile.data.texture_key, tile.data.src),
-          layer::Layer5
-        ));
-
-        // add a collider if the tile has a mask
-        if !tile.mask.is_empty() {
-          let collider = TileCollider::new(
-            Rec2::new(Vec2::default(), tile.data.src.size),
-            tile.mask,
-          );
-          world.add_components(entity, (collider, ))?;
-        }
-
+        let position = Vec2::<f32>::from(coordinate) * Vec2::from(tile.data.src.size);
+        let entity = add(tile, coordinate, position)?;
         self.entities.insert(index, entity);
       }
     }
-
     Ok(())
   }
-  /// remove the entities from the world
-  pub fn remove_from_world(&mut self, world: &mut World) -> Result<(), String> {
-    for entity in self.entities.values().into_iter() {
-      world.free_now(*entity)?
-    }
-
-    Ok(())
+  pub fn remove_tile(&mut self, handle: TileHandle<Meta>, mut remove: impl FnMut(Entity)) {
+    if let Some(entity) = self.entities.remove(&handle.index) { remove(entity) };
+  }
+  /// Remove tiles from the world by invoking an injected remove function on each entity
+  pub fn remove_tiles(&mut self, mut remove: impl FnMut(Entity)) {
+    for (.., entity) in self.entities.drain() { remove(entity); }
   }
   /// get the dimensions of the tilemap in worldspace
-  pub fn get_dimensions(&self) -> Size2 {
-    self.dimensions * self.tile_size
-  }
-
-  // Concept Getters //
-
+  pub fn get_dimensions(&self) -> Size2 { self.dimensions * self.tile_size }
   /// Get a tile at a coordinate
-  fn get_concept(&self, index: usize) -> Option<&TileConcept> {
+  fn get_concept(&self, index: usize) -> Option<&TileConcept<Meta>> {
     if index >= self.tiles.len() { return None; }
     self.tiles
       .get(index)
@@ -129,7 +104,7 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
   ///
   /// Returns a mutable reference to the tile concept
   #[inline]
-  pub fn query_tile(&self, get: TileQuery) -> TileQueryResult {
+  pub fn query_tile(&self, get: TileQuery) -> TileQueryResult<Meta> {
     match get {
       TileQuery::Position(position) => {
         let coordinate = position_to_coordinate(position, self.tile_size);
@@ -144,7 +119,7 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
         let entity = self.entities.get(&index).copied();
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
-        (concept, entity, position, coordinate)
+        (concept, entity, position, coordinate, index)
       }
     }
   }
