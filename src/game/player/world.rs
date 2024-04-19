@@ -63,12 +63,15 @@ pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut Ass
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
-  let projectile_texture = asset.texture
+  let bullet = asset.texture
     .load(Path::new("asset/plasma_burst.png"))
-    .expect("Failed to load projectile texture");
+    .expect("Failed to load bullet texture");
+  let rocket = asset.texture
+    .load(Path::new("asset/desolation_pulse.png"))
+    .expect("Failed to load rocket texture");
 
   world.add((
-    PlayerCombat::new(projectile_texture),
+    PlayerCombat::new(bullet, rocket),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),

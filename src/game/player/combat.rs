@@ -9,37 +9,52 @@ use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer;
 use crate::engine::system::SysArgs;
 use crate::engine::time::Timer;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
 use crate::engine::world::World;
-use crate::game::combat::projectile::make_projectile;
+use crate::game::combat::damage::Damage;
+use crate::game::combat::ttl::TimeToLive;
 use crate::game::constant::PLAYER_SIZE;
+use crate::game::physics::collision::{Collider, Fragile};
+use crate::game::physics::position::Position;
+use crate::game::physics::velocity::Velocity;
 use crate::game::player::world::{PQ, use_player};
+use crate::game::scene::level::collision::RoomCollision;
 
 /// The player's starting health
 pub const PLAYER_HEALTH: i32 = 100;
 
-const PLASMA_DAMAGE: u32 = 10;
-const PLASMA_LIFETIME_MS: u64 = 1000;
-const PLASMA_SPEED: f32 = 300.0;
-const PLASMA_DIMENSIONS: Size2 = Size2::new(8, 2);
+pub const HIT_COOLDOWN: u64 = 500;
+
+const PROJECTILE_COOLDOWN: u64 = 200;
+const PROJECTILE_LIFETIME: u64 = 1000;
+const PROJECTILE_SPEED: f32 = 300.0;
+
+const BULLET_DAMAGE: u32 = 10;
+const BULLET_DIMENSIONS: Size2 = Size2::new(12, 3);
+
+const ROCKET_DAMAGE: u32 = 50;
+const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
 /// Store player specific data
 pub struct PlayerCombat {
   pub hit_cooldown: Timer,
   pub trigger_cooldown: Timer,
-  pub projectile_texture: TextureKey,
+  pub bullet_texture: TextureKey,
+  pub rocket_texture: TextureKey,
 }
 
 impl PlayerCombat {
   // Instantiate a new player combat component
-  pub fn new(projectile_texture: TextureKey) -> Self {
+  pub fn new(bullet_texture: TextureKey, rocket_texture: TextureKey) -> Self {
     Self {
-      hit_cooldown: Timer::new(Duration::from_millis(500), true),
-      projectile_texture,
-      trigger_cooldown: Timer::new(Duration::from_millis(100), false),
+      hit_cooldown: Timer::new(Duration::from_millis(HIT_COOLDOWN), true),
+      bullet_texture,
+      rocket_texture,
+      trigger_cooldown: Timer::new(Duration::from_millis(PROJECTILE_COOLDOWN), false),
     }
   }
 }
@@ -53,35 +68,52 @@ pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) 
 }
 
 /// Available weapon types for the player
+#[derive(PartialEq)]
 pub enum Weapon {
-  Plasma,
+  Bullet,
   Rocket,
 }
+
+pub type ProjectileLayer = layer::Layer8;
+
+#[derive(Default)]
+pub struct Bullet;
+
+#[derive(Default)]
+pub struct Rocket;
 
 /// Mark an entity as a player projectile
 #[derive(Default)]
 pub struct PlayerProjectile;
 
 /// Fire a plasma projectile in the direction the player is aiming
-pub fn fire_weapon(world: &mut World, aim: Direction, _weapon: Weapon) {
+pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
   let PQ { combat, position, .. } = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 
-  let collision_box = CollisionBox::new(Vec2::new(0.0, 0.0), PLASMA_DIMENSIONS);
-
-  let mut sprite = Sprite::new(combat.projectile_texture, SrcRect::new(Vec2::new(0, 0), PLASMA_DIMENSIONS));
+  let dimensions = if weapon == Weapon::Bullet { BULLET_DIMENSIONS } else { ROCKET_DIMENSIONS };
+  let texture = if weapon == Weapon::Bullet { combat.bullet_texture } else { combat.rocket_texture };
+  let collision_box = CollisionBox::new(Vec2::new(0.0, 0.0), dimensions);
+  let mut sprite = Sprite::new(texture, SrcRect::new(Vec2::new(0, 0), dimensions));
   sprite.rotate(rotation.into());
 
   if combat.trigger_cooldown.done() {
     combat.trigger_cooldown.reset();
-    world.add(make_projectile::<PlayerProjectile>(
-      PLASMA_DAMAGE,
-      collision_box,
-      position,
-      velocity,
+    let projectile = world.add((
       sprite,
-      PLASMA_LIFETIME_MS,
+      PlayerProjectile,
+      ProjectileLayer::default(),
+      Position(position),
+      Velocity(velocity),
+      Collider::new(collision_box),
+      RoomCollision,
+      Fragile,
+      TimeToLive::new(PROJECTILE_LIFETIME),
     ));
+    match weapon {
+      Weapon::Bullet => world.add_components(projectile, (Bullet, Damage::new(BULLET_DAMAGE), )),
+      Weapon::Rocket => world.add_components(projectile, (Rocket, Damage::new(ROCKET_DAMAGE), ))
+    }.expect("Failed to add weapon components to projectile")
   }
 }
 
@@ -90,7 +122,9 @@ pub fn compute_projectile_spawn(aim: Direction, player_position: Vec2<f32>, play
   let radius = Vec2::from(player_bounds) / 2.0;
   let centroid = player_position + radius;
   let position = centroid + Vec2::from(aim.to_coordinate()) * radius;
-  let velocity = Vec2::from(aim.to_coordinate()) * PLASMA_SPEED;
+  let velocity = Vec2::from(aim.to_coordinate()) * PROJECTILE_SPEED;
   let rotation = f32::from(aim) + 90.0;
   (position, velocity, rotation)
 }
+
+
