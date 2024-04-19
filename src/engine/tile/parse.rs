@@ -1,12 +1,60 @@
+/**
+ * Parse Tiled data into Rust structures.
+ */
+
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::Path;
 
 use serde::Deserialize;
 
-/**
- * Parse Tiled data into Rust structures.
- */
+// Custom Properties //
+
+/// A single property child of a `TiledProperties`
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TiledProperty {
+  #[serde(rename = "@name")]
+  pub name: String,
+  #[serde(rename = "@propertytype")]
+  pub property_type: String,
+  #[serde(rename = "@value")]
+  pub value: String,
+}
+
+/// Collection of properties associated with an `TiledCustomProperties` instance.
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TiledProperties {
+  #[serde(rename = "$value")]
+  pub properties: Vec<TiledProperty>,
+}
+
+/// Metadata for some tiled object, tile, map, etc.
+/// ## Example
+/// ```xml
+/// <tileset>
+///   <tile id="37" type="CustomTiledClass">
+///     <properties>
+///       <property name="panic_on_collision" type="CustomTileEnum" value="ALWAYS"/>
+///       ...
+///     </properties>
+///   </tile>
+///   ...
+/// </tileset>
+/// ```
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct TiledCustomProperties {
+  #[serde(rename = "@id")]
+  pub id: u32,
+  #[serde(rename = "@type")]
+  pub _type: String,
+
+  pub properties: Option<TiledProperties>,
+}
+
+// World //
 
 /// A reference to a Tiled tilemap in a Tiled world file
 #[derive(Deserialize, Debug)]
@@ -28,6 +76,8 @@ pub struct TiledWorld {
   #[serde(rename = "type")]
   pub world_type: String,
 }
+
+// Tileset //
 
 /// A Tiled tilesets image reference
 #[derive(Deserialize, Debug)]
@@ -58,8 +108,13 @@ pub struct TiledTileset {
   #[serde(rename = "@columns")]
   pub columns: u32,
 
+  #[serde(rename = "tile")]
+  pub tiles: Vec<TiledCustomProperties>,
+
   pub image: TiledImage,
 }
+
+// Tilemap //
 
 /// A Tilemaps reference to a Tiled tileset
 #[derive(Deserialize, Debug)]

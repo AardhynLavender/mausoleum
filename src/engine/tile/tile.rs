@@ -1,12 +1,7 @@
 use crate::engine::asset::texture::{SrcRect, TextureKey};
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask};
-use crate::engine::geometry::shape::Vec2;
-use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::store::Key;
-use crate::engine::system::SysArgs;
 use crate::engine::utility::alias::Coordinate;
-use crate::game::physics::position::Position;
-use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /**
  * Tile components, structures, and systems
@@ -17,33 +12,36 @@ pub type TileKey = Key;
 
 /// Data to create a tile entity (Sprite + Tile)
 #[derive(Clone, Copy, Debug)]
-pub struct TileData {
+pub struct TileData<Meta> {
   pub texture_key: TextureKey,
   pub src: SrcRect,
   pub tile_key: TileKey,
+  pub meta: Meta,
 }
 
-impl TileData {
+impl<Meta> TileData<Meta> {
   /// Instantiate a new tile data with `texture_key`, `src`, and `tile_key`
-  pub fn new(texture_key: TextureKey, src: SrcRect, tile_key: TileKey) -> Self {
+  pub fn new(texture_key: TextureKey, src: SrcRect, tile_key: TileKey, meta: Meta) -> Self {
     Self {
       texture_key,
       src,
       tile_key,
+      meta,
     }
   }
 }
 
 /// Data used to add a tile to the tilemap
-pub struct TileConcept {
-  pub data: TileData,
+#[derive(Copy, Clone, Debug)]
+pub struct TileConcept<Meta> where Meta: Copy + Clone {
+  pub data: TileData<Meta>,
   pub coordinate: Coordinate,
   pub mask: CollisionMask,
 }
 
-impl TileConcept {
+impl<Meta> TileConcept<Meta> where Meta: Copy + Clone {
   /// Instantiate a new tile concept with `tile_data` and `collision_mask`
-  pub fn new(data: TileData, coordinate: Coordinate, mask: CollisionMask) -> Self {
+  pub fn new(data: TileData<Meta>, coordinate: Coordinate, mask: CollisionMask) -> Self {
     Self {
       data,
       coordinate,
@@ -76,23 +74,5 @@ impl TileCollider {
       collision_box,
       mask,
     }
-  }
-}
-
-/// Render the tile colliders to the screen when debug mode is active
-pub fn sys_render_tile_colliders(SysArgs { world, camera, render, event, .. }: &mut SysArgs) {
-  if !is_control(Control::Debug, Behaviour::Held, event) {
-    return;
-  }
-
-  for (_, (position, collider)) in world.query::<(&Position, &TileCollider)>() {
-    let color = RGBA::new(255, 0, 0, OPAQUE);
-    let (width, height) = collider.collision_box.size.destructure();
-    let p = camera.translate(Vec2::from(position.0 + collider.collision_box.origin));
-
-    if collider.mask.top { render.draw_line(p, p + Vec2::new(width as i32, 0), color); }
-    if collider.mask.right { render.draw_line(p + Vec2::new(width as i32, 0), p + Vec2::new(width as i32, height as i32), color); }
-    if collider.mask.bottom { render.draw_line(p + Vec2::new(0, height as i32), p + Vec2::new(width as i32, height as i32), color); }
-    if collider.mask.left { render.draw_line(p, p + Vec2::new(0, height as i32), color); }
   }
 }

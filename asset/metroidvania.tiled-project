@@ -6,6 +6,40 @@
     "folders": [
         "."
     ],
+    "properties": [
+    ],
     "propertyTypes": [
+        {
+            "id": 1,
+            "name": "Breakability",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "Solid",
+                "Strong",
+                "Soft"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "color": "#ffaa0000",
+            "drawFill": true,
+            "id": 3,
+            "members": [
+                {
+                    "name": "breakability",
+                    "propertyType": "Breakability",
+                    "type": "string",
+                    "value": "Solid"
+                }
+            ],
+            "name": "Tile",
+            "type": "class",
+            "useAs": [
+                "property",
+                "tile",
+                "project"
+            ]
+        }
     ]
 }

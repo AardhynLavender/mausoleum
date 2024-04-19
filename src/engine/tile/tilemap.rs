@@ -1,20 +1,18 @@
+/**
+ * Tilemap structure and utilities
+ */
+
 use std::collections::HashMap;
 
 use hecs::Entity;
 
-use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::rendering::component::Sprite;
-use crate::engine::rendering::renderer::layer;
-use crate::engine::tile::tile::{Tile, TileCollider, TileConcept, TileKey};
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::tile::tile::{TileConcept, TileKey};
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate, position_to_coordinate};
-use crate::engine::world::World;
-use crate::game::physics::position::Position;
 
-/**
- * Tilemap structure and utilities
- */
+pub type MapIndex = usize;
 
 pub enum TileQuery {
   Position(Vec2<f32>),
@@ -22,21 +20,40 @@ pub enum TileQuery {
   Index(usize),
 }
 
-pub type TileQueryResult<'r> = (Option<&'r TileConcept>, Option<Entity>, Vec2<f32>, Coordinate);
+pub type TileQueryResult<'r, Meta> = (Option<&'r TileConcept<Meta>>, Option<Entity>, Vec2<f32>, Coordinate, MapIndex);
+
+/// A non-owning handle of a queried tile
+pub struct TileHandle<Meta> where Meta: Copy {
+  /// Convert a tile query result into a non-owning handle of the tile queried
+  pub concept: TileConcept<Meta>,
+  pub entity: Entity,
+  pub position: Vec2<f32>,
+  pub coordinate: Coordinate,
+  pub index: MapIndex,
+}
+
+impl<Meta> TryFrom<TileQueryResult<'_, Meta>> for TileHandle<Meta> where Meta: Copy {
+  type Error = String;
+  fn try_from((concept, entity, position, coordinate, index): TileQueryResult<'_, Meta>) -> Result<Self, Self::Error> {
+    let concept = concept.copied().ok_or(String::from("Tile has no concept"))?;
+    let entity = entity.ok_or("Tile has no entity")?;
+    Ok(TileHandle::<Meta> { concept, entity, position, coordinate, index })
+  }
+}
 
 /// Manages a grid of entities
-pub struct Tilemap {
+pub struct Tilemap<Meta> where Meta: Copy + Clone {
   // store the data to build the tilemap
-  tiles: Vec<Option<TileConcept>>,
+  tiles: Vec<Option<TileConcept<Meta>>>,
   tile_size: Size2,
   // store the entities that make up the tilemap
-  entities: HashMap<usize, Entity>,
+  entities: HashMap<MapIndex, Entity>,
   dimensions: Size2,
 }
 
-impl Tilemap {
+impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
   /// Instantiate a new tilemap from with `dimensions`
-  pub fn build(tileset: &Tileset, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>) -> Result<Self, String> {
+  pub fn build(tileset: &Tileset<Meta>, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>) -> Result<Self, String> {
     // invariant
     let tile_count = dimensions.square() as usize;
     if initial_tiles.len() != tile_count {
@@ -132,4 +149,3 @@ impl Tilemap {
     }
   }
 }
-
