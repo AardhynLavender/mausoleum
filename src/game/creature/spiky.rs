@@ -69,12 +69,12 @@ pub fn sys_spiky(SysArgs { world, render, state, camera, event, .. }: &mut SysAr
     let leading_top_corner = if velocity.is_going_right() { position.0 + WIDTH } else { position.0 };
     let leading_bottom_corner = leading_top_corner + HEIGHT;
 
-    let (tile, .., position, _, _) = room.query_tile(TileQuery::Position(leading_top_corner));
-    if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(255, 128, 0, OPAQUE)); }
-    if tile.is_some() { velocity.reverse_x(); }
+    let result = room.query_tile(TileQuery::Position(leading_top_corner));
+    if debug { render.draw_rect(Rec2::new(camera.translate(result.position), TILE_SIZE), RGBA::new(255, 128, 0, OPAQUE)); }
+    if result.concept.is_some() { velocity.reverse_x(); }
 
-    let (tile, .., position, _, _) = room.query_tile(TileQuery::Position(leading_bottom_corner));
-    if debug { render.draw_rect(Rec2::new(camera.translate(position), TILE_SIZE), RGBA::new(0, 255, 128, OPAQUE)); }
-    if tile.is_none() { velocity.reverse_x(); }
+    let result = room.query_tile(TileQuery::Position(leading_bottom_corner));
+    if debug { render.draw_rect(Rec2::new(camera.translate(result.position), TILE_SIZE), RGBA::new(0, 255, 128, OPAQUE)); }
+    if result.concept.is_none() { velocity.reverse_x(); }
   }
 }

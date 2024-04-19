@@ -20,7 +20,15 @@ pub enum TileQuery {
   Index(usize),
 }
 
-pub type TileQueryResult<'r, Meta> = (Option<&'r TileConcept<Meta>>, Option<Entity>, Vec2<f32>, Coordinate, MapIndex);
+pub struct TileQueryResult<'r, Meta> where Meta: Copy + Clone {
+  pub concept: Option<&'r TileConcept<Meta>>,
+  pub entity: Option<Entity>,
+  pub position: Vec2<f32>,
+  pub coordinate: Coordinate,
+  pub index: MapIndex,
+}
+
+pub type TQ<'r, Meta> = TileQueryResult<'r, Meta>;
 
 /// A non-owning handle of a queried tile
 pub struct TileHandle<Meta> where Meta: Copy {
@@ -34,10 +42,14 @@ pub struct TileHandle<Meta> where Meta: Copy {
 
 impl<Meta> TryFrom<TileQueryResult<'_, Meta>> for TileHandle<Meta> where Meta: Copy {
   type Error = String;
-  fn try_from((concept, entity, position, coordinate, index): TileQueryResult<'_, Meta>) -> Result<Self, Self::Error> {
-    let concept = concept.copied().ok_or(String::from("Tile has no concept"))?;
-    let entity = entity.ok_or("Tile has no entity")?;
-    Ok(TileHandle::<Meta> { concept, entity, position, coordinate, index })
+  fn try_from(result: TileQueryResult<'_, Meta>) -> Result<Self, Self::Error> {
+    Ok(TileHandle::<Meta> {
+      concept: result.concept.copied().ok_or(String::from("Tile has no concept"))?,
+      entity: result.entity.ok_or("Tile has no entity")?,
+      position: result.position,
+      coordinate: result.coordinate,
+      index: result.index,
+    })
   }
 }
 
@@ -119,7 +131,7 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
         let entity = self.entities.get(&index).copied();
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
-        (concept, entity, position, coordinate, index)
+        TileQueryResult { concept, entity, coordinate, position, index }
       }
     }
   }

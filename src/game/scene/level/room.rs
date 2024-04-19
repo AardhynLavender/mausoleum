@@ -149,7 +149,7 @@ impl Room {
     } else {
       self.tilemap.query_tile(get)
     };
-    result.2 = result.2 + self.position; // convert to world position
+    result.position = result.position + self.position; // convert to world position
     result
   }
   /// Get the bounds of the tilemap in worldspace

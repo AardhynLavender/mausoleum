@@ -13,7 +13,7 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::system::SysArgs;
-use crate::engine::tile::tilemap::TileQuery;
+use crate::engine::tile::tilemap::{TileQuery, TQ};
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
 use crate::game::combat::damage::Damage;
@@ -95,7 +95,7 @@ fn get_zoomer_extremity(position: Vec2<f32>, direction: Direction) -> Vec2<f32> 
 /// Returns the current leading coordinate and position.
 fn compute_leading(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, position: &mut Position, velocity: &mut Velocity) -> (Coordinate, Vec2<f32>) {
   let extremity = get_zoomer_extremity(position.0, direction);
-  let (leading_tile, .., leading_position, leading_coordinate, _) = room.query_tile(TileQuery::Position(extremity));
+  let TQ { concept: leading_tile, position: leading_position, coordinate: leading_coordinate, .. } = room.query_tile(TileQuery::Position(extremity));
   if zoomer.last_lead.is_none() || leading_coordinate != zoomer.last_lead.unwrap() {
     zoomer.last_lead = Some(leading_coordinate);
     if leading_tile.is_some() {
@@ -122,7 +122,7 @@ fn get_cling_coordinate(coordinate: Coordinate, direction: Direction, rotation: 
 /// Returns the position of the tile the zoomer clings to.
 fn compute_cling(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, leading_coordinate: Coordinate, position: &mut Position, velocity: &mut Velocity) -> Vec2<f32> {
   let cling_coordinate = get_cling_coordinate(leading_coordinate, direction, zoomer.rotation);
-  let (cling_tile, .., cling_position, _, _) = room.query_tile(TileQuery::Coordinate(cling_coordinate));
+  let TQ { concept: cling_tile, position: cling_position, .. } = room.query_tile(TileQuery::Coordinate(cling_coordinate));
   if zoomer.last_cling.is_none() || cling_coordinate != zoomer.last_cling.unwrap() {
     zoomer.last_cling = Some(cling_coordinate);
     if cling_tile.is_none() {
