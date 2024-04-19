@@ -39,3 +39,8 @@ pub fn sys_render_colliders(SysArgs { world, camera, render, event, .. }: &mut S
     );
   }
 }
+
+/// Create a worldspace collision box from a position and collider
+pub fn make_collision_box(position: &Position, collider: &Collider) -> CollisionBox {
+  CollisionBox::new(position.0 + collider.0.origin, collider.0.size)
+}

@@ -46,8 +46,7 @@ pub enum SnapType {
 }
 
 /// Define direction ordering
-const DIRECTION: [Direction; 8]
-= [
+pub const DIRECTION: [Direction; 8] = [
   Direction::Up,
   Direction::UpRight,
   Direction::Right,
@@ -58,7 +57,7 @@ const DIRECTION: [Direction; 8]
   Direction::UpLeft,
 ];
 /// Number of possible cardinal+ordinal directions
-const DIRECTIONS: usize = DIRECTION.len();
+pub const DIRECTIONS: usize = DIRECTION.len();
 
 pub fn get_direction_index(direction: &Direction) -> usize {
   DIRECTION
