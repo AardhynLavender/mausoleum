@@ -39,6 +39,10 @@ const BULLET_DIMENSIONS: Size2 = Size2::new(12, 3);
 const ROCKET_DAMAGE: u32 = 50;
 const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
+/// Mark an entity as being hostile to the player
+#[derive(Default)]
+pub struct PlayerHostile;
+
 /// Store player specific data
 pub struct PlayerCombat {
   pub hit_cooldown: Timer,
@@ -82,9 +86,9 @@ pub struct Bullet;
 #[derive(Default)]
 pub struct Rocket;
 
-/// Mark an entity as a player projectile
+/// Mark an entity as damaging to creatures but the player
 #[derive(Default)]
-pub struct PlayerProjectile;
+pub struct CreatureHostile;
 
 /// Fire a plasma projectile in the direction the player is aiming
 pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
@@ -101,7 +105,7 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
     combat.trigger_cooldown.reset();
     let projectile = world.add((
       sprite,
-      PlayerProjectile,
+      CreatureHostile,
       ProjectileLayer::default(),
       Position(position),
       Velocity(velocity),

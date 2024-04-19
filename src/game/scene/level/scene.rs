@@ -75,10 +75,18 @@ impl Scene for LevelScene {
   }
   /// Add systems to the level scene
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
+    // Creatures //
+
+    system.add(Schedule::FrameUpdate, sys_ripper);
+    system.add(Schedule::FrameUpdate, sys_spiky);
+    system.add(Schedule::FrameUpdate, sys_zoomer);
+    system.add(Schedule::FrameUpdate, sys_buzz);
+
     // physics //
 
-    system.add(Schedule::FrameUpdate, sys_gravity);
     system.add(Schedule::FrameUpdate, sys_velocity);
+    system.add(Schedule::FrameUpdate, sys_gravity);
+    system.add(Schedule::FrameUpdate, sys_damage);
     system.add(Schedule::FrameUpdate, sys_tile_collision);
     system.add(Schedule::FrameUpdate, sys_room_transition);
 
@@ -89,15 +97,6 @@ impl Scene for LevelScene {
     system.add(Schedule::PostUpdate, sys_render_room_colliders);
     system.add(Schedule::PostUpdate, sys_render_player_health);
     system.add(Schedule::PostUpdate, sys_render_cooldown);
-
-    // combat //
-
-    system.add(Schedule::FrameUpdate, sys_ripper);
-    system.add(Schedule::FrameUpdate, sys_spiky);
-    system.add(Schedule::FrameUpdate, sys_zoomer);
-    system.add(Schedule::FrameUpdate, sys_buzz);
-
-    system.add(Schedule::FrameUpdate, sys_damage);
 
     // misc //
 

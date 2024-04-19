@@ -19,11 +19,12 @@ use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::constant::TILE_SIZE;
-use crate::game::creature::{Creature, CreatureLayer};
+use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
+use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::room::{Room, use_room};
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -45,7 +46,7 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   if initial_direction.is_ordinal() { return Err(String::from("Zoomer must be initialized with an ordinal direction")); }
   let zoomer = asset_manager.texture.load(Path::new(ZOOMER_ASSET))?;
   Ok((
-    Creature::default(),
+    PlayerHostile::default(),
     Zoomer { rotation: Rotation::Right, last_cling: None, last_lead: None, turning: false },
     Sprite::new(zoomer, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(position),
