@@ -1,5 +1,6 @@
+/*
 * Collision system for entities with room tiles
-* /
+*/
 
 use std::collections::HashMap;
 
