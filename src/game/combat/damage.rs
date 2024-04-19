@@ -13,7 +13,7 @@ use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerProjectile;
 use crate::game::player::world::{PQ, use_player};
-use crate::game::room::use_room;
+use crate::game::scene::level::room::use_room;
 
 pub struct Damage {
   pub amount: i32,
@@ -86,6 +86,6 @@ pub fn creature_damage(world: &mut World, state: &mut State) {
 
   let room = use_room(state);
   for entity in dead_creatures {
-    room.remove_entity(entity, world).expect("Failed to despawn creature");
+    room.remove_entity(entity, world);
   }
 }

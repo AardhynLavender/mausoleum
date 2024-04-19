@@ -1,109 +1,27 @@
 /**
- * Room creation and management
+ * Manage rooms and transitions
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-use hecs::{DynamicBundle, Entity, Without};
+use hecs::{Entity, Without};
 
 use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
-use crate::engine::rendering::color::{OPAQUE, RGBA};
-use crate::engine::state::State;
 use crate::engine::system::SysArgs;
-use crate::engine::tile::consume::{tilemap_from_tiled, tileset_from_tiled};
 use crate::engine::tile::parse::TiledParser;
-use crate::engine::tile::tilemap::{Tilemap, TileQuery, TileQueryResult};
-use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
-use crate::game::constant::TILE_SIZE;
 use crate::game::player::world::{PQ, use_player};
-use crate::game::utility::controls::{Behaviour, Control, is_control};
+use crate::game::scene::level::parse::{tilemap_from_tiled, tileset_from_tiled};
+use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider};
 use crate::game::utility::path::{get_basename, get_filename};
 
-const ROOM_ENTER_MARGIN: i32 = TILE_SIZE.x as i32 / 2;
-
-/// A key to identify a room
-pub type RoomKey = String;
-
-// Components //
-
-/// Add room entry detection to an entity
-#[derive(Debug, Clone)]
-pub struct RoomCollider {
-  pub collision_box: CollisionBox,
-  pub room: RoomKey,
-}
-
-impl RoomCollider {
-  pub fn new(collision_box: CollisionBox, room: RoomKey) -> Self {
-    Self { collision_box, room }
-  }
-}
-
-/// Mark an entity with a `RoomCollider` as active
-#[derive(Debug, Clone, Default)]
-pub struct ActiveRoom;
-
-// Structures //
-
-pub struct Room {
-  position: Vec2<f32>,
-  tilemap: Tilemap,
-  entities: HashSet<Entity>,
-}
-
-impl Room {
-  /// Instantiate a new room
-  pub fn build(tilemap: Tilemap, position: Vec2<f32>) -> Self {
-    Self { tilemap, position, entities: HashSet::new() }
-  }
-
-  /// Add the tilemap to the world
-  fn add_tilemap(&mut self, world: &mut World) -> Result<(), String> { self.tilemap.add_to_world(world, self.position) }
-  /// Remove the tilemap from the world
-  fn remove_tilemap(&mut self, world: &mut World) -> Result<(), String> { self.tilemap.remove_from_world(world) }
-  /// Add an entity registered with this room
-  pub fn add_entity(&mut self, world: &mut World, components: impl DynamicBundle) { self.entities.insert(world.add(components)); }
-  /// Remove an entity from the world that is registered with this room
-  pub fn remove_entity(&mut self, entity: Entity, world: &mut World) -> Result<(), String> {
-    world.free_now(entity)?;
-    if self.entities.remove(&entity) { return Ok(()); }
-    Err(String::from("Entity not registered with room"))
-  }
-  /// Remove all entities registered with this room
-  fn remove_entities(&mut self, world: &mut World) -> Result<(), String> {
-    for entity in self.entities.drain() { world.free_now(entity)?; }
-    Ok(())
-  }
-
-  /// Get information about a tile in the current room at a position in worldspace
-  pub fn query_tile(&mut self, get: TileQuery) -> TileQueryResult {
-    let mut result = if let TileQuery::Position(position) = get {
-      let position = position - self.position; // convert to local position
-      self.tilemap.query_tile(TileQuery::Position(position))
-    } else {
-      self.tilemap.query_tile(get)
-    };
-    result.2 = result.2 + self.position; // convert to world position
-    result
-  }
-  /// Get the bounds of the tilemap in worldspace
-  pub fn get_bounds(&self) -> CameraBounds {
-    let position = Vec2::from(self.position);
-    let dimensions = self.tilemap.get_dimensions();
-    CameraBounds::new(position, dimensions)
-  }
-}
-
 /// Consume a Tiled parser, and build its tilesets and tilemaps
-#[allow(unused)]
 pub struct RoomRegistry {
   current: Option<String>,
-  tilesets: HashMap<String, Tileset>,
   rooms: HashMap<String, Room>,
   colliders: HashMap<String, Entity>,
 }
@@ -155,13 +73,12 @@ impl RoomRegistry {
 
     Ok(Self {
       current: None,
-      tilesets,
       rooms,
       colliders,
     })
   }
   /// clear the `ActiveRoom` entity from the current room
-  fn clear_active_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
+  fn deactivate_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     let name = name.into();
     let entity = self.colliders
       .get(&name)
@@ -172,44 +89,35 @@ impl RoomRegistry {
     Ok(())
   }
   /// Add the `ActiveRoom` component to an entity
-  fn set_active_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
+  fn activate_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     let name = name.into();
-    let entity = self.colliders
-      .get(&name)
-      .ok_or("Room collider not found")?;
-
+    let entity = self.colliders.get(&name).ok_or("Room collider not found")?;
     world.add_components(*entity, (ActiveRoom::default(), ))
   }
   /// Remove a room and it's entities from the world
   fn remove_room_from_world(&mut self, name: &String, world: &mut World) -> Result<(), String> {
-    let room = self.rooms
-      .get_mut(name)
-      .ok_or("Current room not found")?;
-
-    room.remove_tilemap(world)?;
-    room.remove_entities(world)?;
+    let room = self.rooms.get_mut(name).ok_or("Current room not found")?;
+    room.remove_from_world(world);
 
     Ok(())
   }
-  /// Add a room to the world
+  /// Add the entities associated with a room to the world
   fn add_room_to_world(&mut self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     self.rooms
       .get_mut(&name.into())
       .ok_or("Room not found")?
-      .add_tilemap(world)
+      .add_to_world(world)
   }
-  /// Change the current room
-  pub fn set_current(&mut self, world: &mut World, name: impl Into<String>) -> Result<(), String> {
+  /// Transition to a new room
+  pub fn transition_to_room(&mut self, world: &mut World, name: impl Into<String>) -> Result<(), String> {
     let name = name.into();
     if let Some(current) = self.current.clone() {
-      if current == name {
-        return Err(String::from("Room is already active"));
-      }
+      if current == name { return Err(String::from("Room is already active")); }
       self.remove_room_from_world(&current, world)?;
-      self.clear_active_room(&current, world)?;
+      self.deactivate_room(&current, world)?;
     }
     self.add_room_to_world(name.clone(), world)?;
-    self.set_active_room(name.clone(), world)?;
+    self.activate_room(name.clone(), world)?;
     self.current = Some(name.clone());
 
     Ok(())
@@ -266,7 +174,7 @@ pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
     .expect("Failed to find room to enter");
 
   let room_registry = state.get_mut::<RoomRegistry>().expect("Failed to get room registry");
-  room_registry.set_current(world, &room.room).expect("Failed to set current room");
+  room_registry.transition_to_room(world, &room.room).expect("Failed to set current room");
   room_registry.clamp_camera(camera);
 
   let entry_bounds = room_registry.get_entry_bounds().expect("Failed to get entry bounds");
@@ -276,24 +184,3 @@ pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
   position.0 = player_box.origin;
 }
 
-/// Render rectangles around the colliders that start room transitions
-pub fn sys_render_room_colliders(SysArgs { world, render, camera, event, .. }: &mut SysArgs) {
-  if !is_control(Control::Debug, Behaviour::Held, event) { return; }
-  for (_, room_collider) in world.query::<&RoomCollider>() {
-    let pos = Vec2::<i32>::from(camera.translate(room_collider.collision_box.origin));
-    render.draw_rect(Rec2::new(pos, room_collider.collision_box.size), RGBA::new(0, 0, 255, OPAQUE));
-  }
-}
-
-// Utilities //
-
-/// Use the current room mutably
-/// ## Panics
-/// if the `RoomRegistry` not in state or the current room is `None`
-pub fn use_room(state: &mut State) -> &mut Room {
-  state.get_mut::<RoomRegistry>()
-    .expect("Failed to get RoomRegistry")
-    .get_current_mut()
-    .ok_or("Failed to get current room")
-    .unwrap()
-}

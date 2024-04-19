@@ -22,7 +22,7 @@ use crate::game::creature::{Creature, CreatureLayer};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::room::use_room;
+use crate::game::scene::level::room::use_room;
 
 const RIPPER_SPEED: f32 = 128.0;
 const RIPPER_ASSET: &str = "asset/ripper.png";

@@ -1,3 +1,7 @@
+/**
+ * The level scene
+ */
+
 use std::path::Path;
 
 use crate::engine::geometry::shape::Vec2;
@@ -5,11 +9,10 @@ use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::tile::parse::TiledParser;
-use crate::engine::tile::tile::sys_render_tile_colliders;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
-use crate::game::combat::projectile::sys_ttl;
+use crate::game::combat::ttl::sys_ttl;
 use crate::game::creature::buzz::{make_buzz, sys_buzz};
 use crate::game::creature::ripper::{make_ripper, sys_ripper};
 use crate::game::creature::spiky::{make_spiky, sys_spiky};
@@ -20,14 +23,11 @@ use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
 use crate::game::player::combat::sys_render_cooldown;
 use crate::game::player::world::{add_player, PQ, use_player};
-use crate::game::room::{RoomRegistry, sys_render_room_colliders, sys_room_transition};
-use crate::game::scene::level::collision::sys_tile_collision;
+use crate::game::scene::level::collision::{sys_render_tile_colliders, sys_tile_collision};
+use crate::game::scene::level::registry::{RoomRegistry, sys_room_transition};
+use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
-
-/**
- * The level scene
- */
 
 const WORLD_PATH: &str = "asset/world.world";
 
@@ -59,7 +59,7 @@ impl Scene for LevelScene {
     make_player_health_text(world, asset);
 
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
-    room_registry.set_current(world, &self.level_key).expect("Failed to add room to world");
+    room_registry.transition_to_room(world, &self.level_key).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
 
