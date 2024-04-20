@@ -22,7 +22,74 @@
             "valuesAsFlags": false
         },
         {
-            "color": "#ffaa0000",
+            "color": "#ff55aa7f",
+            "drawFill": true,
+            "id": 12,
+            "members": [
+            ],
+            "name": "Buzz",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "id": 6,
+            "name": "Direction",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "up",
+                "right",
+                "down",
+                "left"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "color": "#ffff5500",
+            "drawFill": true,
+            "id": 8,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Ripper",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffff007f",
+            "drawFill": true,
+            "id": 10,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Spiky",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff000000",
             "drawFill": true,
             "id": 3,
             "members": [
@@ -31,11 +98,6 @@
                     "propertyType": "Breakability",
                     "type": "string",
                     "value": "Solid"
-                },
-                {
-                    "name": "damage",
-                    "type": "int",
-                    "value": 0
                 }
             ],
             "name": "Tile",
@@ -43,6 +105,26 @@
             "useAs": [
                 "property",
                 "tile",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55ff00",
+            "drawFill": true,
+            "id": 5,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Zoomer",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
                 "project"
             ]
         }

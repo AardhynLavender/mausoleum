@@ -11,7 +11,7 @@ use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_colli
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::system::SysArgs;
-use crate::engine::tile::parse::TiledParser;
+use crate::engine::tile::parse::{TiledParser, TiledTilemapChildren};
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
 use crate::game::player::world::{PQ, use_player};
@@ -43,8 +43,14 @@ impl RoomRegistry {
     let mut rooms = HashMap::new();
     let mut colliders = HashMap::new();
     for (path, tiled_tilemap) in parser.tilemaps {
-      let tileset_path = &tiled_tilemap.tileset
-        .first() // we don't support multiple tilesets per tilemap
+      let tileset_path = &tiled_tilemap
+        .children
+        .iter()
+        .filter_map(|child| match child {
+          TiledTilemapChildren::TilesetReference(child) => Some(child),
+          _ => None,
+        })
+        .next() // we don't support multiple tilesets per tilemap
         .ok_or("No tileset found")?
         .source;
       let tileset_name = get_filename(tileset_path)?;

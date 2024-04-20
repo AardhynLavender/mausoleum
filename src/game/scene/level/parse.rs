@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
-use crate::engine::tile::parse::{TiledTilemap, TiledTileset};
+use crate::engine::tile::parse::{TiledTilemap, TiledTilemapChildren, TiledTileset};
 use crate::engine::tile::tile::TileKey;
 use crate::engine::tile::tilemap::Tilemap;
 use crate::engine::tile::tileset::Tileset;
@@ -64,8 +64,12 @@ pub fn tilemap_from_tiled(tiled_tilemap: &TiledTilemap, tiled_tileset: &Tileset<
 
   // todo: support multiple layers... for now, well just take the first
   let layer = tiled_tilemap
-    .layer
+    .children
     .iter()
+    .filter_map(|child| match child {
+      TiledTilemapChildren::TileLayer(child) => Some(child),
+      _ => None
+    })
     .next()
     .ok_or("No layer data found")?;
 
