@@ -133,9 +133,9 @@ pub fn sys_render_tile_colliders(SysArgs { world, camera, render, event, .. }: &
     let (width, height) = collider.collision_box.size.destructure();
     let p = camera.translate(Vec2::from(position.0 + collider.collision_box.origin));
 
-    if collider.mask.top { render.draw_line(p, p + Vec2::new(width as i32, 0), color); }
-    if collider.mask.right { render.draw_line(p + Vec2::new(width as i32, 0), p + Vec2::new(width as i32, height as i32), color); }
-    if collider.mask.bottom { render.draw_line(p + Vec2::new(0, height as i32), p + Vec2::new(width as i32, height as i32), color); }
-    if collider.mask.left { render.draw_line(p, p + Vec2::new(0, height as i32), color); }
+    if collider.mask.top { render.draw_line(p, p + Vec2::new(width as i32 - 1, 0), color); }
+    if collider.mask.right { render.draw_line(p + Vec2::new(width as i32 - 1, 0), p + Vec2::new(width as i32 - 1, height as i32 - 1), color); }
+    if collider.mask.bottom { render.draw_line(p + Vec2::new(0, height as i32 - 1), p + Vec2::new(width as i32 - 1, height as i32 - 1), color); }
+    if collider.mask.left { render.draw_line(p, p + Vec2::new(0, height as i32 - 1), color); }
   }
 }
