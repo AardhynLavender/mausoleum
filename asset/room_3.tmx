@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="1">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="6">
  <tileset firstgid="1" source="tileset.tsx"/>
  <layer id="4" name="collision" width="40" height="22">
   <data encoding="csv">
@@ -27,5 +27,15 @@
 36,36,37,36,36,38,35,36,38,38,38,37,35,35,35,35,35,38,35,35,35,35,35,35,35,38,38,35,36,38,36,36,37,37,38,36,36,38,36,36
 </data>
  </layer>
- <objectgroup id="5" name="Object Layer 2"/>
+ <objectgroup id="5" name="Object Layer 2">
+  <object id="1" type="Zoomer" x="99.75" y="213.25">
+   <point/>
+  </object>
+  <object id="4" type="Ripper" x="456" y="120">
+   <point/>
+  </object>
+  <object id="5" type="Buzz" x="216.667" y="122">
+   <point/>
+  </object>
+ </objectgroup>
 </map>
