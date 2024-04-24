@@ -130,6 +130,24 @@ impl From<Direction> for f32 {
   }
 }
 
+impl TryFrom<String> for Direction {
+  type Error = String;
+  fn try_from(value: String) -> Result<Self, Self::Error> {
+    let normalized = value.trim().to_lowercase();
+    Ok(match normalized.as_str() {
+      "up" => Direction::Up,
+      "upright" => Direction::UpRight,
+      "right" => Direction::Right,
+      "downright" => Direction::DownRight,
+      "down" => Direction::Down,
+      "downleft" => Direction::DownLeft,
+      "left" => Direction::Left,
+      "upleft" => Direction::UpLeft,
+      _ => return Err(String::from("Failed to convert string to Direction")),
+    })
+  }
+}
+
 impl TryFrom<Vec2<f32>> for Direction {
   type Error = String;
   fn try_from(v: Vec2<f32>) -> Result<Self, Self::Error> {
@@ -205,6 +223,21 @@ mod tests {
     assert_eq!(Direction::try_from(Vec2::new(-37.0, 0.0)), Ok(Direction::Left), "Vector is moving Left");
     assert_eq!(Direction::try_from(Vec2::new(-1.0, -1.0)), Ok(Direction::UpLeft), "Vector is moving UpLeft");
     assert_eq!(Direction::try_from(Vec2::new(0.0, 0.0)), Err(String::from("Vector is not moving")), "Vector is not moving");
+  }
+
+  #[test]
+  fn text_from_string() {
+    assert_eq!(Direction::try_from(String::from("up")), Ok(Direction::Up), "String is 'up'");
+    assert_eq!(Direction::try_from(String::from("upright")), Ok(Direction::UpRight), "String is 'upright'");
+    assert_eq!(Direction::try_from(String::from("right")), Ok(Direction::Right), "String is 'right'");
+    assert_eq!(Direction::try_from(String::from("downright")), Ok(Direction::DownRight), "String is 'downright'");
+    assert_eq!(Direction::try_from(String::from("down")), Ok(Direction::Down), "String is 'down'");
+    assert_eq!(Direction::try_from(String::from("downleft")), Ok(Direction::DownLeft), "String is 'downleft'");
+    assert_eq!(Direction::try_from(String::from("left")), Ok(Direction::Left), "String is 'left'");
+    assert_eq!(Direction::try_from(String::from("upleft")), Ok(Direction::UpLeft), "String is 'upleft'");
+    assert_eq!(Direction::try_from(String::from("arbitrary string")), Err(String::from("Failed to convert string to Direction")), "String is invalid");
+    assert_eq!(Direction::try_from(String::from("")), Err(String::from("Failed to convert string to Direction")), "String is empty");
+    assert_eq!(Direction::try_from(String::from(" uP   ")), Ok(Direction::Up), "strings are normalized before conversion");
   }
 
   #[test]
