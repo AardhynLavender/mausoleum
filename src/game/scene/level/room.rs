@@ -6,6 +6,7 @@ use std::collections::HashSet;
 
 use hecs::{DynamicBundle, Entity};
 
+use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::CameraBounds;
@@ -19,9 +20,13 @@ use crate::engine::tile::tilemap::{TileHandle, Tilemap, TileQuery, TileQueryResu
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
+use crate::game::creature::buzz::make_buzz;
+use crate::game::creature::ripper::make_ripper;
+use crate::game::creature::spiky::make_spiky;
+use crate::game::creature::zoomer::make_zoomer;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
-use crate::game::scene::level::meta::{Soft, Strong, TileBreakability, TileMeta};
+use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileMeta};
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -53,13 +58,13 @@ pub struct ActiveRoom;
 
 pub struct Room {
   position: Vec2<f32>,
-  tilemap: Tilemap<TileMeta>,
+  tilemap: Tilemap<TileMeta, ObjMeta>,
   entities: HashSet<Entity>,
 }
 
 impl Room {
   /// Instantiate a new room
-  pub fn build(tilemap: Tilemap<TileMeta>, position: Vec2<f32>) -> Self {
+  pub fn build(tilemap: Tilemap<TileMeta, ObjMeta>, position: Vec2<f32>) -> Self {
     Self { tilemap, position, entities: HashSet::new() }
   }
 
@@ -110,6 +115,18 @@ impl Room {
 
   // Entities //
 
+  pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+    self.tilemap.add_objects(|object| {
+      let entity = match object {
+        ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
+        ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
+        ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
+      };
+      self.entities.insert(entity);
+      Ok(entity)
+    })
+  }
   // Add a new entity associated with the room
   pub fn add_entity(&mut self, world: &mut World, components: impl DynamicBundle) {
     self.entities.insert(world.add(components));
@@ -130,8 +147,9 @@ impl Room {
   // Room //
 
   /// Add the entities and tilemap associated with the room to the world
-  pub fn add_to_world(&mut self, world: &mut World) -> Result<(), String> {
-    self.add_tilemap_to_world(world)
+  pub fn add_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+    self.add_tilemap_to_world(world)?;
+    self.add_entities_to_world(world, assets)
   }
   // Remove the entities associated with the room from the world
   pub fn remove_from_world(&mut self, world: &mut World) {

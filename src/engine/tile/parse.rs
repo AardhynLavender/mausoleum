@@ -103,7 +103,8 @@ pub struct TiledObject {
 
 #[derive(Deserialize, Debug, PartialEq)]
 pub struct TiledObjectGroup {
-  pub object: Option<Vec<TiledObject>>,
+  #[serde(rename = "object")]
+  pub objects: Option<Vec<TiledObject>>,
 }
 
 // World //

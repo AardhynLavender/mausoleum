@@ -2,7 +2,7 @@
  * Tilemap structure and utilities
  */
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use hecs::Entity;
 
@@ -54,69 +54,84 @@ impl<Meta> TryFrom<TileQueryResult<'_, Meta>> for TileHandle<Meta> where Meta: C
 }
 
 /// Manages a grid of entities
-pub struct Tilemap<Meta> where Meta: Copy + Clone {
+pub struct Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
-  tiles: Vec<Option<TileConcept<Meta>>>,
+  tiles: Vec<Option<TileConcept<TileMeta>>>,
+  #[allow(unused)]
+  objects: Vec<ObjMeta>,
   tile_size: Size2,
-  // store the entities that make up the tilemap
-  entities: HashMap<MapIndex, Entity>,
+  tile_entities: HashMap<MapIndex, Entity>,
+  object_entities: HashSet<Entity>,
   dimensions: Size2,
 }
 
-impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
+impl<TileMeta, ObjMeta> Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone, ObjMeta: Copy + Clone {
   /// Instantiate a new tilemap from with `dimensions`
-  pub fn build(tileset: &Tileset<Meta>, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>) -> Result<Self, String> {
-    // invariant
+  pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
     let tile_count = dimensions.square() as usize;
     if initial_tiles.len() != tile_count {
       return Err(String::from("Initial tiles do not match dimensions"));
     }
 
+    let object_count = objects.len();
+
     let tiles = tileset
-      .tiledata_from::<Vec<Option<TileConcept<Meta>>>>(&initial_tiles, dimensions)?
+      .tiledata_from::<Vec<Option<TileConcept<TileMeta>>>>(&initial_tiles, dimensions)?
       .collect();
 
     Ok(Self {
       tile_size: tileset.tile_size,
+      objects,
       dimensions,
       tiles,
-      entities: HashMap::with_capacity(tile_count),
+      tile_entities: HashMap::with_capacity(tile_count),
+      object_entities: HashSet::with_capacity(object_count),
     })
   }
 
   /// Add tiles to the world by invoking an injected add function on each concept
-  pub fn add_tiles(&mut self, mut add: impl FnMut(&TileConcept<Meta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
+  pub fn add_tiles(&mut self, mut add: impl FnMut(&TileConcept<TileMeta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
     for (index, tile) in self.tiles.iter().enumerate() {
       if let Some(tile) = tile {
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::from(tile.data.src.size);
         let entity = add(tile, coordinate, position)?;
-        self.entities.insert(index, entity);
+        self.tile_entities.insert(index, entity);
       }
     }
     Ok(())
   }
-  pub fn remove_tile(&mut self, handle: TileHandle<Meta>, mut remove: impl FnMut(Entity)) {
-    if let Some(entity) = self.entities.remove(&handle.index) { remove(entity) };
+  pub fn remove_tile(&mut self, handle: TileHandle<TileMeta>, mut remove: impl FnMut(Entity)) {
+    if let Some(entity) = self.tile_entities.remove(&handle.index) { remove(entity) };
   }
   /// Remove tiles from the world by invoking an injected remove function on each entity
   pub fn remove_tiles(&mut self, mut remove: impl FnMut(Entity)) {
-    for (.., entity) in self.entities.drain() { remove(entity); }
+    for (.., entity) in self.tile_entities.drain() { remove(entity); }
   }
   /// get the dimensions of the tilemap in worldspace
   pub fn get_dimensions(&self) -> Size2 { self.dimensions * self.tile_size }
   /// Get a tile at a coordinate
-  fn get_concept(&self, index: usize) -> Option<&TileConcept<Meta>> {
+  fn get_concept(&self, index: usize) -> Option<&TileConcept<TileMeta>> {
     if index >= self.tiles.len() { return None; }
     self.tiles
       .get(index)
       .map_or(None, |tile| tile.as_ref())
   }
+
+  pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {
+    for object in &self.objects { self.object_entities.insert(add(object)?); }
+    Ok(())
+  }
+  /// Remove tiles from the world by invoking an injected remove function on each entity
+  pub fn remove_objects(&mut self, mut remove: impl FnMut(Entity)) {
+    for (.., entity) in self.tile_entities.drain() { remove(entity); }
+  }
+
   /// Query for a tile concept
   ///
   /// Returns a mutable reference to the tile concept
   #[inline]
-  pub fn query_tile(&self, get: TileQuery) -> TileQueryResult<Meta> {
+  pub fn query_tile(&self, get: TileQuery) -> TileQueryResult<TileMeta> {
     match get {
       TileQuery::Position(position) => {
         let coordinate = position_to_coordinate(position, self.tile_size);
@@ -128,7 +143,7 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
       }
       TileQuery::Index(index) => {
         let concept = self.get_concept(index);
-        let entity = self.entities.get(&index).copied();
+        let entity = self.tile_entities.get(&index).copied();
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
         TileQueryResult { concept, entity, coordinate, position, index }
@@ -136,3 +151,4 @@ impl<Meta> Tilemap<Meta> where Meta: Copy + Clone {
     }
   }
 }
+

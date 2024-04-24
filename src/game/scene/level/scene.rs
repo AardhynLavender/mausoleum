@@ -4,19 +4,17 @@
 
 use std::path::Path;
 
-use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::tile::parse::TiledParser;
-use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::sys_ttl;
-use crate::game::creature::buzz::{make_buzz, sys_buzz};
-use crate::game::creature::ripper::{make_ripper, sys_ripper};
-use crate::game::creature::spiky::{make_spiky, sys_spiky};
-use crate::game::creature::zoomer::{make_zoomer, sys_zoomer};
+use crate::game::creature::buzz::sys_buzz;
+use crate::game::creature::ripper::sys_ripper;
+use crate::game::creature::spiky::sys_spiky;
+use crate::game::creature::zoomer::sys_zoomer;
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::gravity::sys_gravity;
@@ -59,17 +57,9 @@ impl Scene for LevelScene {
     make_player_health_text(world, asset);
 
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
-    room_registry.transition_to_room(world, &self.level_key).expect("Failed to add room to world");
+    room_registry.transition_to_room(world, asset, &self.level_key).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
-
-    let room = room_registry
-      .get_current_mut()
-      .expect("Failed to get current room");
-    room.add_entity(world, make_ripper(asset, Vec2::new(96.0, 48.0), Direction::Left).expect("Failed to create ripper"));
-    room.add_entity(world, make_spiky(asset, Vec2::new(322.0, 208.0), Direction::Right).expect("Failed to create spiky"));
-    room.add_entity(world, make_zoomer(asset, Vec2::new(128.0, 128.0), Direction::Right).expect("Failed to create zoomer"));
-    room.add_entity(world, make_buzz(asset, Vec2::new(64.0, 64.0)).expect("Failed to create zoomer"));
 
     state.add(room_registry).expect("Failed to add level state")
   }

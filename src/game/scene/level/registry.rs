@@ -108,21 +108,21 @@ impl RoomRegistry {
     Ok(())
   }
   /// Add the entities associated with a room to the world
-  fn add_room_to_world(&mut self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
+  fn add_room_to_world(&mut self, name: impl Into<String>, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
     self.rooms
       .get_mut(&name.into())
       .ok_or("Room not found")?
-      .add_to_world(world)
+      .add_to_world(world, assets)
   }
   /// Transition to a new room
-  pub fn transition_to_room(&mut self, world: &mut World, name: impl Into<String>) -> Result<(), String> {
+  pub fn transition_to_room(&mut self, world: &mut World, assets: &mut AssetManager, name: impl Into<String>) -> Result<(), String> {
     let name = name.into();
     if let Some(current) = self.current.clone() {
       if current == name { return Err(String::from("Room is already active")); }
       self.remove_room_from_world(&current, world)?;
       self.deactivate_room(&current, world)?;
     }
-    self.add_room_to_world(name.clone(), world)?;
+    self.add_room_to_world(name.clone(), world, assets)?;
     self.activate_room(name.clone(), world)?;
     self.current = Some(name.clone());
 
@@ -161,7 +161,7 @@ impl RoomRegistry {
 // Systems //
 
 /// Check for room collisions and enact room transitions
-pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
+pub fn sys_room_transition(SysArgs { world, camera, asset, state, .. }: &mut SysArgs) {
   let PQ { position, collider: player_collider, .. } = use_player(world);
   let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
   let mut room_collisions = Vec::new();
@@ -180,7 +180,7 @@ pub fn sys_room_transition(SysArgs { world, camera, state, .. }: &mut SysArgs) {
     .expect("Failed to find room to enter");
 
   let room_registry = state.get_mut::<RoomRegistry>().expect("Failed to get room registry");
-  room_registry.transition_to_room(world, &room.room).expect("Failed to set current room");
+  room_registry.transition_to_room(world, asset, &room.room).expect("Failed to set current room");
   room_registry.clamp_camera(camera);
 
   let entry_bounds = room_registry.get_entry_bounds().expect("Failed to get entry bounds");
