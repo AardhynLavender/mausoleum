@@ -41,7 +41,7 @@ pub fn is_control(control: Control, behaviour: Behaviour, events: &EventStore) -
     Control::Left => check(Keycode::Left) || check(Keycode::A),
     Control::Right => check(Keycode::Right) || check(Keycode::D),
     Control::Select => check(Keycode::Return) || check(Keycode::Space),
-    Control::Debug => check(Keycode::RShift),
+    Control::Debug => check(Keycode::Slash),
     Control::Lock => check(Keycode::LShift),
     Control::PrimaryTrigger => check(Keycode::J),
     Control::SecondaryTrigger => check(Keycode::K),
