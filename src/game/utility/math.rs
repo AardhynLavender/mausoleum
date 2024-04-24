@@ -34,3 +34,21 @@ pub fn pixel_to_tile(pixel: Vec2<f32>) -> Vec2<f32> {
 pub fn tile_to_pixel(tile: Vec2<f32>) -> Vec2<f32> {
   tile * Vec2::<f32>::from(TILE_SIZE)
 }
+
+/// Round a position to the nearest tile.
+///
+/// Assumes the tiles aligned such that {0,0} is a tile boundary.
+///
+/// Probably add a room parameter to provide any needed offset (but realistically, this will always {0,0}).
+pub fn round_to_tile(position: Vec2<f32>) -> Vec2<f32> {
+  (position / Vec2::<f32>::from(TILE_SIZE)).round() * Vec2::<f32>::from(TILE_SIZE)
+}
+
+/// Floors a position to the nearest tile.
+///
+/// Assumes the tiles aligned such that {0,0} is a tile boundary.
+///
+/// Probably add a room parameter to provide any needed offset (but realistically, this will always {0,0}).
+pub fn floor_to_tile(position: Vec2<f32>) -> Vec2<f32> {
+  (position / Vec2::<f32>::from(TILE_SIZE)).floor() * Vec2::<f32>::from(TILE_SIZE)
+}

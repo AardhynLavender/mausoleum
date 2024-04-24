@@ -71,20 +71,36 @@ impl<T: UnitPrimitive> Vec2<T> {
 
 impl Vec2<f32> {
   /// Get the size of the vector
-  pub fn magnitude(&self) -> f32 { ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt() }
+  pub fn get_magnitude(&self) -> f32 { ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt() }
   /// Normalize version of the vector
-  pub fn normalize(&self) -> Self { *self / self.magnitude() }
+  pub fn normalize(&mut self) -> Self {
+    *self = *self / self.get_magnitude();
+    *self
+  }
+  /// Invert the components of the vector
+  pub fn invert(&mut self) -> Self {
+    self.x = -self.x;
+    self.y = -self.y;
+    *self
+  }
+  /// Round the vector to the nearest integer
+  pub fn round(&mut self) -> Self {
+    self.x = self.x.round();
+    self.y = self.y.round();
+    *self
+  }
+  /// Floor the vector to the nearest integer
+  pub fn floor(&mut self) -> Self {
+    self.x = self.x.floor();
+    self.y = self.y.floor();
+    *self
+  }
 }
 
 impl<T> Vec2<T> where T: UnitPrimitive + Signed {
   /// Get the absolute value of the vector
   pub fn abs(&self) -> Self {
     Vec2::new(abs(self.x), abs(self.y))
-  }
-  /// Invert the components of the vector
-  pub fn invert(&mut self) {
-    self.x = -self.x;
-    self.y = -self.y;
   }
 }
 

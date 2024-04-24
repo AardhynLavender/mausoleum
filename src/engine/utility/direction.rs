@@ -25,45 +25,11 @@ impl AxisDirection {
   }
 }
 
-/// A cardinal or ordinal direction
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Direction {
-  Up,
-  UpRight,
-  Right,
-  DownRight,
-  Down,
-  DownLeft,
-  Left,
-  UpLeft,
-}
-
 /// A snap type for directions
 pub enum SnapType {
   Ordinal,
   Cardinal,
   Any,
-}
-
-/// Define direction ordering
-pub const DIRECTION: [Direction; 8] = [
-  Direction::Up,
-  Direction::UpRight,
-  Direction::Right,
-  Direction::DownRight,
-  Direction::Down,
-  Direction::DownLeft,
-  Direction::Left,
-  Direction::UpLeft,
-];
-/// Number of possible cardinal+ordinal directions
-pub const DIRECTIONS: usize = DIRECTION.len();
-
-pub fn get_direction_index(direction: &Direction) -> usize {
-  DIRECTION
-    .iter()
-    .position(|&d| d == *direction)
-    .expect("Direction not found in DIRECTION array")
 }
 
 pub const HALF_ROTATION: usize = DIRECTIONS / 2;
@@ -86,6 +52,21 @@ impl Rotation {
       Rotation::Right => Rotation::Left,
     }
   }
+}
+
+// Direction //
+
+/// A cardinal or ordinal direction
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+  Up,
+  UpRight,
+  Right,
+  DownRight,
+  Down,
+  DownLeft,
+  Left,
+  UpLeft,
 }
 
 impl Direction {
@@ -118,6 +99,20 @@ impl Direction {
   /// Check if a direction is ordinal
   pub fn is_ordinal(&self) -> bool { get_direction_index(self) % 2 != 0 }
 }
+
+/// Define direction ordering
+pub const DIRECTION: [Direction; 8] = [
+  Direction::Up,
+  Direction::UpRight,
+  Direction::Right,
+  Direction::DownRight,
+  Direction::Down,
+  Direction::DownLeft,
+  Direction::Left,
+  Direction::UpLeft,
+];
+/// Number of possible cardinal+ordinal directions
+pub const DIRECTIONS: usize = DIRECTION.len();
 
 impl From<Direction> for f32 {
   // Convert a direction to an angle where `Direction::Up` is 0.0
@@ -153,6 +148,15 @@ impl TryFrom<Vec2<f32>> for Direction {
     }
   }
 }
+
+pub fn get_direction_index(direction: &Direction) -> usize {
+  DIRECTION
+    .iter()
+    .position(|&d| d == *direction)
+    .expect("Direction not found in DIRECTION array")
+}
+
+// QA //
 
 #[cfg(test)]
 mod tests {

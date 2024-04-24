@@ -27,6 +27,7 @@ use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::room::use_room;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
+use crate::game::utility::math::floor_to_tile;
 
 const SPIKY_SPEED: f32 = 48.0;
 const SPIKY_ASSET: &str = "asset/spiky.png";
@@ -43,13 +44,13 @@ pub fn make_spiky(asset_manager: &mut AssetManager, position: Vec2<f32>, initial
   if initial_direction != Direction::Left && initial_direction != Direction::Right {
     return Err(String::from("Spiky must be initialized with a horizontal direction"));
   }
-
   let spiky = asset_manager.texture.load(Path::new(SPIKY_ASSET))?;
+  let floored_position = floor_to_tile(position);
   Ok((
     PlayerHostile::default(),
     Spiky::default(),
     Sprite::new(spiky, Rec2::new(Vec2::default(), DIMENSIONS)),
-    Position(position),
+    Position(floored_position),
     Gravity::new(Vec2::new(0.0, 0.0)),
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * SPIKY_SPEED),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),

@@ -26,7 +26,7 @@ use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::room::{Room, use_room};
-use crate::game::utility::controls::{Behaviour, Control, is_control};
+use crate::game::utility::math::{floor_to_tile, round_to_tile};
 
 const ZOOMER_SPEED: f32 = 48.0;
 const ZOOMER_ASSET: &str = "asset/zoomer.png";
@@ -45,11 +45,13 @@ pub struct Zoomer {
 pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initial_direction: Direction) -> Result<impl DynamicBundle, String> {
   if initial_direction.is_ordinal() { return Err(String::from("Zoomer must be initialized with an ordinal direction")); }
   let zoomer = asset_manager.texture.load(Path::new(ZOOMER_ASSET))?;
+  let floored_position = floor_to_tile(position);
+
   Ok((
     PlayerHostile::default(),
     Zoomer { rotation: Rotation::Right, last_cling: None, last_lead: None, turning: false },
     Sprite::new(zoomer, Rec2::new(Vec2::default(), DIMENSIONS)),
-    Position(position),
+    Position(floored_position),
     Gravity::new(Vec2::new(0.0, 0.0)),
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * ZOOMER_SPEED),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
@@ -60,9 +62,9 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
 }
 
 /// Process Zoomer pathfinding and debug rendering
-pub fn sys_zoomer(SysArgs { world, render, state, camera, event, .. }: &mut SysArgs) {
+pub fn sys_zoomer(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
   let room = use_room(state);
-  let debug = is_control(Control::Debug, Behaviour::Held, event);
+  let debug = true;//is_control(Control::Debug, Behaviour::Held, event);
   for (_, (zoomer, velocity, position)) in world
     .query::<(&mut Zoomer, &mut Velocity, &mut Position)>()
   {
@@ -115,7 +117,7 @@ fn get_cling_coordinate(coordinate: Coordinate, direction: Direction, rotation: 
 
 /// Updates a Zoomer direction based on the tile it "clings" to.
 ///
-/// If they tile the zoomer "clings" to is empty, the zoomer will turn around the bend.
+/// If the tile the zoomer "clings" to is empty, the zoomer will turn around the bend.
 ///
 /// If so, we skip the next cling check while the zoomer hangs midair while turning.
 ///
@@ -151,20 +153,3 @@ fn round_bend(zoomer: &mut Zoomer, direction: Direction) -> Option<Vec2<f32>> {
 
   Some(new_velocity)
 }
-
-/// Round a position to the nearest tile.
-///
-/// Assumes the tiles aligned such that {0,0} is a tile boundary.
-///
-/// Probably add a room parameter to provide any needed offset (but realistically, this will always {0,0}).
-fn round_to_tile(position: Vec2<f32>) -> Vec2<f32> {
-  let x1 = position.x - position.x % TILE_SIZE.x as f32;
-  let y1 = position.y - position.y % TILE_SIZE.y as f32;
-  let x2 = x1 + TILE_SIZE.x as f32;
-  let y2 = y1 + TILE_SIZE.y as f32;
-  Vec2::new(
-    if position.x - x1 < x2 - position.x { x1 } else { x2 },
-    if position.y - y1 < y2 - position.y { y1 } else { y2 },
-  )
-}
-

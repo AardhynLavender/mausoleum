@@ -24,8 +24,9 @@ use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::room::use_room;
+use crate::game::utility::math::floor_to_tile;
 
-const RIPPER_SPEED: f32 = 128.0;
+const RIPPER_SPEED: f32 = 64.0;
 const RIPPER_ASSET: &str = "asset/ripper.png";
 const DIMENSIONS: Size2 = Size2::new(16, 8);
 
@@ -39,12 +40,13 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   }
 
   let ripper = asset_manager.texture.load(Path::new(RIPPER_ASSET))?;
+  let floored_position = floor_to_tile(position);
 
   Ok((
     PlayerHostile::default(),
     Ripper::default(),
     Sprite::new(ripper, Rec2::new(Vec2::default(), DIMENSIONS)),
-    Position(position),
+    Position(floored_position),
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * RIPPER_SPEED),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
@@ -86,8 +88,7 @@ pub fn sys_ripper(SysArgs { world, state, .. }: &mut SysArgs) {
     for (ripper, velocity, position, collider) in &rippers {
       let ripper_box = CollisionBox::new(collider.0.origin + position.0, collider.0.size);
       if let Some(collision) = rec2_collision(&tile_box, &ripper_box, CollisionMask::new(false, true, false, true)) {
-        let mut new_velocity = velocity.0.clone();
-        new_velocity.invert();
+        let new_velocity = velocity.0.clone().invert();
         let resolution = collision.get_resolution();
         collisions.insert(ripper, (new_velocity, resolution));
       }
