@@ -26,6 +26,7 @@ use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::room::{Room, use_room};
+use crate::game::utility::controls::{Behaviour, Control, is_control};
 use crate::game::utility::math::{floor_to_tile, round_to_tile};
 
 const ZOOMER_SPEED: f32 = 48.0;
@@ -62,9 +63,9 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
 }
 
 /// Process Zoomer pathfinding and debug rendering
-pub fn sys_zoomer(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
+pub fn sys_zoomer(SysArgs { world, render, state, camera, event, .. }: &mut SysArgs) {
   let room = use_room(state);
-  let debug = true;//is_control(Control::Debug, Behaviour::Held, event);
+  let debug = is_control(Control::Debug, Behaviour::Held, event);
   for (_, (zoomer, velocity, position)) in world
     .query::<(&mut Zoomer, &mut Velocity, &mut Position)>()
   {
