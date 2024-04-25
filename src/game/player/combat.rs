@@ -21,7 +21,7 @@ use crate::game::constant::PLAYER_SIZE;
 use crate::game::physics::collision::{Collider, Fragile};
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::world::{PQ, use_player};
+use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 
 /// The player's starting health
@@ -65,7 +65,7 @@ impl PlayerCombat {
 
 /// Render the player's hit cooldown
 pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
-  let PQ { combat, position, .. } = use_player(world);
+  let PlayerQuery { combat, position, .. } = use_player(world);
   if !combat.hit_cooldown.done() {
     render.draw_rect(Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
   }
@@ -92,7 +92,7 @@ pub struct CreatureHostile;
 
 /// Fire a plasma projectile in the direction the player is aiming
 pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
-  let PQ { combat, position, .. } = use_player(world);
+  let PlayerQuery { combat, position, .. } = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 
   let dimensions = if weapon == Weapon::Bullet { BULLET_DIMENSIONS } else { ROCKET_DIMENSIONS };

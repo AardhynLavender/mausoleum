@@ -24,13 +24,14 @@ use crate::game::scene::level::collision::RoomCollision;
 /// Path to the player asset
 const PLAYER_ASSET: &str = "asset/test.png";
 
+/// Alias for the player layer
 pub type LayerPlayer = layer::Layer5;
 
 /// Components of the player entity
 pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Collider, &'p mut Health);
 
 /// Query structure for the player entity
-pub struct PQ<'p> {
+pub struct PlayerQuery<'p> {
   pub combat: &'p mut PlayerCombat,
   pub position: &'p mut Position,
   pub velocity: &'p mut Velocity,
@@ -44,12 +45,12 @@ pub struct PQ<'p> {
 /// This mutably borrows the `world`, so a user will probably invoke this multiple times within a *system*
 /// ## Panics
 /// This function will panic if the player entity is not found
-pub fn use_player(world: &mut World) -> PQ {
+pub fn use_player(world: &mut World) -> PlayerQuery {
   let (_, components) = world.query::<PlayerComponents>()
     .into_iter()
     .next()
     .expect("Failed to get player");
-  PQ {
+  PlayerQuery {
     combat: components.0,
     position: components.1,
     velocity: components.2,
@@ -59,7 +60,8 @@ pub fn use_player(world: &mut World) -> PQ {
   }
 }
 
-pub fn add_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {
+/// Set up the world for the player
+pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");

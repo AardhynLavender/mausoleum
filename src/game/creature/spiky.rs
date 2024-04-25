@@ -13,7 +13,7 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::system::SysArgs;
-use crate::engine::tile::tilemap::TileQuery;
+use crate::engine::tile::query::TileQuery;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::Damage;

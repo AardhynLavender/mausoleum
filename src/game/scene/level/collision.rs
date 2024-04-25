@@ -10,8 +10,8 @@ use crate::engine::geometry::collision::{Collision, CollisionBox, CollisionMask,
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
+use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::{TileHandle, TileQuery};
 use crate::engine::utility::direction::{Direction, DIRECTIONS, HALF_ROTATION, QUARTER_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::physics::collision::{Collider, Fragile, make_collision_box};

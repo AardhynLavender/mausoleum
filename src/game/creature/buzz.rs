@@ -22,7 +22,7 @@ use crate::game::physics::collision::Collider;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
-use crate::game::player::world::{PQ, use_player};
+use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -82,7 +82,7 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
 
 /// Buzz system
 pub fn sys_buzz(SysArgs { world, render, event, camera, .. }: &mut SysArgs) {
-  let PQ { position: player_position, .. } = use_player(world);
+  let PlayerQuery { position: player_position, .. } = use_player(world);
   let debug = is_control(Control::Debug, Behaviour::Held, event);
   let player_position = player_position.0;
   for (_, (buzz, buzz_position, buzz_velocity)) in world.query::<(&mut Buzz, &Position, &mut Velocity)>() {
