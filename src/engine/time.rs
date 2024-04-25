@@ -80,13 +80,11 @@ impl Timer {
     self.enabled = true;
   }
   /// Reset the timer to the start
-  pub fn reset(&mut self) {
-    self.start = Instant::now();
-  }
+  pub fn reset(&mut self) { self.start = Instant::now(); }
+  /// drop the timer
+  pub fn expire(&mut self) { self.start = Instant::now() - self.duration; }
   /// Check if the timer has expired regardless of enabled state
-  pub fn done(&self) -> bool {
-    self.start.elapsed() >= self.duration
-  }
+  pub fn done(&self) -> bool { self.start.elapsed() >= self.duration }
   /// Check if the timer has expired, then disable or restart it
   pub fn consume(&mut self, action: ConsumeAction) -> bool {
     if !self.enabled {

@@ -17,10 +17,10 @@ use crate::engine::utility::direction::Direction;
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::combat::ttl::TimeToLive;
-use crate::game::constant::PLAYER_SIZE;
 use crate::game::physics::collision::{Collider, Fragile};
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
+use crate::game::player::controller::PLAYER_SIZE;
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 

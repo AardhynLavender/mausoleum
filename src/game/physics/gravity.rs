@@ -4,9 +4,10 @@
 
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::system::SysArgs;
-use crate::game::constant::MAX_GRAVITY;
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::velocity::Velocity;
+
+pub const MAX_GRAVITY: f32 = 400.0;
 
 /// Marks an entity as subject to gravity
 #[derive(Default, Debug)]

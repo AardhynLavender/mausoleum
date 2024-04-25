@@ -8,13 +8,12 @@ use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
 use crate::engine::world::World;
 use crate::game::combat::health::Health;
-use crate::game::constant::{GRAVITY, PLAYER_COLLIDER, PLAYER_SPRITE, PLAYER_START};
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::{PLAYER_HEALTH, PlayerCombat};
-use crate::game::player::controller::{PlayerController, sys_player_controller};
+use crate::game::player::controller::{PLAYER_COLLIDER, PLAYER_GRAVITY, PLAYER_SPRITE, PLAYER_START, PlayerController, sys_player_controller};
 use crate::game::scene::level::collision::RoomCollision;
 
 /**
@@ -82,7 +81,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Position::from(PLAYER_START),
     CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     LayerPlayer::default(),
-    Gravity::new(GRAVITY),
+    Gravity::new(PLAYER_GRAVITY),
     Velocity::default(),
     RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),
