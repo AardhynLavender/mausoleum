@@ -58,7 +58,6 @@ impl<'a> Engine<'a> {
       // process fixed updates
       self.last_frame.process_accumulated(|fixed_time| {
         let mut args = SysArgs::new(fixed_time, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
-        println!("Fixed update: {:?}", fixed_time);
         systems.update(Schedule::FixedUpdate, &mut args);
       });
 
