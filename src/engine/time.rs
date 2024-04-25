@@ -17,26 +17,36 @@ pub const SECOND_MICRO: f32 = 1_000_000.0;
 pub struct Frame {
   start: Instant,
   end: Instant,
-}
-
-impl Default for Frame {
-  /// Instantiate a new frame
-  fn default() -> Self {
-    Self {
-      start: Instant::now(),
-      end: Instant::now(),
-    }
-  }
+  fixed_delta: f32,
+  accumulator: f32,
 }
 
 impl Frame {
+  /// Instantiate a new frame
+  pub fn build(fixed_delta: f32) -> Result<Self, String> {
+    if fixed_delta <= 0.0 { return Err(String::from("Fixed delta must be greater than 0.0")); }
+    Ok(Self {
+      start: Instant::now(),
+      end: Instant::now(),
+      fixed_delta,
+      accumulator: 0.0,
+    })
+  }
   /// Update the frame and compute the alpha and delta time
   pub fn next(&mut self) -> (DeltaMS, DeltaMS) {
     self.end = Instant::now();
     let delta = self.end.duration_since(self.start).as_micros() as DeltaMS / SECOND_MICRO;
     let alpha = delta % SIMULATION_FPS;
     self.start = self.end;
+    self.accumulator += alpha;
     (alpha, delta)
+  }
+  /// Process the accumulated time in fixed delta increments
+  pub fn process_accumulated(&mut self, mut processor: impl FnMut(f32)) {
+    while self.accumulator >= self.fixed_delta {
+      self.accumulator -= self.fixed_delta;
+      processor(self.fixed_delta);
+    }
   }
 }
 
