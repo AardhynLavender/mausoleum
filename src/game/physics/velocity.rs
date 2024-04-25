@@ -1,10 +1,11 @@
-use crate::engine::geometry::shape::Vec2;
-use crate::engine::system::SysArgs;
-use crate::game::physics::position::Position;
-
 /**
  * Velocity component
  */
+
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::system::SysArgs;
+use crate::game::physics::frozen::Frozen;
+use crate::game::physics::position::Position;
 
 /// Add Velocity to an entity
 #[derive(Default, Debug, Clone, Copy)]
@@ -39,8 +40,8 @@ impl Velocity {
   pub fn remove_x(&mut self) { self.0.x = 0.0; }
   // Remove the y component of the velocity
   pub fn remove_y(&mut self) { self.0.y = 0.0; }
-  // Remove the velocity
   #[inline]
+  // Remove the velocity
   pub fn remove(&mut self) {
     self.remove_x();
     self.remove_y();
@@ -49,21 +50,20 @@ impl Velocity {
 
 impl From<Velocity> for Vec2<f32> {
   /// Convert from Velocity to Vec2<f32>
-  fn from(position: Velocity) -> Self {
-    position.0
-  }
+  fn from(position: Velocity) -> Self { position.0 }
 }
 
 impl From<Vec2<f32>> for Velocity {
   /// Convert from Vec2<f32> to Velocity
-  fn from(vec: Vec2<f32>) -> Self {
-    Self(vec)
-  }
+  fn from(vec: Vec2<f32>) -> Self { Self(vec) }
 }
 
 /// Apply `Velocity` components to `Position` components
 pub fn sys_velocity(SysArgs { delta, world, .. }: &mut SysArgs) {
-  for (_, (position, velocity)) in world.query::<(&mut Position, &mut Velocity)>() {
+  for (_, (position, velocity)) in world
+    .query::<(&mut Position, &mut Velocity)>()
+    .without::<&Frozen>()
+  {
     position.0 = position.0 + velocity.0 * *delta;
   }
 }

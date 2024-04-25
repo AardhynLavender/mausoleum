@@ -26,6 +26,7 @@ pub enum Control {
   Escape,
   PrimaryTrigger,
   SecondaryTrigger,
+  TertiaryTrigger,
 }
 
 /// Check if `control` is being interacted with `behavior`
@@ -45,6 +46,7 @@ pub fn is_control(control: Control, behaviour: Behaviour, events: &EventStore) -
     Control::Lock => check(Keycode::LShift),
     Control::PrimaryTrigger => check(Keycode::J),
     Control::SecondaryTrigger => check(Keycode::K),
+    Control::TertiaryTrigger => check(Keycode::L),
     Control::Escape => check(Keycode::Escape),
   }
 }

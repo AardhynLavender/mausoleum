@@ -13,13 +13,14 @@ use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_colli
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::system::SysArgs;
-use crate::engine::tile::tile::TileCollider;
+use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
+use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
@@ -57,13 +58,9 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
 
 /// Process Ripper logic each frame
 pub fn sys_ripper(SysArgs { world, state, .. }: &mut SysArgs) {
-  // to prevent borrowing issues, we copy information about Rippers into this vector before checking
-  // tile collisions. We also collect the new velocities for each ripper in a hashmap so we can
-  // update them after the collision query stops borrowing `world`
-  // todo: is there a better way to do this? Seems pretty inefficient...
-
-
-  let rippers = world.query::<(&Ripper, &Velocity, &Position, &Collider)>()
+  let rippers = world
+    .query::<(&Ripper, &Velocity, &Position, &Collider)>()
+    .without::<&Frozen>()
     .into_iter()
     .map(|(e, (.., velocity, position, collider))| (e, *velocity, *position, *collider))
     .collect::<Vec<_>>();
@@ -75,6 +72,11 @@ pub fn sys_ripper(SysArgs { world, state, .. }: &mut SysArgs) {
     let world_box = CollisionBox::from(bounds);
     if !world_box.contains(&ripper_box) {
       world
+        .get_component_mut::<Position>(*ripper)
+        .expect("failed to find ripper position")
+        .0
+        .clamp(&Vec2::from(bounds.origin), &(Vec2::from(bounds.origin) + Vec2::from(bounds.size)));
+      world
         .get_component_mut::<Velocity>(*ripper)
         .expect("failed to find ripper velocity")
         .reverse_x();
@@ -83,7 +85,7 @@ pub fn sys_ripper(SysArgs { world, state, .. }: &mut SysArgs) {
 
   // tiles
   let mut collisions = HashMap::new();
-  for (_, (tile_collider, position)) in world.query::<(&TileCollider, &Position)>().into_iter() {
+  for (_, (tile_collider, position)) in world.query::<(&TileCollider, &Position)>().with::<&Tile>().into_iter() {
     let tile_box = CollisionBox::new(position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);
     for (ripper, velocity, position, collider) in &rippers {
       let ripper_box = CollisionBox::new(collider.0.origin + position.0, collider.0.size);

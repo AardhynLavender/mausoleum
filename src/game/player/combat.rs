@@ -39,6 +39,9 @@ const BULLET_DIMENSIONS: Size2 = Size2::new(12, 3);
 const ROCKET_DAMAGE: u32 = 50;
 const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
+const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
+pub const THAW_DURATION: u64 = 2500;
+
 /// Mark an entity as being hostile to the player
 #[derive(Default)]
 pub struct PlayerHostile;
@@ -49,15 +52,17 @@ pub struct PlayerCombat {
   pub trigger_cooldown: Timer,
   pub bullet_texture: TextureKey,
   pub rocket_texture: TextureKey,
+  pub ice_beam_texture: TextureKey,
 }
 
 impl PlayerCombat {
   // Instantiate a new player combat component
-  pub fn new(bullet_texture: TextureKey, rocket_texture: TextureKey) -> Self {
+  pub fn new(bullet_texture: TextureKey, rocket_texture: TextureKey, ice_beam_texture: TextureKey) -> Self {
     Self {
       hit_cooldown: Timer::new(Duration::from_millis(HIT_COOLDOWN), true),
       bullet_texture,
       rocket_texture,
+      ice_beam_texture,
       trigger_cooldown: Timer::new(Duration::from_millis(PROJECTILE_COOLDOWN), false),
     }
   }
@@ -76,15 +81,22 @@ pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) 
 pub enum Weapon {
   Bullet,
   Rocket,
+  IceBeam,
 }
 
 pub type ProjectileLayer = layer::Layer8;
 
+/// Mark an entity as a bullet projectile
 #[derive(Default)]
 pub struct Bullet;
 
+/// Mark an entity as a rocket projectile
 #[derive(Default)]
 pub struct Rocket;
+
+/// Mark an entity as a projectile that freezes creatures
+#[derive(Default)]
+pub struct IceBeam;
 
 /// Mark an entity as damaging to creatures but the player
 #[derive(Default)]
@@ -95,33 +107,39 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
   let PlayerQuery { combat, position, .. } = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 
-  let dimensions = if weapon == Weapon::Bullet { BULLET_DIMENSIONS } else { ROCKET_DIMENSIONS };
-  let texture = if weapon == Weapon::Bullet { combat.bullet_texture } else { combat.rocket_texture };
+  let (dimensions, texture) = match weapon {
+    Weapon::Bullet => (BULLET_DIMENSIONS, combat.bullet_texture),
+    Weapon::Rocket => (ROCKET_DIMENSIONS, combat.rocket_texture),
+    Weapon::IceBeam => (ICE_BEAM_DIMENSIONS, combat.ice_beam_texture)
+  };
+
   let collision_box = CollisionBox::new(Vec2::new(0.0, 0.0), dimensions);
   let mut sprite = Sprite::new(texture, SrcRect::new(Vec2::new(0, 0), dimensions));
   sprite.rotate(rotation.into());
 
-  if combat.trigger_cooldown.done() {
-    combat.trigger_cooldown.reset();
-    let projectile = world.add((
-      sprite,
-      CreatureHostile,
-      ProjectileLayer::default(),
-      Position(position),
-      Velocity(velocity),
-      Collider::new(collision_box),
-      RoomCollision,
-      Fragile,
-      TimeToLive::new(PROJECTILE_LIFETIME),
-    ));
-    match weapon {
-      Weapon::Bullet => world.add_components(projectile, (Bullet, Damage::new(BULLET_DAMAGE), )),
-      Weapon::Rocket => world.add_components(projectile, (Rocket, Damage::new(ROCKET_DAMAGE), ))
-    }.expect("Failed to add weapon components to projectile")
-  }
+  if !combat.trigger_cooldown.done() { return; }
+  combat.trigger_cooldown.reset();
+
+  let projectile = world.add((
+    sprite,
+    CreatureHostile,
+    ProjectileLayer::default(),
+    Position(position),
+    Velocity(velocity),
+    Collider::new(collision_box),
+    RoomCollision,
+    Fragile,
+    TimeToLive::new(PROJECTILE_LIFETIME),
+  ));
+
+  match weapon {
+    Weapon::Bullet => world.add_components(projectile, (Bullet, Damage::new(BULLET_DAMAGE), )),
+    Weapon::Rocket => world.add_components(projectile, (Rocket, Damage::new(ROCKET_DAMAGE), )),
+    Weapon::IceBeam => world.add_components(projectile, (IceBeam, Damage::new(0), )),
+  }.expect("Failed to add weapon components to projectile")
 }
 
-// Compute the starting position and velocity and rotation of the player projectile
+/// Compute the starting position and velocity and rotation of the player projectile
 pub fn compute_projectile_spawn(aim: Direction, player_position: Vec2<f32>, player_bounds: Size2) -> (Vec2<f32>, Vec2<f32>, f32) {
   let radius = Vec2::from(player_bounds) / 2.0;
   let centroid = player_position + radius;

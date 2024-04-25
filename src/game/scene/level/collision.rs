@@ -11,10 +11,11 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery};
-use crate::engine::tile::tile::{Tile, TileCollider};
+use crate::engine::tile::tile::TileCollider;
 use crate::engine::utility::direction::{Direction, DIRECTIONS, HALF_ROTATION, QUARTER_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::physics::collision::{Collider, Fragile, make_collision_box};
+use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::{Bullet, Rocket};
@@ -22,19 +23,21 @@ use crate::game::scene::level::meta::{Soft, Strong, TileLayerType};
 use crate::game::scene::level::room::use_room;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-/// Maximum number of collision resolution attempts before panicking
+/// Maximum number of collision resolution attempts before ~~panicking~~
 pub const MAX_COLLISION_PHASES: u32 = 10;
 
 /// Entities with this component will collide with room tiles and be resolved
 #[derive(Default)]
 pub struct RoomCollision;
 
-/// Resolve tile collisions for entities clickable with rooms tiles
+/// Resolve tile collisions for entities collideable with rooms tiles
 pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
   let colliders = world
-    .query::<(&Position, &Collider, &RoomCollision)>().with::<&RoomCollision>()
+    .query::<(&Position, &Collider)>()
+    .with::<&RoomCollision>()
+    .without::<&Frozen>()
     .into_iter()
-    .map(|(entity, (position, collider, ..))| {
+    .map(|(entity, (position, collider))| {
       (entity, (*position, *collider))
     })
     .collect::<HashMap<_, _>>();
@@ -48,7 +51,10 @@ pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
       phase += 1;
       let collision = get_tile_collisions(world, &collision_box).next();
       if let Some((tile, collision, position)) = collision {
-        if phase > MAX_COLLISION_PHASES { panic!("Infinite collision resolution loop detected, what do?"); }
+        if phase > MAX_COLLISION_PHASES {
+          // eprintln!("Infinite collision resolution loop detected, what do?");
+          return;
+        }
 
         let strong = world.has_component::<Strong>(tile).expect("Failed to retrieve the entity");
         let soft = world.has_component::<Soft>(tile).expect("Failed to retrieve the entity");
@@ -113,7 +119,7 @@ pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
 
 /// Get all tile collisions for a given collision box
 fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox) -> impl Iterator<Item=(Entity, Collision, Position)> + 'a {
-  world.query::<(&Position, &TileCollider, &Tile)>()
+  world.query::<(&Position, &TileCollider)>()
     .into_iter()
     .filter_map(|(entity, (tile_position, tile_collider, ..))| {
       let tile_rect = &CollisionBox::new(tile_position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);

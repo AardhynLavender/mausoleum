@@ -77,8 +77,9 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
   controller.set_aimed(aim);
   if is_control(Control::PrimaryTrigger, Behaviour::Pressed, event) {
     fire_weapon(world, aim, Weapon::Bullet);
-  }
-  if is_control(Control::SecondaryTrigger, Behaviour::Pressed, event) {
+  } else if is_control(Control::SecondaryTrigger, Behaviour::Pressed, event) {
     fire_weapon(world, aim, Weapon::Rocket);
+  } else if is_control(Control::TertiaryTrigger, Behaviour::Pressed, event) {
+    fire_weapon(world, aim, Weapon::IceBeam);
   }
 }

@@ -26,6 +26,10 @@ impl CollisionMask {
       left,
     }
   }
+  /// Instantiate a new full collision mask
+  pub const fn full() -> Self {
+    Self { top: true, right: true, bottom: true, left: true }
+  }
   /// Check if the collision mask is empty
   pub const fn is_empty(&self) -> bool {
     !self.top && !self.right && !self.bottom && !self.left

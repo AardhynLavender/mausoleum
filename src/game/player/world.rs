@@ -71,9 +71,12 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
   let rocket = asset.texture
     .load(Path::new("asset/desolation_pulse.png"))
     .expect("Failed to load rocket texture");
+  let ice_beam = asset.texture
+    .load(Path::new("asset/temporal_flare.png"))
+    .expect("Failed to load ice beam texture");
 
   world.add((
-    PlayerCombat::new(bullet, rocket),
+    PlayerCombat::new(bullet, rocket, ice_beam),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(PLAYER_START),

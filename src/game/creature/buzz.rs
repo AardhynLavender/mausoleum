@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 /**
  * Small flying creature that floats around the room and follows the player when close enough
  */
@@ -19,6 +17,7 @@ use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
+use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
@@ -32,7 +31,6 @@ const DIMENSIONS: Size2 = Size2::new(8, 8);
 
 const BUZZ_FOLLOW_RADIUS: f32 = 256.0;
 const BUZZ_FORGET_RADIUS: f32 = 384.0;
-const BUZZ_FOLLOW_SPEED: f32 = 32.0;
 
 /// Buzz state
 #[derive(Debug, Copy, Clone, Default, PartialEq)]
@@ -85,7 +83,10 @@ pub fn sys_buzz(SysArgs { world, render, event, camera, .. }: &mut SysArgs) {
   let PlayerQuery { position: player_position, .. } = use_player(world);
   let debug = is_control(Control::Debug, Behaviour::Held, event);
   let player_position = player_position.0;
-  for (_, (buzz, buzz_position, buzz_velocity)) in world.query::<(&mut Buzz, &Position, &mut Velocity)>() {
+  for (_, (buzz, buzz_position, buzz_velocity)) in world
+    .query::<(&mut Buzz, &Position, &mut Velocity)>()
+    .without::<&Frozen>()
+  {
     let unit_transform = (player_position - buzz_position.0).normalize();
     if buzz.0.update(buzz_position.0, player_position) == BuzzState::Follow {
       buzz_velocity.0 = unit_transform * BUZZ_SPEED;

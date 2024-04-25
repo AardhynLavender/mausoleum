@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use hecs::{Component, Entity, Or};
 
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
@@ -9,9 +7,10 @@ use crate::engine::tile::tile::TileCollider;
 use crate::engine::time::ConsumeAction;
 use crate::engine::world::World;
 use crate::game::combat::health::{Health, LiveState};
-use crate::game::physics::collision::Collider;
+use crate::game::physics::collision::{Collider, make_collision_box};
+use crate::game::physics::frozen::{freeze_entity, Frozen};
 use crate::game::physics::position::Position;
-use crate::game::player::combat::{CreatureHostile, PlayerHostile};
+use crate::game::player::combat::{CreatureHostile, IceBeam, PlayerHostile, THAW_DURATION};
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::room::use_room;
 
@@ -29,6 +28,7 @@ fn get_damage<Mask>(world: &mut World, collision_box: &CollisionBox) -> Option<(
   for (entity, (position, collider, damage)) in world
     .query::<(&Position, Or<&TileCollider, &Collider>, &Damage)>()
     .with::<&Mask>()
+    .without::<&Frozen>() // frozen entities cannot deal damage
   {
     let (collider, mask) = match collider {
       Or::Left(collider) => (collider.collision_box, collider.mask),
@@ -71,20 +71,31 @@ pub fn creature_damage(world: &mut World, state: &mut State) {
     .with::<(&PlayerHostile, &Health)>()
     .into_iter()
     .map(|(entity, (position, collider))| {
-      (entity, CollisionBox::new(position.0, collider.0.size))
+      (entity, *position, *collider)
     })
-    .collect::<HashMap<_, _>>();
+    .collect::<Vec<_>>();
+
+  if creatures.is_empty() { return; }
 
   let dead_creatures = creatures
     .iter()
-    .filter_map(|(creature, creature_box)| {
-      let damage = get_damage::<CreatureHostile>(world, creature_box);
+    .filter_map(|(creature, creature_position, creature_collider)| {
+      let creature_box = make_collision_box(creature_position, creature_collider);
+      let damage = get_damage::<CreatureHostile>(world, &creature_box);
       if let Some((damage, entity)) = damage {
+        let frosty_projectile = world.has_component::<IceBeam>(entity).expect("Failed to check ice_beam component");
+        let creature_frozen = world.has_component::<Frozen>(*creature).expect("Failed to check frozen component");
+
         world.free_now(entity).expect("Failed to free projectile");
-        let mut health = world
-          .get_component_mut::<Health>(*creature)
-          .expect("Creature should have health");
-        if health.deal(damage) == LiveState::Dead { return Some(*creature); }
+
+        if frosty_projectile {
+          freeze_entity(*creature, creature_collider.0, world, THAW_DURATION).expect("Failed to freeze entity")
+        } else if !creature_frozen {
+          let mut health = world
+            .get_component_mut::<Health>(*creature)
+            .expect("Creature should have health");
+          if health.deal(damage) == LiveState::Dead { return Some(*creature); }
+        }
       }
       return None;
     })

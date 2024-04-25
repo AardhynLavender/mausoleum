@@ -17,6 +17,7 @@ use crate::game::creature::spiky::sys_spiky;
 use crate::game::creature::zoomer::sys_zoomer;
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::physics::collision::sys_render_colliders;
+use crate::game::physics::frozen::sys_thaw;
 use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
 use crate::game::player::combat::sys_render_cooldown;
@@ -77,6 +78,7 @@ impl Scene for LevelScene {
     system.add(Schedule::FrameUpdate, sys_velocity);
     system.add(Schedule::FrameUpdate, sys_gravity);
     system.add(Schedule::FrameUpdate, sys_damage);
+    system.add(Schedule::FrameUpdate, sys_thaw);
     system.add(Schedule::FrameUpdate, sys_tile_collision);
     system.add(Schedule::FrameUpdate, sys_room_transition);
 

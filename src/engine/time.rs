@@ -47,11 +47,22 @@ pub enum ConsumeAction {
 }
 
 /// A stateful timer
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Timer {
   enabled: bool,
   start: Instant,
   duration: Duration,
+}
+
+impl Default for Timer {
+  /// Instantiate a new timer of 0 duration
+  fn default() -> Self {
+    Self {
+      enabled: false,
+      start: Instant::now(),
+      duration: Duration::from_secs(0),
+    }
+  }
 }
 
 impl Timer {
