@@ -188,17 +188,20 @@ pub struct TiledLayerData {
 
 // A tile layer within a Tiled tilemap
 #[derive(Deserialize, Debug, PartialEq)]
-pub struct TiledLayer {
+pub struct TiledTileLayer {
   #[serde(rename = "@id")]
   pub id: u32,
   #[serde(rename = "@name")]
   pub name: String,
+  #[serde(rename = "@class")]
+  pub class: Option<String>,
   #[serde(rename = "@width")]
   pub width_tiles: u32,
   #[serde(rename = "@height")]
   pub height_tiles: u32,
 
   pub data: TiledLayerData,
+  pub properties: Option<TiledProperties>,
 }
 
 /// The possible values of Tiled tilemap children
@@ -207,7 +210,7 @@ pub enum TiledTilemapChildren {
   #[serde(rename = "tileset")]
   TilesetReference(TiledTilesetReference),
   #[serde(rename = "layer")]
-  TileLayer(TiledLayer),
+  TileLayer(TiledTileLayer),
   #[serde(rename = "objectgroup")]
   ObjectLayer(TiledObjectGroup),
 }

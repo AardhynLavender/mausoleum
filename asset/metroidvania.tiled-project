@@ -49,6 +49,38 @@
             "valuesAsFlags": false
         },
         {
+            "color": "#ff000000",
+            "drawFill": true,
+            "id": 16,
+            "members": [
+                {
+                    "name": "type",
+                    "propertyType": "LayerType",
+                    "type": "string",
+                    "value": "collision"
+                }
+            ],
+            "name": "Layer",
+            "type": "class",
+            "useAs": [
+                "property",
+                "layer",
+                "project"
+            ]
+        },
+        {
+            "id": 13,
+            "name": "LayerType",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "collision",
+                "background",
+                "foreground"
+            ],
+            "valuesAsFlags": false
+        },
+        {
             "color": "#ffff5500",
             "drawFill": true,
             "id": 8,

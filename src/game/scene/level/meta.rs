@@ -1,5 +1,5 @@
 /*
- * Manage metadata for tiles and objects
+ * Manage metadata for layers, tiles, and objects
  */
 
 use crate::engine::geometry::shape::Vec2;
@@ -42,6 +42,15 @@ pub enum ObjMeta {
   RipperConcept { direction: Direction, position: Vec2<f32> },
 }
 
+/// The behaviour and rendering order of a tile layer
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+pub enum TileLayerType {
+  Foreground,
+  #[default]
+  Collision,
+  Background,
+}
+
 /// Extract a specific property from a collection of properties
 pub fn get_property(name: impl Into<String>, properties: &Option<TiledProperties>) -> Option<&str> {
   let name = name.into();
@@ -79,14 +88,28 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, .. }: &TiledObj
 pub fn parse_breakability(properties: &Option<TiledProperties>) -> Result<TileBreakability, String> {
   let prop = get_property("breakability", properties);
   if let Some(prop) = prop {
-    return match prop {
-      "Solid" => Ok(TileBreakability::Solid),
-      "Strong" => Ok(TileBreakability::Strong),
-      "Soft" => Ok(TileBreakability::Soft),
+    let tile_type = prop.trim().to_lowercase();
+    return match tile_type.as_str() {
+      "solid" => Ok(TileBreakability::Solid),
+      "strong" => Ok(TileBreakability::Strong),
+      "soft" => Ok(TileBreakability::Soft),
       other => Err(format!("Invalid breakability: {}", other)),
     };
   }
   Ok(TileBreakability::default())
+}
+
+pub fn parse_tilelayer(properties: &Option<TiledProperties>) -> Result<TileLayerType, String> {
+  if let Some(prop) = get_property("type", properties) {
+    let layer_type = prop.trim().to_lowercase();
+    return match layer_type.as_str() {
+      "foreground" => Ok(TileLayerType::Foreground),
+      "collision" => Ok(TileLayerType::Collision),
+      "background" => Ok(TileLayerType::Background),
+      _ => Err(format!("Invalid layer: {}", prop)),
+    };
+  }
+  Ok(TileLayerType::default())
 }
 
 /// Extract the damage property from a collection of properties

@@ -6,13 +6,14 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
-use crate::engine::tile::parse::{TiledObjectGroup, TiledTilemap, TiledTilemapChildren, TiledTileset};
+use crate::engine::tile::parse::{TiledObjectGroup, TiledTileLayer, TiledTilemap, TiledTilemapChildren, TiledTileset};
 use crate::engine::tile::tile::TileKey;
+use crate::engine::tile::tilelayer::TileLayer;
 use crate::engine::tile::tilemap::Tilemap;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::text::{COMMA, strip_newlines};
-use crate::game::scene::level::meta::{ObjMeta, parse_breakability, parse_damage, parse_object, TILED_TILE_CLASS, TileMeta};
+use crate::game::scene::level::meta::{ObjMeta, parse_breakability, parse_damage, parse_object, parse_tilelayer, TILED_TILE_CLASS, TileLayerType, TileMeta};
 
 /// Delimiter for tile data in .Tiled tmx files
 const DELIMITER: char = COMMA;
@@ -45,6 +46,14 @@ pub fn tilemap_objects_from_tiled(group: &TiledObjectGroup) -> Result<Vec<ObjMet
   Ok(vec![])
 }
 
+pub fn tilemap_layer_from_tiled(tileset: &Tileset<TileMeta>, tiled_tilelayer: &TiledTileLayer) -> Result<TileLayer<TileLayerType, TileMeta>, String> {
+  let meta = parse_tilelayer(&tiled_tilelayer.properties)?;
+  let keys = make_tile_keys(&tiled_tilelayer.data.tiles, &DELIMITER);
+  let dimensions = Size2::new(tiled_tilelayer.width_tiles, tiled_tilelayer.height_tiles);
+  let tiles = tileset.tiledata_from(&keys, dimensions)?.collect();
+  Ok(TileLayer { meta, tiles })
+}
+
 /// Build an engine tileset from a Tiled tileset.
 pub fn tileset_from_tiled(assets: &mut AssetManager, path: impl AsRef<Path>, tiled_tileset: &TiledTileset) -> Result<Tileset<TileMeta>, String> {
   let tile_size: Size2 = Size2::new(tiled_tileset.tile_width, tiled_tileset.tile_height);
@@ -65,22 +74,21 @@ pub fn tileset_from_tiled(assets: &mut AssetManager, path: impl AsRef<Path>, til
 }
 
 /// Build an engine tilemap from a Tiled tilemap.
-pub fn tilemap_from_tiled(tiled_tilemap: &TiledTilemap, tiled_tileset: &Tileset<TileMeta>) -> Result<Tilemap<TileMeta, ObjMeta>, String> {
+pub fn tilemap_from_tiled(tiled_tilemap: &TiledTilemap, tiled_tileset: &Tileset<TileMeta>) -> Result<Tilemap<TileMeta, TileLayerType, ObjMeta>, String> {
   if tiled_tilemap.infinite == INFINITE_TILEMAP {
     return Err(String::from("Infinite maps are not supported."));
   }
 
   let dimensions: Size2 = Size2::new(tiled_tilemap.width_tiles, tiled_tilemap.height_tiles);
 
-  let layer = tiled_tilemap
+  let layers = tiled_tilemap
     .children
     .iter()
     .filter_map(|child| match child {
-      TiledTilemapChildren::TileLayer(child) => Some(child),
+      TiledTilemapChildren::TileLayer(layer) => Some(tilemap_layer_from_tiled(&tiled_tileset, layer)),
       _ => None
     })
-    .next() // todo: support multiple tile layers
-    .ok_or("No layer data found")?;
+    .collect::<Result<Vec<_>, _>>()?;
 
   let objects = tiled_tilemap
     .children
@@ -92,9 +100,7 @@ pub fn tilemap_from_tiled(tiled_tilemap: &TiledTilemap, tiled_tileset: &Tileset<
     .next()
     .unwrap_or(Ok(vec![]))?;
 
-  // convert raw tile data to a Vec<u32>
-  let tile_keys = make_tile_keys(&layer.data.tiles, &DELIMITER);
-  let tilemap = Tilemap::build(tiled_tileset, dimensions, tile_keys, objects)?;
+  let tilemap = Tilemap::build(tiled_tileset, dimensions, layers, objects)?;
 
   return Ok(tilemap);
 }

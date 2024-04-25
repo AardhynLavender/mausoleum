@@ -66,7 +66,7 @@ impl<Meta> Tileset<Meta> where Meta: Clone + Copy {
   }
 
   /// Convert a collection of `tile_keys` to `TileData`
-  pub fn tiledata_from<'a, I>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileConcept<Meta>>> + 'a, String> {
+  pub fn tiledata_from<'a>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileConcept<Meta>>> + 'a, String> {
     let result = tile_data
       .iter()
       .enumerate()

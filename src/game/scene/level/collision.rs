@@ -18,7 +18,7 @@ use crate::game::physics::collision::{Collider, Fragile, make_collision_box};
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::{Bullet, Rocket};
-use crate::game::scene::level::meta::{Soft, Strong};
+use crate::game::scene::level::meta::{Soft, Strong, TileLayerType};
 use crate::game::scene::level::room::use_room;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -55,11 +55,11 @@ pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
         let bullet = world.has_component::<Bullet>(*entity).expect("Failed to retrieve the entity");
         let rocket = world.has_component::<Rocket>(*entity).expect("Failed to retrieve the entity");
         if strong && rocket || (soft && (rocket || bullet)) {
-          let result = room.query_tile(TileQuery::Position(position.0));
+          let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
           if let Ok(handle) = TileHandle::try_from(result) {
             let mut check = Direction::Up;
             for _ in 0..DIRECTIONS / 2 {
-              let check_result = room.query_tile(TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
+              let check_result = room.query_tile(TileLayerType::Collision, TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
               if let Ok(handle) = TileHandle::try_from(check_result) {
                 if !world.has_component::<TileCollider>(handle.entity).expect("Failed to check tile tile collider") {
                   let collision_box = CollisionBox::new(Vec2::default(), handle.concept.data.src.size);

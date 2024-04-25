@@ -26,7 +26,7 @@ use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::zoomer::make_zoomer;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
-use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileMeta};
+use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -58,13 +58,13 @@ pub struct ActiveRoom;
 
 pub struct Room {
   position: Vec2<f32>,
-  tilemap: Tilemap<TileMeta, ObjMeta>,
+  tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>,
   entities: HashSet<Entity>,
 }
 
 impl Room {
   /// Instantiate a new room
-  pub fn build(tilemap: Tilemap<TileMeta, ObjMeta>, position: Vec2<f32>) -> Self {
+  pub fn build(tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>) -> Self {
     Self { tilemap, position, entities: HashSet::new() }
   }
 
@@ -73,33 +73,41 @@ impl Room {
   /// Create and add tiles associated with the tilemap to the world
   fn add_tilemap_to_world(&mut self, world: &mut World) -> Result<(), String> {
     let tilemap_position = self.position;
-    self.tilemap.add_tiles(|tile, _, position| {
+    self.tilemap.add_tiles(|layer, tile, _, position| {
       let position = position + tilemap_position;
       let entity = world.add((
         Tile::new(tile.data.tile_key),
         Position::from(position),
         Sprite::new(tile.data.texture_key, tile.data.src),
-        layer::Layer5
       ));
 
+      // add render layer
+      match layer {
+        TileLayerType::Background => world.add_components(entity, (layer::Layer4, ))?,
+        TileLayerType::Foreground => world.add_components(entity, (layer::Layer7, ))?,
+        TileLayerType::Collision => world.add_components(entity, (layer::Layer6, ))?,
+      }
+
       // add a collider if the tile has a mask
-      if !tile.mask.is_empty() {
-        let collider = TileCollider::new(
-          Rec2::new(Vec2::default(), tile.data.src.size),
-          tile.mask,
-        );
-        world.add_components(entity, (collider, ))?;
-      }
+      if layer == TileLayerType::Collision {
+        if !tile.mask.is_empty() {
+          let collider = TileCollider::new(
+            Rec2::new(Vec2::default(), tile.data.src.size),
+            tile.mask,
+          );
+          world.add_components(entity, (collider, ))?;
+        }
 
-      if tile.data.meta.breakability == TileBreakability::Soft {
-        world.add_components(entity, (Soft, ))?;
-      } else if tile.data.meta.breakability == TileBreakability::Strong {
-        world.add_components(entity, (Strong, ))?;
-      }
+        if tile.data.meta.breakability == TileBreakability::Soft {
+          world.add_components(entity, (Soft, ))?;
+        } else if tile.data.meta.breakability == TileBreakability::Strong {
+          world.add_components(entity, (Strong, ))?;
+        }
 
-      let damage = tile.data.meta.damage;
-      if damage > 0 {
-        world.add_components(entity, (PlayerHostile::default(), Damage::new(damage)))?;
+        let damage = tile.data.meta.damage;
+        if damage > 0 {
+          world.add_components(entity, (PlayerHostile::default(), Damage::new(damage)))?;
+        }
       }
 
       Ok(entity)
@@ -160,12 +168,12 @@ impl Room {
   // Query //
 
   /// Get information about a tile in the current room at a position in worldspace
-  pub fn query_tile(&mut self, get: TileQuery) -> TileQueryResult<TileMeta> {
-    let mut result = if let TileQuery::Position(position) = get {
+  pub fn query_tile(&mut self, layer: TileLayerType, query: TileQuery) -> TileQueryResult<TileMeta> {
+    let mut result = if let TileQuery::Position(position) = query {
       let position = position - self.position; // convert to local position
-      self.tilemap.query_tile(TileQuery::Position(position))
+      self.tilemap.query_tile(layer, TileQuery::Position(position))
     } else {
-      self.tilemap.query_tile(get)
+      self.tilemap.query_tile(layer, query)
     };
     result.position = result.position + self.position; // convert to world position
     result

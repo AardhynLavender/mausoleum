@@ -3,23 +3,28 @@
  */
 
 use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 
 use hecs::Entity;
 
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::tile::tile::{TileConcept, TileKey};
+use crate::engine::tile::tile::TileConcept;
+use crate::engine::tile::tilelayer::TileLayer;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate, position_to_coordinate};
 
+/// Index of a tile in a tilemap
 pub type MapIndex = usize;
 
+/// Defines a generic query for a tile in a tilemap
 pub enum TileQuery {
   Position(Vec2<f32>),
   Coordinate(Coordinate),
   Index(usize),
 }
 
+/// The result of a tile query
 pub struct TileQueryResult<'r, Meta> where Meta: Copy + Clone {
   pub concept: Option<&'r TileConcept<Meta>>,
   pub entity: Option<Entity>,
@@ -28,6 +33,7 @@ pub struct TileQueryResult<'r, Meta> where Meta: Copy + Clone {
   pub index: MapIndex,
 }
 
+/// Tidy alias for a tile query result
 pub type TQ<'r, Meta> = TileQueryResult<'r, Meta>;
 
 /// A non-owning handle of a queried tile
@@ -54,10 +60,9 @@ impl<Meta> TryFrom<TileQueryResult<'_, Meta>> for TileHandle<Meta> where Meta: C
 }
 
 /// Manages a grid of entities
-pub struct Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone, ObjMeta: Copy + Clone {
+pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
-  tiles: Vec<Option<TileConcept<TileMeta>>>,
-  #[allow(unused)]
+  layers: HashMap<LayerMeta, Vec<Option<TileConcept<TileMeta>>>>,
   objects: Vec<ObjMeta>,
   tile_size: Size2,
   tile_entities: HashMap<MapIndex, Entity>,
@@ -65,38 +70,40 @@ pub struct Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone, ObjMeta: Cop
   dimensions: Size2,
 }
 
-impl<TileMeta, ObjMeta> Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone, ObjMeta: Copy + Clone {
+impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq, ObjMeta: Copy + Clone {
   /// Instantiate a new tilemap from with `dimensions`
-  pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, initial_tiles: Vec<Option<TileKey>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
+  pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, layers: Vec<TileLayer<LayerMeta, TileMeta>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
+    let object_count = objects.len();
     let tile_count = dimensions.square() as usize;
-    if initial_tiles.len() != tile_count {
-      return Err(String::from("Initial tiles do not match dimensions"));
+    for layer in &layers {
+      if layer.tiles.len() != tile_count { return Err(String::from("Layer tiles do not match dimensions")); }
     }
 
-    let object_count = objects.len();
-
-    let tiles = tileset
-      .tiledata_from::<Vec<Option<TileConcept<TileMeta>>>>(&initial_tiles, dimensions)?
+    let layers = layers
+      .into_iter()
+      .map(|layer| (layer.meta, layer.tiles))
       .collect();
 
     Ok(Self {
       tile_size: tileset.tile_size,
       objects,
       dimensions,
-      tiles,
+      layers,
       tile_entities: HashMap::with_capacity(tile_count),
       object_entities: HashSet::with_capacity(object_count),
     })
   }
 
   /// Add tiles to the world by invoking an injected add function on each concept
-  pub fn add_tiles(&mut self, mut add: impl FnMut(&TileConcept<TileMeta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
-    for (index, tile) in self.tiles.iter().enumerate() {
-      if let Some(tile) = tile {
-        let coordinate = index_to_coordinate(index, self.dimensions);
-        let position = Vec2::<f32>::from(coordinate) * Vec2::from(tile.data.src.size);
-        let entity = add(tile, coordinate, position)?;
-        self.tile_entities.insert(index, entity);
+  pub fn add_tiles(&mut self, mut add: impl FnMut(LayerMeta, &TileConcept<TileMeta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
+    for (layer, tiles, ) in &self.layers {
+      for (index, tile) in tiles.iter().enumerate() {
+        if let Some(tile) = tile {
+          let coordinate = index_to_coordinate(index, self.dimensions);
+          let position = Vec2::<f32>::from(coordinate) * Vec2::from(tile.data.src.size);
+          let entity = add(*layer, tile, coordinate, position)?;
+          self.tile_entities.insert(index, entity);
+        }
       }
     }
     Ok(())
@@ -111,11 +118,14 @@ impl<TileMeta, ObjMeta> Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone,
   /// get the dimensions of the tilemap in worldspace
   pub fn get_dimensions(&self) -> Size2 { self.dimensions * self.tile_size }
   /// Get a tile at a coordinate
-  fn get_concept(&self, index: usize) -> Option<&TileConcept<TileMeta>> {
-    if index >= self.tiles.len() { return None; }
-    self.tiles
-      .get(index)
-      .map_or(None, |tile| tile.as_ref())
+  fn get_concept(&self, layer: LayerMeta, index: MapIndex) -> Option<&TileConcept<TileMeta>> {
+    if let Some(tiles) = self.layers.get(&layer) {
+      if index >= tiles.len() { return None; }
+      return tiles
+        .get(index)
+        .map_or(None, |tile| tile.as_ref());
+    }
+    return None;
   }
 
   pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {
@@ -131,18 +141,18 @@ impl<TileMeta, ObjMeta> Tilemap<TileMeta, ObjMeta> where TileMeta: Copy + Clone,
   ///
   /// Returns a mutable reference to the tile concept
   #[inline]
-  pub fn query_tile(&self, get: TileQuery) -> TileQueryResult<TileMeta> {
+  pub fn query_tile(&self, layer: LayerMeta, get: TileQuery) -> TileQueryResult<TileMeta> {
     match get {
       TileQuery::Position(position) => {
         let coordinate = position_to_coordinate(position, self.tile_size);
-        self.query_tile(TileQuery::Coordinate(coordinate))
+        self.query_tile(layer, TileQuery::Coordinate(coordinate))
       }
       TileQuery::Coordinate(coordinate) => {
         let index = coordinate_to_index(&coordinate, self.dimensions);
-        self.query_tile(TileQuery::Index(index))
+        self.query_tile(layer, TileQuery::Index(index))
       }
       TileQuery::Index(index) => {
-        let concept = self.get_concept(index);
+        let concept = self.get_concept(layer, index);
         let entity = self.tile_entities.get(&index).copied();
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
