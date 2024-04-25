@@ -68,19 +68,19 @@ impl Scene for LevelScene {
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
     // Creatures //
 
-    system.add(Schedule::FixedUpdate, sys_ripper);
-    system.add(Schedule::FixedUpdate, sys_spiky);
-    system.add(Schedule::FixedUpdate, sys_zoomer);
-    system.add(Schedule::FixedUpdate, sys_buzz);
+    system.add(Schedule::FrameUpdate, sys_ripper);
+    system.add(Schedule::FrameUpdate, sys_spiky);
+    system.add(Schedule::FrameUpdate, sys_zoomer);
+    system.add(Schedule::FrameUpdate, sys_buzz);
 
     // physics //
 
-    system.add(Schedule::FixedUpdate, sys_velocity);
-    system.add(Schedule::FixedUpdate, sys_gravity);
-    system.add(Schedule::FixedUpdate, sys_damage);
-    system.add(Schedule::FixedUpdate, sys_thaw);
-    system.add(Schedule::FixedUpdate, sys_tile_collision);
-    system.add(Schedule::FixedUpdate, sys_room_transition);
+    system.add(Schedule::FrameUpdate, sys_velocity);
+    system.add(Schedule::FrameUpdate, sys_gravity);
+    system.add(Schedule::FrameUpdate, sys_damage);
+    system.add(Schedule::FrameUpdate, sys_thaw);
+    system.add(Schedule::FrameUpdate, sys_tile_collision);
+    system.add(Schedule::FrameUpdate, sys_room_transition);
 
     // rendering //
 
@@ -92,7 +92,7 @@ impl Scene for LevelScene {
 
     // misc //
 
-    system.add(Schedule::FixedUpdate, sys_ttl);
+    system.add(Schedule::FrameUpdate, sys_ttl);
     system.add(Schedule::PostUpdate, sys_exit_level);
   }
   /// Clean up the level scene
