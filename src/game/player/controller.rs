@@ -20,7 +20,7 @@ pub const JUMP_WIDTH: f32 = 96.0;
 // 3 tiles per second
 pub const WALK_SPEED: f32 = 128.0;
 
-pub const DASH_MULTIPLIER: f32 = 100.0;
+pub const DASH_MULTIPLIER: f32 = 50.0;
 pub const JUMP_ACCELERATION: Vec2<f32> = Vec2::new(0.0, -(((2.0 * JUMP_HEIGHT) * WALK_SPEED) / (JUMP_WIDTH / 2.0)));
 pub const PLAYER_GRAVITY: Vec2<f32> = Vec2::new(0.0, -((-2.0 * JUMP_HEIGHT * (WALK_SPEED * WALK_SPEED)) / ((JUMP_WIDTH / 2.0) * (JUMP_WIDTH / 2.0))));
 
@@ -42,6 +42,7 @@ pub struct PlayerController {
   last_aim: Direction,
   #[allow(unused)]
   dash_timer: Timer,
+  #[allow(unused)]
   dash_direction: Direction,
   locked: bool,
 }
@@ -94,17 +95,17 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
 
   // Dash //
 
-  let left_pressed = is_control(Control::Left, Behaviour::Pressed, event);
-  let right_pressed = is_control(Control::Right, Behaviour::Pressed, event);
-  if left_pressed ^ right_pressed {
-    if controller.dash_timer.done() {
-      controller.dash_timer.reset();
-      controller.dash_direction = if left_pressed { Direction::Left } else { Direction::Right };
-    } else if controller.dash_direction == Direction::Left && left_pressed || controller.dash_direction == Direction::Right && right_pressed {
-      velocity.0.x = WALK_SPEED * DASH_MULTIPLIER * controller.dash_direction.to_coordinate().x as f32;
-      controller.dash_timer.expire();
-    }
-  }
+  // let left_pressed = is_control(Control::Left, Behaviour::Pressed, event);
+  // let right_pressed = is_control(Control::Right, Behaviour::Pressed, event);
+  // if left_pressed ^ right_pressed {
+  //   if controller.dash_timer.done() {
+  //     controller.dash_timer.reset();
+  //     controller.dash_direction = if left_pressed { Direction::Left } else { Direction::Right };
+  //   } else if controller.dash_direction == Direction::Left && left_pressed || controller.dash_direction == Direction::Right && right_pressed {
+  //     velocity.0.x = WALK_SPEED * DASH_MULTIPLIER * controller.dash_direction.to_coordinate().x as f32;
+  //     controller.dash_timer.expire();
+  //   }
+  // }
 
   // Lock //
 
