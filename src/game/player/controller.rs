@@ -62,7 +62,6 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
   }
 
   if event.is_key_held(Keycode::H) {
-    println!("Jump height: {}", controller.jump_velocity.y);
     set_jump_height(controller, gravity, HIGH_JUMP_BOOTS_JUMP_HEIGHT);
   }
 
