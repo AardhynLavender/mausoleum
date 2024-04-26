@@ -38,8 +38,8 @@ impl Frame {
     let delta = self.end.duration_since(self.start).as_micros() as DeltaMS / SECOND_MICRO;
     let alpha = delta % SIMULATION_FPS;
     self.start = self.end;
-    self.accumulator += alpha;
-    (alpha, delta)
+    self.accumulator += delta;
+    (delta, alpha)
   }
   /// Process the accumulated time in fixed delta increments
   pub fn process_accumulated(&mut self, mut processor: impl FnMut(f32)) {

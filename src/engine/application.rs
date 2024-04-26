@@ -16,7 +16,7 @@ use crate::engine::world::World;
  * Application structure and lifecycle
  */
 
-pub const SIMULATION_FPS: DeltaMS = 1.0 / 128.0;
+pub const SIMULATION_FPS: DeltaMS = 1.0 / 60.0;
 
 /// Bundles a subsystem with actions
 struct Engine<'a> {

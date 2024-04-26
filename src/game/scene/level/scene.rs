@@ -30,6 +30,9 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const WORLD_PATH: &str = "asset/world.world";
 
+pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
+// pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
+
 #[allow(unused)]
 pub struct LevelState {
   level_key: String,
@@ -68,19 +71,19 @@ impl Scene for LevelScene {
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
     // Creatures //
 
-    system.add(Schedule::FrameUpdate, sys_ripper);
-    system.add(Schedule::FrameUpdate, sys_spiky);
-    system.add(Schedule::FrameUpdate, sys_zoomer);
-    system.add(Schedule::FrameUpdate, sys_buzz);
+    system.add(PHYSICS_SCHEDULE, sys_ripper);
+    system.add(PHYSICS_SCHEDULE, sys_spiky);
+    system.add(PHYSICS_SCHEDULE, sys_zoomer);
+    system.add(PHYSICS_SCHEDULE, sys_buzz);
 
     // physics //
 
-    system.add(Schedule::FrameUpdate, sys_velocity);
-    system.add(Schedule::FrameUpdate, sys_gravity);
-    system.add(Schedule::FrameUpdate, sys_damage);
-    system.add(Schedule::FrameUpdate, sys_thaw);
-    system.add(Schedule::FrameUpdate, sys_tile_collision);
-    system.add(Schedule::FrameUpdate, sys_room_transition);
+    system.add(PHYSICS_SCHEDULE, sys_velocity);
+    system.add(PHYSICS_SCHEDULE, sys_gravity);
+    system.add(PHYSICS_SCHEDULE, sys_damage);
+    system.add(PHYSICS_SCHEDULE, sys_thaw);
+    system.add(PHYSICS_SCHEDULE, sys_tile_collision);
+    system.add(PHYSICS_SCHEDULE, sys_room_transition);
 
     // rendering //
 
@@ -92,7 +95,7 @@ impl Scene for LevelScene {
 
     // misc //
 
-    system.add(Schedule::FrameUpdate, sys_ttl);
+    system.add(PHYSICS_SCHEDULE, sys_ttl);
     system.add(Schedule::PostUpdate, sys_exit_level);
   }
   /// Clean up the level scene
