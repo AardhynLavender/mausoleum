@@ -27,9 +27,9 @@ use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::zoomer::make_zoomer;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
+use crate::game::preferences::use_preferences;
 use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
 use crate::game::scene::level::registry::RoomRegistry;
-use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 pub const ROOM_ENTER_MARGIN: i32 = TILE_SIZE.x as i32 / 2;
 
@@ -188,8 +188,8 @@ impl Room {
 }
 
 /// Render rectangles around the colliders that start room transitions
-pub fn sys_render_room_colliders(SysArgs { world, render, camera, event, .. }: &mut SysArgs) {
-  if !is_control(Control::Debug, Behaviour::Held, event) { return; }
+pub fn sys_render_room_colliders(SysArgs { world, render, camera, state, .. }: &mut SysArgs) {
+  if !use_preferences(state).debug { return; }
   for (_, room_collider) in world.query::<&RoomCollider>() {
     let pos = Vec2::<i32>::from(camera.translate(room_collider.collision_box.origin));
     render.draw_rect(Rec2::new(pos, room_collider.collision_box.size), RGBA::new(0, 0, 255, OPAQUE));

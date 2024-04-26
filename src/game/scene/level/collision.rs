@@ -19,9 +19,9 @@ use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::{Bullet, Rocket};
+use crate::game::preferences::use_preferences;
 use crate::game::scene::level::meta::{Soft, Strong, TileLayerType};
 use crate::game::scene::level::room::use_room;
-use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /// Maximum number of collision resolution attempts before ~~panicking~~
 pub const MAX_COLLISION_PHASES: u32 = 10;
@@ -129,10 +129,8 @@ fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox)
 }
 
 /// Render the tile colliders to the screen when debug mode is active
-pub fn sys_render_tile_colliders(SysArgs { world, camera, render, event, .. }: &mut SysArgs) {
-  if !is_control(Control::Debug, Behaviour::Held, event) {
-    return;
-  }
+pub fn sys_render_tile_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) {
+  if !use_preferences(state).debug { return; }
 
   for (_, (position, collider)) in world.query::<(&Position, &TileCollider)>() {
     let color = RGBA::new(255, 0, 0, OPAQUE);

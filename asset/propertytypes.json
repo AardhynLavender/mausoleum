@@ -26,6 +26,20 @@
     ]
   },
   {
+    "id": 17,
+    "name": "Collectable",
+    "storageType": "string",
+    "type": "enum",
+    "values": [
+      "power",
+      "health",
+      "high_jump",
+      "missle_tank",
+      "ice_beam"
+    ],
+    "valuesAsFlags": false
+  },
+  {
     "id": 6,
     "name": "Direction",
     "storageType": "string",
@@ -96,6 +110,12 @@
     "id": 10,
     "members": [
       {
+        "name": "collectable",
+        "propertyType": "Collectable",
+        "type": "string",
+        "value": "power"
+      },
+      {
         "name": "direction",
         "propertyType": "Direction",
         "type": "string",
@@ -111,7 +131,7 @@
     ]
   },
   {
-    "color": "#ff000000",
+    "color": "#ffff0000",
     "drawFill": true,
     "id": 3,
     "members": [
@@ -120,6 +140,17 @@
         "propertyType": "Breakability",
         "type": "string",
         "value": "Solid"
+      },
+      {
+        "name": "collectable",
+        "propertyType": "Collectable",
+        "type": "string",
+        "value": "health"
+      },
+      {
+        "name": "damage",
+        "type": "float",
+        "value": 0
       }
     ],
     "name": "Tile",

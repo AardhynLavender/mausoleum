@@ -4,7 +4,7 @@ use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
 use crate::engine::utility::alias::Size;
 use crate::game::physics::position::Position;
-use crate::game::utility::controls::{Behaviour, Control, is_control};
+use crate::game::preferences::use_preferences;
 
 /**
  * Collider component
@@ -26,10 +26,8 @@ impl Collider {
 }
 
 /// Render colliders in the world while debugging
-pub fn sys_render_colliders(SysArgs { world, camera, render, event, .. }: &mut SysArgs) {
-  if !is_control(Control::Debug, Behaviour::Held, event) {
-    return;
-  }
+pub fn sys_render_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) {
+  if !use_preferences(state).debug { return; }
 
   for (_, (position, collider)) in world.query::<(&Position, &Collider)>() {
     let new_position = camera.translate(Vec2::from(position.0));

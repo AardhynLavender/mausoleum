@@ -22,6 +22,7 @@ use crate::game::physics::gravity::sys_gravity;
 use crate::game::physics::velocity::sys_velocity;
 use crate::game::player::combat::sys_render_cooldown;
 use crate::game::player::world::{make_player, PlayerQuery, use_player};
+use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::{sys_render_tile_colliders, sys_tile_collision};
 use crate::game::scene::level::registry::{RoomRegistry, sys_room_transition};
 use crate::game::scene::level::room::sys_render_room_colliders;
@@ -96,7 +97,7 @@ impl Scene for LevelScene {
     // misc //
 
     system.add(PHYSICS_SCHEDULE, sys_ttl);
-    system.add(Schedule::PostUpdate, sys_exit_level);
+    system.add(Schedule::PostUpdate, sys_level_events);
   }
   /// Clean up the level scene
   fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
@@ -104,11 +105,16 @@ impl Scene for LevelScene {
   }
 }
 
-/// Listen for level exit
-pub fn sys_exit_level(SysArgs { event, scene, world, .. }: &mut SysArgs) {
+/// Listen for level events
+pub fn sys_level_events(SysArgs { event, scene, world, state, .. }: &mut SysArgs) {
   let PlayerQuery { health, .. } = use_player(world);
   let dead = health.get_state() == LiveState::Dead;
   let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
   if dead || exit { scene.queue_next(MenuScene) }
+
+  let preferences = use_preferences(state);
+  if is_control(Control::Debug, Behaviour::Pressed, event) {
+    preferences.debug = !preferences.debug;
+  }
 }
 

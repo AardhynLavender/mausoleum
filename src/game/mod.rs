@@ -6,3 +6,4 @@ pub mod combat;
 pub mod interface;
 pub mod creature;
 pub mod player;
+pub mod preferences;

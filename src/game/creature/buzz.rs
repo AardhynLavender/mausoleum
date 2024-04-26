@@ -22,8 +22,8 @@ use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::player::world::{PlayerQuery, use_player};
+use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
-use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const BUZZ_SPEED: f32 = 96.0;
 const BUZZ_ASSET: &str = "asset/buzz.png";
@@ -79,9 +79,9 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
 }
 
 /// Buzz system
-pub fn sys_buzz(SysArgs { world, render, event, camera, .. }: &mut SysArgs) {
+pub fn sys_buzz(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
   let PlayerQuery { position: player_position, .. } = use_player(world);
-  let debug = is_control(Control::Debug, Behaviour::Held, event);
+  let debug = use_preferences(state).debug;
   let player_position = player_position.0;
   for (_, (buzz, buzz_position, buzz_velocity)) in world
     .query::<(&mut Buzz, &Position, &mut Velocity)>()
