@@ -20,6 +20,13 @@
             "width": 640,
             "x": 0,
             "y": 352
+        },
+        {
+            "fileName": "room_4.tmx",
+            "height": 352,
+            "width": 640,
+            "x": -1280,
+            "y": 0
         }
     ],
     "onlyShowAdjacentMaps": false,

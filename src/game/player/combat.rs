@@ -20,8 +20,7 @@ use crate::game::combat::ttl::TimeToLive;
 use crate::game::physics::collision::{Collider, Fragile};
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::controller::PLAYER_SIZE;
-use crate::game::player::world::{PlayerQuery, use_player};
+use crate::game::player::world::{PLAYER_SIZE, PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 
 /// The player's starting health
