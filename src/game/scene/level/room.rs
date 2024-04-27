@@ -118,8 +118,24 @@ impl Room {
   fn remove_tilemap_from_world(&mut self, world: &mut World) {
     self.tilemap.remove_tiles(|entity| world.free_now(entity).unwrap_or(()));
   }
-  pub fn remove_tile(&mut self, world: &mut World, query: TileHandle<TileMeta>) {
-    self.tilemap.remove_tile(query, |entity| world.free_now(entity).unwrap_or(()));
+  /// Remove a tile from the tilemap
+  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>) {
+    self.tilemap.remove_tile(
+      &handle,
+      |entity| {
+        world.free_now(entity).unwrap_or(())
+      });
+    self.tilemap.for_neighbour(
+      &handle,
+      |handle, neighbour| {
+        // Repair the neighbor tile by adding a collider or updating the mask
+        if !world.has_component::<TileCollider>(handle.entity).expect("Failed to check tile tile collider") {
+          let collision_box = CollisionBox::new(Vec2::default(), handle.concept.data.src.size);
+          world.add_components(handle.entity, (TileCollider::new(collision_box, CollisionMask::default()), )).expect("Failed to add tile collider");
+        }
+        let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
+        tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
+      });
   }
 
   // Entities //
@@ -169,7 +185,7 @@ impl Room {
   // Query //
 
   /// Get information about a tile in the current room at a position in worldspace
-  pub fn query_tile(&mut self, layer: TileLayerType, query: TileQuery) -> TileQueryResult<TileMeta> {
+  pub fn query_tile(&mut self, layer: TileLayerType, query: TileQuery) -> TileQueryResult<TileMeta, TileLayerType> {
     let mut result = if let TileQuery::Position(position) = query {
       let position = position - self.position; // convert to local position
       self.tilemap.query_tile(layer, TileQuery::Position(position))

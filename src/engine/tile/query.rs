@@ -10,36 +10,45 @@ pub enum TileQuery {
   Position(Vec2<f32>),
   Coordinate(Coordinate),
   Index(usize),
+  Entity(Entity),
 }
 
 /// The result of a tile query
-pub struct TileQueryResult<'r, Meta> where Meta: Copy + Clone {
-  pub concept: Option<&'r TileConcept<Meta>>,
-  pub entity: Option<Entity>,
+#[derive(Default)]
+pub struct TileQueryResult<'r, TileMeta, LayerMeta>
+  where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Default
+{
+  pub concept: Option<&'r TileConcept<TileMeta>>,
+  pub layer: LayerMeta,
   pub position: Vec2<f32>,
   pub coordinate: Coordinate,
   pub index: MapIndex,
+  pub entity: Option<Entity>,
 }
 
 /// A non-owning handle of a queried tile
-pub struct TileHandle<Meta> where Meta: Copy {
+pub struct TileHandle<TileMeta, LayerMeta> where TileMeta: Copy, LayerMeta: Copy + Clone {
   /// Convert a tile query result into a non-owning handle of the tile queried
-  pub concept: TileConcept<Meta>,
-  pub entity: Entity,
+  pub concept: TileConcept<TileMeta>,
+  pub layer: LayerMeta,
   pub position: Vec2<f32>,
   pub coordinate: Coordinate,
   pub index: MapIndex,
+  pub entity: Entity,
 }
 
-impl<Meta> TryFrom<TileQueryResult<'_, Meta>> for TileHandle<Meta> where Meta: Copy {
+impl<TileMeta, LayerMeta> TryFrom<TileQueryResult<'_, TileMeta, LayerMeta>> for TileHandle<TileMeta, LayerMeta>
+  where TileMeta: Copy, LayerMeta: Copy + Clone + Default
+{
   type Error = String;
-  fn try_from(result: TileQueryResult<'_, Meta>) -> Result<Self, Self::Error> {
-    Ok(TileHandle::<Meta> {
+  fn try_from(result: TileQueryResult<'_, TileMeta, LayerMeta>) -> Result<Self, Self::Error> {
+    Ok(TileHandle::<TileMeta, LayerMeta> {
       concept: result.concept.copied().ok_or(String::from("Tile has no concept"))?,
-      entity: result.entity.ok_or("Tile has no entity")?,
+      layer: result.layer,
       position: result.position,
       coordinate: result.coordinate,
       index: result.index,
+      entity: result.entity.ok_or("Tile has no entity")?,
     })
   }
 }

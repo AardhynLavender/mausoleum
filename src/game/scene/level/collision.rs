@@ -6,13 +6,12 @@ use std::collections::HashMap;
 
 use hecs::Entity;
 
-use crate::engine::geometry::collision::{Collision, CollisionBox, CollisionMask, rec2_collision};
+use crate::engine::geometry::collision::{Collision, CollisionBox, rec2_collision};
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::TileCollider;
-use crate::engine::utility::direction::{Direction, DIRECTIONS, HALF_ROTATION, QUARTER_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::physics::collision::{Collider, Fragile, make_collision_box};
 use crate::game::physics::frozen::Frozen;
@@ -63,19 +62,6 @@ pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
         if strong && rocket || (soft && (rocket || bullet)) {
           let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
           if let Ok(handle) = TileHandle::try_from(result) {
-            let mut check = Direction::Up;
-            for _ in 0..DIRECTIONS / 2 {
-              let check_result = room.query_tile(TileLayerType::Collision, TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
-              if let Ok(handle) = TileHandle::try_from(check_result) {
-                if !world.has_component::<TileCollider>(handle.entity).expect("Failed to check tile tile collider") {
-                  let collision_box = CollisionBox::new(Vec2::default(), handle.concept.data.src.size);
-                  world.add_components(handle.entity, (TileCollider::new(collision_box, CollisionMask::default()), )).expect("Failed to add tile collider");
-                }
-                let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
-                tile_collider.mask.set_side(check.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
-              }
-              check = check.rotate(Rotation::Left, QUARTER_ROTATION);
-            }
             room.remove_tile(world, handle);
           } else {
             panic!("No concept associated with destroyed tile");

@@ -14,12 +14,13 @@ use crate::engine::tile::tilelayer::TileLayer;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate, position_to_coordinate};
+use crate::engine::utility::direction::{Direction, DIRECTIONS, QUARTER_ROTATION, Rotation};
 
 /// Index of a tile in a tilemap
 pub type MapIndex = usize;
 
 /// Manages a grid of entities
-pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq, ObjMeta: Copy + Clone {
+pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
   layers: HashMap<LayerMeta, Vec<Option<TileConcept<TileMeta>>>>,
   objects: Vec<ObjMeta>,
@@ -29,7 +30,7 @@ pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, L
   dimensions: Size2,
 }
 
-impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq, ObjMeta: Copy + Clone {
+impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
   /// Instantiate a new tilemap from with `dimensions`
   pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, layers: Vec<TileLayer<LayerMeta, TileMeta>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
     let object_count = objects.len();
@@ -67,8 +68,20 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
     }
     Ok(())
   }
-  pub fn remove_tile(&mut self, handle: TileHandle<TileMeta>, mut remove: impl FnMut(Entity)) {
+  /// Add a tile to the world by invoking an injected remove function on the concept
+  pub fn remove_tile(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut remove: impl FnMut(Entity)) {
     if let Some(entity) = self.tile_entities.remove(&handle.index) { remove(entity) };
+  }
+  /// invoke fn for each neighbor of a tile handle
+  pub fn for_neighbour(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut repair: impl FnMut(TileHandle<TileMeta, LayerMeta>, Direction)) {
+    let mut check = Direction::Up;
+    for _ in 0..DIRECTIONS / 2 {
+      let check_result = self.query_tile(handle.layer, TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
+      if let Ok(handle) = TileHandle::try_from(check_result) {
+        repair(handle, check)
+      }
+      check = check.rotate(Rotation::Left, QUARTER_ROTATION);
+    }
   }
   /// Remove tiles from the world by invoking an injected remove function on each entity
   pub fn remove_tiles(&mut self, mut remove: impl FnMut(Entity)) {
@@ -100,8 +113,15 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
   ///
   /// Returns a mutable reference to the tile concept
   #[inline]
-  pub fn query_tile(&self, layer: LayerMeta, get: TileQuery) -> TileQueryResult<TileMeta> {
+  pub fn query_tile(&self, layer: LayerMeta, get: TileQuery) -> TileQueryResult<TileMeta, LayerMeta> {
     match get {
+      TileQuery::Entity(entity) => {
+        if let Some((index, ..)) = self.tile_entities.iter().find(|(_, e)| **e == entity) {
+          self.query_tile(layer, TileQuery::Index(*index))
+        } else {
+          TileQueryResult::default()
+        }
+      }
       TileQuery::Position(position) => {
         let coordinate = position_to_coordinate(position, self.tile_size);
         self.query_tile(layer, TileQuery::Coordinate(coordinate))
@@ -115,7 +135,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
         let entity = self.tile_entities.get(&index).copied();
         let coordinate = index_to_coordinate(index, self.dimensions);
         let position = Vec2::<f32>::from(coordinate) * Vec2::<f32>::from(self.tile_size);
-        TileQueryResult { concept, entity, coordinate, position, index }
+        TileQueryResult { layer, concept, entity, coordinate, position, index }
       }
     }
   }
