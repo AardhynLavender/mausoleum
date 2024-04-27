@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use hecs::{DynamicBundle, Entity};
 
 use crate::engine::asset::AssetManager;
-use crate::engine::geometry::collision::CollisionBox;
+use crate::engine::geometry::collision::{CollisionBox, CollisionMask};
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::CameraBounds;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
@@ -18,7 +18,9 @@ use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::tile::tilemap::Tilemap;
+use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
 use crate::engine::world::World;
+use crate::game::collectable::collectable::Collectable;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::buzz::make_buzz;
@@ -97,6 +99,10 @@ impl Room {
             tile.mask,
           );
           world.add_components(entity, (collider, ))?;
+        }
+
+        if let Some(collectable) = tile.data.meta.collectable {
+          world.add_components(entity, (Collectable(collectable), ))?;
         }
 
         if tile.data.meta.breakability == TileBreakability::Soft {

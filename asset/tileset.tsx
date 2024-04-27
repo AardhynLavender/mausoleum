@@ -49,7 +49,7 @@
     </tile>
     <tile id="29" type="Tile">
         <properties>
-            <property name="collectable" propertytype="Collectable" value="missle_tank"/>
+            <property name="collectable" propertytype="Collectable" value="missile_tank"/>
         </properties>
     </tile>
     <tile id="30" type="Tile">

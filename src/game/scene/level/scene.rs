@@ -8,6 +8,7 @@ use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::tile::parse::TiledParser;
+use crate::game::collectable::collectable::sys_collectable;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::sys_ttl;
@@ -83,6 +84,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, sys_gravity);
     system.add(PHYSICS_SCHEDULE, sys_damage);
     system.add(PHYSICS_SCHEDULE, sys_thaw);
+    system.add(PHYSICS_SCHEDULE, sys_collectable);
     system.add(PHYSICS_SCHEDULE, sys_tile_collision);
     system.add(PHYSICS_SCHEDULE, sys_room_transition);
 

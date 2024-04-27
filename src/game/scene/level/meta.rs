@@ -6,6 +6,16 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::tile::parse::{TiledObject, TiledProperties, TiledProperty};
 use crate::engine::utility::direction::Direction;
 
+/// The type of collectable item
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum CollectableType {
+  Health,
+  Power,
+  MissileTank,
+  IceBeam,
+  HighJump,
+}
+
 /// Defines the level of breakability for a tile
 #[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub enum TileBreakability {
@@ -27,9 +37,10 @@ pub struct Soft;
 pub const TILED_TILE_CLASS: &str = "Tile";
 
 /// Metadata for a tileset tile
-#[derive(Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct TileMeta {
   pub breakability: TileBreakability,
+  pub collectable: Option<CollectableType>,
   pub damage: u32,
 }
 
@@ -82,6 +93,23 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, .. }: &TiledObj
     _ => return Err(String::from(format!("Unknown object type: {}", object_type))),
   };
   Ok(meta)
+}
+
+pub fn parse_collectable(properties: &Option<TiledProperties>) -> Result<Option<CollectableType>, String> {
+  if let Some(prop) = get_property("collectable", properties) {
+    let collectable_type = prop.trim().to_lowercase();
+    let collectable = match collectable_type.as_str() {
+      "health" => CollectableType::Health,
+      "power" => CollectableType::Power,
+      "missile_tank" => CollectableType::MissileTank,
+      "ice_beam" => CollectableType::IceBeam,
+      "high_jump" => CollectableType::HighJump,
+      "none" => return Err(String::from("Collectable must have a type")),
+      other => return Err(format!("Invalid collectable type: {}", other)),
+    };
+    return Ok(Some(collectable));
+  }
+  Ok(None)
 }
 
 /// Extract the breakability property from a collection of properties

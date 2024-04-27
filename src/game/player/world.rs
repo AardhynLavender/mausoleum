@@ -10,6 +10,7 @@ use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
 use crate::engine::utility::alias::Size2;
 use crate::engine::world::World;
+use crate::game::collectable::collectable::Collection;
 use crate::game::combat::health::Health;
 use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
@@ -35,7 +36,7 @@ const PLAYER_COLLIDER: CollisionBox = Rec2::new(Vec2::new(0.0, 0.0), PLAYER_SIZE
 pub type LayerPlayer = layer::Layer5;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Gravity, &'p mut Collider, &'p mut Health);
+pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Gravity, &'p mut Collider, &'p mut Health, &'p mut Collection);
 
 /// Query structure for the player entity
 pub struct PlayerQuery<'p> {
@@ -46,6 +47,7 @@ pub struct PlayerQuery<'p> {
   pub controller: &'p mut PlayerController,
   pub collider: &'p mut Collider,
   pub health: &'p mut Health,
+  pub inventory: &'p mut Collection,
 }
 
 /// Query the world for the player return its components
@@ -66,6 +68,7 @@ pub fn use_player(world: &mut World) -> PlayerQuery {
     gravity: components.4,
     collider: components.5,
     health: components.6,
+    inventory: components.7,
   }
 }
 
@@ -92,6 +95,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     LayerPlayer::default(),
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
+    Collection::default(),
     Velocity::default(),
     RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),

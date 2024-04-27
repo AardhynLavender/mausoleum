@@ -52,8 +52,14 @@ impl PlayerController {
 }
 
 pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
-  let PlayerQuery { velocity, controller, gravity, .. } = use_player(world);
+  let PlayerQuery { velocity, inventory, controller, gravity, .. } = use_player(world);
   let aim = get_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
+
+  // Data //
+
+  if is_control(Control::Inventory, Behaviour::Pressed, event) {
+    println!("{:?}", inventory);
+  }
 
   // Jump //
 
