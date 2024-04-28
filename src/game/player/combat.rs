@@ -23,9 +23,8 @@ use crate::game::physics::velocity::Velocity;
 use crate::game::player::world::{PLAYER_SIZE, PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 
-/// The player's starting health
-pub const PLAYER_HEALTH: i32 = 100;
-
+pub const PLAYER_BASE_HEALTH: u32 = 50;
+pub const HEALTH_PICKUP_INCREASE: u32 = 25;
 pub const HIT_COOLDOWN: u64 = 500;
 
 const PROJECTILE_COOLDOWN: u64 = 200;

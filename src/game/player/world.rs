@@ -16,7 +16,7 @@ use crate::game::physics::collision::Collider;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
-use crate::game::player::combat::{PLAYER_HEALTH, PlayerCombat};
+use crate::game::player::combat::{PLAYER_BASE_HEALTH, PlayerCombat};
 use crate::game::player::controller::{PlayerController, sys_player_controller};
 use crate::game::player::physics::{calculate_gravity, INITIAL_JUMP_HEIGHT, INITIAL_JUMP_WIDTH, INITIAL_WALK_SPEED};
 use crate::game::scene::level::collision::RoomCollision;
@@ -99,7 +99,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Velocity::default(),
     RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),
-    Health::build(PLAYER_HEALTH).expect("Failed to build player health"),
+    Health::build(PLAYER_BASE_HEALTH as i32).expect("Failed to build player health"),
   ));
 
   system.add(Schedule::PostUpdate, sys_player_controller);

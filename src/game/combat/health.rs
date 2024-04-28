@@ -20,8 +20,16 @@ impl Health {
   pub fn get_state(&self) -> LiveState {
     if self.current <= MIN_HEALTH { LiveState::Dead } else { LiveState::Alive(self.current) }
   }
+  /// Get the current health.
   pub fn get_health(&self) -> i32 { self.current }
+  /// Get the maximum health.
   pub fn get_max(&self) -> i32 { self.max }
+  /// Raise the maximum health by the given amount.
+  pub fn set_max(&mut self, amount: i32) {
+    self.max = amount;
+    if self.current < self.max { self.current = self.max; }
+  }
+
   /// Damage the health by the given amount.
   pub fn deal(&mut self, amount: i32) -> LiveState {
     self.current = clamp(self.current - amount, MIN_HEALTH, self.max);
