@@ -4,6 +4,7 @@
 
 use std::path::Path;
 
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
@@ -35,6 +36,8 @@ const WORLD_PATH: &str = "asset/world.world";
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
 
+const PLAYER_START: Vec2<f32> = Vec2::new(314.0, 212.0);
+
 #[allow(unused)]
 pub struct LevelState {
   level_key: String,
@@ -59,13 +62,19 @@ impl Scene for LevelScene {
       .map_err(|e| println!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
 
-    make_player(world, system, asset);
-    make_player_health_text(world, asset);
-
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
     room_registry.transition_to_room(world, asset, &self.level_key).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
+
+    let room_position = room_registry
+      .get_current()
+      .expect("no current room")
+      .get_bounds()
+      .origin;
+    let player_position = Vec2::from(room_position) + PLAYER_START;
+    make_player(world, system, asset, player_position);
+    make_player_health_text(world, asset);
 
     state.add(room_registry).expect("Failed to add level state")
   }

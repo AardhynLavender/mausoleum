@@ -28,7 +28,6 @@ use crate::game::scene::level::collision::RoomCollision;
 pub const PLAYER_SIZE: Size2 = Size2::new(12, 28);
 
 const PLAYER_ASSET: &str = "asset/test.png";
-const PLAYER_START: Vec2<f32> = Vec2::new(40.0, 24.0);
 const PLAYER_SPRITE: SrcRect = SrcRect::new(Vec2::new(0, 0), PLAYER_SIZE);
 const PLAYER_COLLIDER: CollisionBox = Rec2::new(Vec2::new(0.0, 0.0), PLAYER_SIZE);
 
@@ -73,7 +72,7 @@ pub fn use_player(world: &mut World) -> PlayerQuery {
 }
 
 /// Set up the world for the player
-pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager) {
+pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager, position: Vec2<f32>) {
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
@@ -91,7 +90,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     PlayerCombat::new(bullet, rocket, ice_beam),
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
-    Position::from(PLAYER_START),
+    Position::from(position),
     CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     LayerPlayer::default(),
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
