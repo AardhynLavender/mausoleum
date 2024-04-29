@@ -32,6 +32,8 @@ use crate::game::utility::math::floor_to_tile;
 
 const SPIKY_SPEED: f32 = 48.0;
 const SPIKY_ASSET: &str = "asset/spiky.png";
+const SPIKY_HEALTH: u32 = 30;
+const SPIKY_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 16);
 const WIDTH: Vec2<f32> = Vec2::new(DIMENSIONS.x as f32, 0.0);
 const HEIGHT: Vec2<f32> = Vec2::new(0.0, DIMENSIONS.y as f32);
@@ -56,8 +58,8 @@ pub fn make_spiky(asset_manager: &mut AssetManager, position: Vec2<f32>, initial
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * SPIKY_SPEED),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
-    Damage::new(10),
-    Health::build(10).expect("Failed to build health")
+    Damage::new(SPIKY_DAMAGE),
+    Health::build(SPIKY_HEALTH).expect("Failed to build health")
   ))
 }
 

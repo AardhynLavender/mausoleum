@@ -27,6 +27,8 @@ use crate::game::scene::level::collision::RoomCollision;
 
 const BUZZ_SPEED: f32 = 96.0;
 const BUZZ_ASSET: &str = "asset/buzz.png";
+const BUZZ_HEALTH: u32 = 20;
+const BUZZ_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(8, 8);
 
 const BUZZ_FOLLOW_RADIUS: f32 = 256.0;
@@ -72,8 +74,8 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
     Velocity::default(),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
-    Damage::new(5),
-    Health::build(10).expect("Failed to build health"),
+    Damage::new(BUZZ_DAMAGE),
+    Health::build(BUZZ_HEALTH).expect("Failed to build health"),
     RoomCollision::default(),
   ))
 }

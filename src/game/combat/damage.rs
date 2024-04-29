@@ -15,16 +15,16 @@ use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::room::use_room;
 
 pub struct Damage {
-  pub amount: i32,
+  pub amount: u32,
 }
 
 impl Damage {
   pub fn new(amount: u32) -> Self {
-    Self { amount: amount as i32 }
+    Self { amount }
   }
 }
 
-fn get_damage<Mask>(world: &mut World, collision_box: &CollisionBox) -> Option<(i32, Entity)> where Mask: Component {
+fn get_damage<Mask>(world: &mut World, collision_box: &CollisionBox) -> Option<(u32, Entity)> where Mask: Component {
   for (entity, (position, collider, damage)) in world
     .query::<(&Position, Or<&TileCollider, &Collider>, &Damage)>()
     .with::<&Mask>()

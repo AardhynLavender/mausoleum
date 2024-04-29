@@ -29,6 +29,8 @@ use crate::game::utility::math::floor_to_tile;
 
 const RIPPER_SPEED: f32 = 64.0;
 const RIPPER_ASSET: &str = "asset/ripper.png";
+const RIPPER_HEALTH: u32 = 30;
+const RIPPER_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 8);
 
 #[derive(Default)]
@@ -51,8 +53,8 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * RIPPER_SPEED),
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
-    Damage::new(10),
-    Health::build(10).expect("Failed to build health")
+    Damage::new(RIPPER_DAMAGE),
+    Health::build(RIPPER_HEALTH).expect("Failed to build health")
   ))
 }
 

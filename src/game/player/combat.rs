@@ -34,11 +34,11 @@ const PROJECTILE_SPEED: f32 = 300.0;
 const BULLET_DAMAGE: u32 = 10;
 const BULLET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
-const ROCKET_DAMAGE: u32 = 50;
+const ROCKET_DAMAGE: u32 = 20;
 const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
 const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
-pub const THAW_DURATION: u64 = 2500;
+pub const THAW_DURATION: u64 = 5000;
 
 /// Mark an entity as being hostile to the player
 #[derive(Default)]
