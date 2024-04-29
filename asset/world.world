@@ -1,32 +1,53 @@
 {
     "maps": [
         {
-            "fileName": "room_0.tmx",
+            "fileName": "save_0.tmx",
+            "height": 352,
+            "width": 640,
+            "x": 0,
+            "y": 0
+        },
+        {
+            "fileName": "corridor_0.tmx",
             "height": 352,
             "width": 1280,
-            "x": 0,
-            "y": 0
-        },
-        {
-            "fileName": "room_1.tmx",
-            "height": 1408,
-            "width": 640,
-            "x": -640,
-            "y": 0
-        },
-        {
-            "fileName": "room_3.tmx",
-            "height": 352,
-            "width": 640,
-            "x": 0,
-            "y": 352
-        },
-        {
-            "fileName": "room_4.tmx",
-            "height": 352,
-            "width": 640,
             "x": -1280,
             "y": 0
+        },
+        {
+            "fileName": "cavern_0.tmx",
+            "height": 704,
+            "width": 1280,
+            "x": -1280,
+            "y": -704
+        },
+        {
+            "fileName": "shaft_0.tmx",
+            "height": 1408,
+            "width": 640,
+            "x": -1920,
+            "y": -1056
+        },
+        {
+            "fileName": "room_2.tmx",
+            "height": 704,
+            "width": 640,
+            "x": 640,
+            "y": -352
+        },
+        {
+            "fileName": "shaft_1.tmx",
+            "height": 1408,
+            "width": 640,
+            "x": 0,
+            "y": -1408
+        },
+        {
+            "fileName": "corridor_1.tmx",
+            "height": 352,
+            "width": 1280,
+            "x": -1280,
+            "y": -1056
         }
     ],
     "onlyShowAdjacentMaps": false,

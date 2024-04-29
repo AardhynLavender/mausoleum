@@ -31,7 +31,6 @@
         "storageType": "string",
         "type": "enum",
         "values": [
-            "power",
             "health",
             "high_jump",
             "missile_tank",
@@ -114,7 +113,7 @@
                 "name": "collectable",
                 "propertyType": "Collectable",
                 "type": "string",
-                "value": "power"
+                "value": "health"
             },
             {
                 "name": "direction",

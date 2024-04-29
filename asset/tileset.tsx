@@ -40,22 +40,22 @@
     <tile id="27" type="Tile"/>
     <tile id="28" type="Tile">
         <properties>
-            <property name="collectable" propertytype="Collectable" value="high_jump"/>
+            <property name="collectable" propertytype="Collectable" value="health"/>
         </properties>
     </tile>
     <tile id="29" type="Tile">
         <properties>
-            <property name="collectable" propertytype="Collectable" value="ice_beam"/>
+            <property name="collectable" propertytype="Collectable" value="missile_tank"/>
         </properties>
     </tile>
     <tile id="30" type="Tile">
         <properties>
-            <property name="collectable" propertytype="Collectable" value="missile_tank"/>
+            <property name="collectable" propertytype="Collectable" value="high_jump"/>
         </properties>
     </tile>
     <tile id="31" type="Tile">
         <properties>
-            <property name="collectable" propertytype="Collectable" value="none"/>
+            <property name="collectable" propertytype="Collectable" value="ice_beam"/>
         </properties>
     </tile>
     <tile id="32" type="Tile"/>

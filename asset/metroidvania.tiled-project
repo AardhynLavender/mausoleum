@@ -154,8 +154,8 @@
                 {
                     "name": "collectable",
                     "propertyType": "Collectable",
-                    "type": "int",
-                    "value": 5
+                    "type": "string",
+                    "value": "none"
                 },
                 {
                     "name": "damage",
