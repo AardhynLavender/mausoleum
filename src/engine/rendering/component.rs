@@ -5,24 +5,18 @@ use crate::engine::asset::texture::{SrcRect, TextureKey};
  */
 
 /// Render a texture to the screen each frame
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Sprite {
   pub texture: TextureKey,
   pub src: SrcRect,
+  pub rotation: f64,
 }
 
 impl Sprite {
+  /// Instantiate a new Sprite component
   pub fn new(texture: TextureKey, src: SrcRect) -> Self {
-    Self { texture, src }
+    Self { texture, src, rotation: 0.0 }
   }
+  /// Rotate the sprite
+  pub fn rotate(&mut self, rotation: f64) { self.rotation = rotation % 360.0; }
 }
-
-// renderable //
-
-// impl Renderable for Sprite {
-//   fn render(&self, position: Vec2<i32>, renderer: &mut Renderer, asset_manager: &AssetManager) {}
-//
-//   /// Get the z value of this renderable
-//   #[inline]
-//   fn get_z(&self) -> i32 { 0 }
-// }

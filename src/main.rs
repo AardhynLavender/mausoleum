@@ -7,6 +7,7 @@ use crate::engine::application::Application;
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::rendering::renderer::Properties;
 use crate::game::constant::{LOGICAL_SIZE, TYPEFACE_PATH, TYPEFACE_SIZE, WINDOW_SIZE, WINDOW_TITLE};
+use crate::game::preferences::Preferences;
 use crate::game::scene::menu::MenuScene;
 
 pub mod engine;
@@ -34,8 +35,9 @@ fn main() -> Result<(), String> {
   )
 }
 
-fn setup(LifecycleArgs { asset, .. }: LifecycleArgs) {
+fn setup(LifecycleArgs { asset, state, .. }: LifecycleArgs) {
   asset.typeface.load(Path::new(TYPEFACE_PATH), TYPEFACE_SIZE).expect("Failed to load typeface");
+  state.add::<Preferences>(Preferences::default()).expect("Failed to add preferences");
   println!("Game Initialized.");
 }
 

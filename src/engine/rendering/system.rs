@@ -77,9 +77,10 @@ pub fn render_renderable(render: &mut Renderer, asset: &mut AssetManager, mut re
     .use_store()
     .get(texture_key)
     .expect(format!("Failed to retrieve texture at {}", texture_key).as_str());
+
   match renderable {
     Or::Left(sprite) => {
-      render.draw_from_texture::<i32>(texture, position, sprite.src);
+      render.draw_from_texture::<i32>(texture, position, sprite.src, sprite.rotation);
     }
     Or::Right(..) => {
       render.draw_texture::<i32>(texture, position);

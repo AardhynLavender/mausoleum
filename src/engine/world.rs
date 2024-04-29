@@ -1,4 +1,4 @@
-use hecs::{Bundle, Component, DynamicBundle, Entity, Query, QueryMut, QueryOneError, Ref, SpawnBatchIter, World as HecsWorld};
+use hecs::{Bundle, Component, DynamicBundle, Entity, Query, QueryMut, QueryOneError, Ref, RefMut, SpawnBatchIter, World as HecsWorld};
 
 /**
  * A World is a collection of entities
@@ -18,7 +18,7 @@ impl World {
       world: HecsWorld::new(),
     }
   }
-  /// Spawn an entity with the given component.rs
+  /// Spawn an entity with the given component
   pub fn add(&mut self, components: impl DynamicBundle) -> Entity {
     self.world.spawn(components)
   }
@@ -44,6 +44,19 @@ impl World {
       .entity(entity)
       .map_err(|e| e.to_string())?
       .get::<&C>()
+      .ok_or(String::from("Entity does not have component"))
+  }
+
+  /// Attempt to fetch a component mutably from an entity
+  ///
+  /// Returns an error if the entity does not exist or the component is not found
+  pub fn get_component_mut<'a, C>(&self, entity: Entity) -> Result<RefMut<C>, String>
+    where C: Component
+  {
+    self.world
+      .entity(entity)
+      .map_err(|e| e.to_string())?
+      .get::<&mut C>()
       .ok_or(String::from("Entity does not have component"))
   }
 

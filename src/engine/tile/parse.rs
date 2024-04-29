@@ -1,12 +1,113 @@
+/**
+ * Parse Tiled data into Rust structures.
+ */
+
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::Path;
 
 use serde::Deserialize;
 
-/**
- * Parse Tiled data into Rust structures.
- */
+// Custom Properties //
+
+/// A single property child of a `TiledProperties`
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledProperty {
+  #[serde(rename = "@name")]
+  pub name: String,
+  #[serde(rename = "@propertytype")]
+  pub property_type: Option<String>,
+  #[serde(rename = "@type")]
+  pub primitive_type: Option<String>,
+  #[serde(rename = "@value")]
+  pub value: String,
+}
+
+/// Collection of properties associated with an `TiledCustomProperties` instance.
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledProperties {
+  #[serde(rename = "$value")]
+  pub properties: Vec<TiledProperty>,
+}
+
+/// Metadata for some tiled object, tile, map, etc.
+/// ## Example
+/// ```xml
+/// <tileset>
+///   <tile id="37" type="CustomTiledClass">
+///     <properties>
+///       <property name="panic_on_collision" type="CustomTileEnum" value="ALWAYS"/>
+///       ...
+///     </properties>
+///   </tile>
+///   ...
+/// </tileset>
+/// ```
+#[derive(Deserialize, Debug)]
+pub struct TiledCustomProperties {
+  #[serde(rename = "@id")]
+  pub id: u32,
+  #[serde(rename = "@type")]
+  pub _type: String,
+
+  pub properties: Option<TiledProperties>,
+}
+
+// Objects //
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledPoint;
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledEllipse;
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledPolygon {
+  #[serde(rename = "@points")]
+  pub points: String,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct TiledText {
+  #[serde(rename = "@wrap")]
+  pub wrap: u8,
+  #[serde(rename = "$value")]
+  pub content: String,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledObject {
+  #[serde(rename = "@id")]
+  pub id: u32,
+  #[serde(rename = "@gid")]
+  pub gid: Option<u32>,
+  #[serde(rename = "@type")]
+  pub object_type: String,
+  #[serde(rename = "@x")]
+  pub x: f32,
+  #[serde(rename = "@y")]
+  pub y: f32,
+  #[serde(rename = "@width")]
+  pub width: Option<f32>,
+  #[serde(rename = "@height")]
+  pub height: Option<f32>,
+
+  pub properties: Option<TiledProperties>,
+
+  pub point: Option<TiledPoint>,
+  pub ellipse: Option<TiledEllipse>,
+  pub polygon: Option<TiledPolygon>,
+  pub text: Option<TiledText>,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledObjectGroup {
+  #[serde(rename = "object")]
+  pub objects: Option<Vec<TiledObject>>,
+}
+
+// World //
 
 /// A reference to a Tiled tilemap in a Tiled world file
 #[derive(Deserialize, Debug)]
@@ -29,9 +130,10 @@ pub struct TiledWorld {
   pub world_type: String,
 }
 
+// Tileset //
+
 /// A Tiled tilesets image reference
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct TiledImage {
   #[serde(rename = "@source")]
   pub source: String,
@@ -43,7 +145,6 @@ pub struct TiledImage {
 
 /// A Tiled tileset .tsx file
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct TiledTileset {
   #[serde(rename = "@version")]
   pub version: String,
@@ -58,12 +159,16 @@ pub struct TiledTileset {
   #[serde(rename = "@columns")]
   pub columns: u32,
 
+  #[serde(rename = "tile")]
+  pub tiles: Vec<TiledCustomProperties>,
+
   pub image: TiledImage,
 }
 
+// Tilemap //
+
 /// A Tilemaps reference to a Tiled tileset
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
+#[derive(Deserialize, Debug, PartialEq)]
 pub struct TiledTilesetReference {
   #[serde(rename = "@firstgid")]
   pub first_gid: u32,
@@ -72,8 +177,7 @@ pub struct TiledTilesetReference {
 }
 
 /// Tiled layer tile data
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
+#[derive(Deserialize, Debug, PartialEq)]
 pub struct TiledLayerData {
   #[serde(rename = "@encoding")]
   pub encoding: String,
@@ -83,24 +187,36 @@ pub struct TiledLayerData {
 }
 
 // A tile layer within a Tiled tilemap
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct TiledLayer {
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledTileLayer {
   #[serde(rename = "@id")]
   pub id: u32,
   #[serde(rename = "@name")]
   pub name: String,
+  #[serde(rename = "@class")]
+  pub class: Option<String>,
   #[serde(rename = "@width")]
   pub width_tiles: u32,
   #[serde(rename = "@height")]
   pub height_tiles: u32,
 
   pub data: TiledLayerData,
+  pub properties: Option<TiledProperties>,
 }
 
-// A Tiled tilemap .tmx file
+/// The possible values of Tiled tilemap children
+#[derive(Deserialize, Debug, PartialEq)]
+pub enum TiledTilemapChildren {
+  #[serde(rename = "tileset")]
+  TilesetReference(TiledTilesetReference),
+  #[serde(rename = "layer")]
+  TileLayer(TiledTileLayer),
+  #[serde(rename = "objectgroup")]
+  ObjectLayer(TiledObjectGroup),
+}
+
+/// A Tiled tilemap .tmx file
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct TiledTilemap {
   #[serde(rename = "@version")]
   pub version: String,
@@ -121,8 +237,8 @@ pub struct TiledTilemap {
   #[serde(rename = "@nextobjectid")]
   pub next_object_id: u32,
 
-  pub tileset: Vec<TiledTilesetReference>,
-  pub layer: Vec<TiledLayer>,
+  #[serde(rename = "$value")]
+  pub children: Vec<TiledTilemapChildren>,
 }
 
 // Parser //
@@ -194,8 +310,13 @@ impl TiledParser {
     let tilemap: TiledTilemap = quick_xml::de::from_str(&tilemap_str).map_err(|e| e.to_string())?;
 
     // get tileset paths
-    let tileset_paths = tilemap.tileset
+    let tileset_paths = tilemap.children
       .iter()
+      .filter_map(|child|
+        match child {
+          TiledTilemapChildren::TilesetReference(child) => Some(child),
+          _ => None,
+        })
       .map(|tileset| {
         let parent = tilemap_path
           .parent()

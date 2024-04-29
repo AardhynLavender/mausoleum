@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::engine::asset::texture::TextureKey;
 use crate::engine::geometry::collision::CollisionMask;
 use crate::engine::geometry::shape::{Rec2, Vec2};
@@ -11,7 +13,7 @@ use crate::engine::utility::direction::Direction;
  */
 
 /// builds up the tile data for `dimensions` using `tile_size`
-fn make_tiles(texture_key: TextureKey, dimensions: Size2, tile_size: Size2) -> Result<Vec<TileData>, &'static str> {
+fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2, meta: HashMap<TileKey, Meta>) -> Result<Vec<TileData<Meta>>, &'static str> where Meta: Copy + Clone {
   let (width, height) = dimensions.destructure();
   if width % tile_size.x != 0 {
     return Err("Tileset width must be divisible by tile size");
@@ -26,7 +28,11 @@ fn make_tiles(texture_key: TextureKey, dimensions: Size2, tile_size: Size2) -> R
       let tile_key: TileKey = (y * (width / tile_size.x) + x) as TileKey;
       let tile_position = Vec2::new(x, y) * tile_size;
       let src = Rec2::new(tile_position, tile_size);
-      tiles.push(TileData::new(texture_key, src, tile_key));
+      let meta = meta
+        .get(&tile_key)
+        .copied()
+        .ok_or("Failed to get tile meta")?;
+      tiles.push(TileData::new(texture_key, src, tile_key, meta));
     }
   }
 
@@ -34,16 +40,16 @@ fn make_tiles(texture_key: TextureKey, dimensions: Size2, tile_size: Size2) -> R
 }
 
 /// Wrapper for a texture that contains tiles
-pub struct Tileset {
+pub struct Tileset<Meta> {
   pub texture: TextureKey,
   pub tile_size: Size2,
-  pub tiles: Vec<TileData>,
+  pub tiles: Vec<TileData<Meta>>,
 }
 
-impl Tileset {
+impl<Meta> Tileset<Meta> where Meta: Clone + Copy {
   /// Instantiate a new tileset from a `texture` with `tile_size`
-  pub fn build(texture: TextureKey, dimensions: Size2, tile_size: Size2) -> Result<Self, String> {
-    let tiles = make_tiles(texture, dimensions, tile_size)?;
+  pub fn build(texture: TextureKey, dimensions: Size2, tile_size: Size2, meta: HashMap<TileKey, Meta>) -> Result<Self, String> {
+    let tiles = make_tiles(texture, dimensions, tile_size, meta)?;
     Ok(Self {
       texture,
       tile_size,
@@ -52,7 +58,7 @@ impl Tileset {
   }
 
   /// Get the tile data for `tile_key`
-  pub fn get_tile(&self, tile_key: usize) -> Result<TileData, String> {
+  pub fn get_tile(&self, tile_key: usize) -> Result<TileData<Meta>, String> {
     let data = self.tiles
       .get(tile_key)
       .ok_or("Failed to get tile data")?;
@@ -60,7 +66,7 @@ impl Tileset {
   }
 
   /// Convert a collection of `tile_keys` to `TileData`
-  pub fn tiledata_from<'a, I>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileConcept>> + 'a, String> {
+  pub fn tiledata_from<'a>(&'a self, tile_data: &Vec<Option<TileKey>>, dimensions: Size2) -> Result<impl Iterator<Item=Option<TileConcept<Meta>>> + 'a, String> {
     let result = tile_data
       .iter()
       .enumerate()
@@ -74,8 +80,8 @@ impl Tileset {
             has_tile_at(tile_data, &(coordinate + Direction::Down.to_coordinate()), &dimensions),
             has_tile_at(tile_data, &(coordinate + Direction::Left.to_coordinate()), &dimensions),
           );
-          let concept = TileConcept::new(data.clone(), mask.clone());
-          Ok::<Option<TileConcept>, String>(Some(concept))
+          let concept = TileConcept::new(data.clone(), coordinate, mask.clone());
+          Ok::<Option<TileConcept<Meta>>, String>(Some(concept))
         } else {
           Ok(None)
         }

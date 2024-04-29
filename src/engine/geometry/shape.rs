@@ -2,6 +2,7 @@ use std::marker::Copy;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use num::{abs, clamp, Num, Signed, Unsigned};
+use num::pow::Pow;
 use sdl2::rect::{Point, Rect};
 
 use crate::engine::utility::alias::Size;
@@ -56,23 +57,43 @@ pub struct Vec2<T>
 
 impl<T: UnitPrimitive> Vec2<T> {
   /// Instantiate a new vector of T
-  pub const fn new(x: T, y: T) -> Self {
-    Self { x, y }
-  }
+  pub const fn new(x: T, y: T) -> Self { Self { x, y } }
   /// Deconstruct the vector into its physics.rs
-  pub fn destructure(&self) -> (T, T) {
-    (self.x, self.y)
-  }
-
+  pub fn destructure(&self) -> (T, T) { (self.x, self.y) }
   /// Square the `x` and `y` components of the vector
-  pub fn square(&self) -> T {
-    self.x * self.y
-  }
-
+  pub fn square(&self) -> T { self.x * self.y }
   /// clamp the vector to a minimum and maximum value
   pub fn clamp(&mut self, min: &Vec2<T>, max: &Vec2<T>) {
     self.x = clamp(self.x, min.x, max.x);
     self.y = clamp(self.y, min.y, max.y);
+  }
+}
+
+impl Vec2<f32> {
+  /// Get the size of the vector
+  pub fn get_magnitude(&self) -> f32 { ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt() }
+  /// Normalize version of the vector
+  pub fn normalize(&mut self) -> Self {
+    *self = *self / self.get_magnitude();
+    *self
+  }
+  /// Invert the components of the vector
+  pub fn invert(&mut self) -> Self {
+    self.x = -self.x;
+    self.y = -self.y;
+    *self
+  }
+  /// Round the vector to the nearest integer
+  pub fn round(&mut self) -> Self {
+    self.x = self.x.round();
+    self.y = self.y.round();
+    *self
+  }
+  /// Floor the vector to the nearest integer
+  pub fn floor(&mut self) -> Self {
+    self.x = self.x.floor();
+    self.y = self.y.floor();
+    *self
   }
 }
 
@@ -301,6 +322,13 @@ impl Rec2<f32, Size> {
   pub fn clamp_position(&mut self, bounds: &Rec2<f32, Size>) {
     self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
+
+  /// Does the rectangle contain another rectangle?
+  pub fn contains(&self, other: &Rec2<f32, Size>) -> bool {
+    let origin = self.origin <= other.origin;
+    let extent = self.origin + Vec2::from(self.size) >= other.origin + Vec2::from(other.size);
+    return origin && extent;
+  }
 }
 
 impl<T: IntConvertable, U: SizePrimitive> From<Rec2<T, U>> for Rect {
@@ -308,6 +336,20 @@ impl<T: IntConvertable, U: SizePrimitive> From<Rec2<T, U>> for Rect {
   fn from(value: Rec2<T, U>) -> Self {
     let ((x, y), (w, h)) = value.destructure();
     Rect::new(x.into(), y.into(), w.into(), h.into())
+  }
+}
+
+impl From<Rec2<f32, Size>> for Rec2<i32, Size> {
+  /// Convert Rec2 float to Rec2 i32
+  fn from(value: Rec2<f32, Size>) -> Self {
+    Rec2::new(Vec2::from(value.origin), value.size)
+  }
+}
+
+impl From<Rec2<i32, Size>> for Rec2<f32, Size> {
+  /// Convert Rec2 i32 to Rec2 float
+  fn from(value: Rec2<i32, Size>) -> Self {
+    Rec2::new(Vec2::from(value.origin), value.size)
   }
 }
 

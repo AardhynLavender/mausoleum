@@ -88,12 +88,13 @@ mod tests {
 
   #[test]
   fn test_get_parent() {
-    assert_eq!(get_parent("foo/bar.txt"), Ok("foo".to_string()));
-    assert_eq!(get_parent("foo/bar"), Ok("foo".to_string()));
-    assert_eq!(get_parent("foo/bar/"), Ok("foo".to_string()));
-    assert_eq!(get_parent("bar.txt"), Err("Failed to get parent".to_string()));
-    assert_eq!(get_parent("bar"), Err("Failed to get parent".to_string()));
-    assert_eq!(get_parent("bar/"), Err("Failed to get parent".to_string()));
+    assert_eq!(get_parent("foo/bar.txt"), Ok(String::from("foo")));
+    assert_eq!(get_parent("foo/bar"), Ok(String::from("foo")));
+    assert_eq!(get_parent("foo/bar/"), Ok(String::from("foo")));
+    assert_eq!(get_parent("bar.txt"), Ok(String::from("")));
+    assert_eq!(get_parent("bar"), Ok(String::from("")));
+    assert_eq!(get_parent("/bar"), Ok(String::from("/")));
+    assert_eq!(get_parent("bar/"), Ok(String::from("")));
   }
 
   #[test]

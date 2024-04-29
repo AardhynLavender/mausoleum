@@ -1,7 +1,6 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::rendering::renderer::Properties;
@@ -17,7 +16,7 @@ use crate::engine::world::World;
  * Application structure and lifecycle
  */
 
-pub const SIMULATION_FPS: DeltaMS = 30.0 / 1_000.0;
+pub const SIMULATION_FPS: DeltaMS = 1.0 / 60.0;
 
 /// Bundles a subsystem with actions
 struct Engine<'a> {
@@ -42,7 +41,7 @@ impl<'a> Engine<'a> {
       state: State::default(),
       world: World::new(),
       lifecycle,
-      last_frame: Frame::default(),
+      last_frame: Frame::build(SIMULATION_FPS).expect("Failed to build frame"),
     }
   }
 
@@ -50,14 +49,17 @@ impl<'a> Engine<'a> {
   pub fn start(&mut self, assets: &mut AssetManager) {
     let mut systems = SystemManager::new();
 
-    add_internal_systems(&mut systems);
-    add_internal_entities(&mut self.world);
-
     (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets));
 
     loop {
       // compute delta time
       let (delta, ..) = self.last_frame.next();
+
+      // process fixed updates
+      self.last_frame.process_accumulated(|fixed_time| {
+        let mut args = SysArgs::new(fixed_time, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
+        systems.update(Schedule::FixedUpdate, &mut args);
+      });
 
       if self.scenes.is_queue() {
         self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets))

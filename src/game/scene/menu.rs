@@ -1,3 +1,7 @@
+/**
+ * The game menu
+ */
+
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::{Text, TextBuilder};
 use crate::engine::component::ui::Selection;
@@ -14,9 +18,7 @@ use crate::game::physics::position::Position;
 use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-/**
- * The game menu
- */
+pub const STARTING_ROOM: &str = "save_0";
 
 // State //
 
@@ -85,7 +87,7 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
-      0 => scene.queue_next(LevelScene::build("room_0").expect("Failed to build level scene")),
+      0 => scene.queue_next(LevelScene::build(STARTING_ROOM).expect("Failed to build level scene")),
       1 => println!("Not implemented yet"),
       2 => event.queue_quit(),
       _ => panic!("Invalid selection")

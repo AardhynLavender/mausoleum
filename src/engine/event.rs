@@ -1,13 +1,13 @@
+/**
+ * Manage and query events
+ */
+
 use std::collections::hash_set::HashSet;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 use crate::engine::geometry::shape::Vec2;
-
-/**
- * Manage and query events
- */
 
 /// A set of keycodes
 type KeyStore = HashSet<Keycode>;
@@ -30,41 +30,25 @@ impl EventStore {
       quit: false,
     }
   }
-
   /// Clear the pressed keys from the store
-  pub fn clear_pressed_keys(&mut self) {
-    self.pressed_keys.clear();
-  }
+  pub fn clear_pressed_keys(&mut self) { self.pressed_keys.clear(); }
   /// Mark a key as pressed
   pub fn press_key(&mut self, keycode: Keycode) {
     self.pressed_keys.insert(keycode);
     self.held_keys.insert(keycode);
   }
   /// Mark a key as released
-  pub fn raise_key(&mut self, keycode: Keycode) {
-    // no need to remove from `pressed_keys` as it will be cleared at the start of the next frame
-    self.held_keys.remove(&keycode);
-  }
+  pub fn raise_key(&mut self, keycode: Keycode) { self.held_keys.remove(&keycode); }
   /// Mark the location of the mouse
-  pub fn set_mose_position(&mut self, position: Vec2<i32>) {
-    self.mouse_position = position;
-  }
-
+  pub fn set_mose_position(&mut self, position: Vec2<i32>) { self.mouse_position = position; }
   /// Query if the key was pressed this frame.
-  pub fn is_key_pressed(&self, keycode: Keycode) -> bool {
-    self.pressed_keys.contains(&keycode)
-  }
+  pub fn is_key_pressed(&self, keycode: Keycode) -> bool { self.pressed_keys.contains(&keycode) }
   /// Query if the key is currently held down.
-  pub fn is_key_held(&self, keycode: Keycode) -> bool {
-    self.held_keys.contains(&keycode)
-  }
-
-  pub fn queue_quit(&mut self) {
-    self.quit = true;
-  }
-  pub fn should_quit(&self) -> bool {
-    self.quit
-  }
+  pub fn is_key_held(&self, keycode: Keycode) -> bool { self.held_keys.contains(&keycode) }
+  /// Mark the application to quit
+  pub fn queue_quit(&mut self) { self.quit = true; }
+  /// Query if the event store should quit
+  pub fn should_quit(&self) -> bool { self.quit }
 }
 
 /// Manage events polled by SDL2
@@ -74,7 +58,7 @@ pub struct Events {
 }
 
 impl Events {
-  /// Instantiate a new Events
+  /// Instantiate a new event manager
   pub fn build(context: &sdl2::Sdl) -> Result<Self, String> {
     let event_pump = context.event_pump()?;
     Ok(Self {
@@ -95,9 +79,7 @@ impl Events {
     let events = self.event_pump.poll_iter();
     for event in events {
       match event {
-        Event::Quit { .. } => {
-          self.is_quit = true;
-        }
+        Event::Quit { .. } => self.is_quit = true,
         Event::KeyDown { keycode, .. } => {
           keycode.map(|keycode| {
             if !event_store.is_key_held(keycode) {

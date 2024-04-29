@@ -1,7 +1,4 @@
-use crate::engine::asset::texture::SrcRect;
-use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::Aligner;
 
 // Tile //
@@ -33,20 +30,3 @@ pub const WINDOW_SIZE: Vec2<u32> = Vec2::new(
 
 pub const WINDOW: Aligner = Aligner::new(Rec2::new(Vec2::const_default(), LOGICAL_SIZE));
 
-// Player //
-
-// 6 tiles
-pub const JUMP_HEIGHT: f32 = 96.0;
-// 4 tiles
-pub const JUMP_WIDTH: f32 = 96.0;
-// 3 tiles per second
-pub const WALK_SPEED: f32 = 128.0;
-
-pub const JUMP_ACCELERATION: Vec2<f32> = Vec2::new(0.0, ((2.0 * JUMP_HEIGHT) * WALK_SPEED) / (JUMP_WIDTH / 2.0));
-pub const GRAVITY: Vec2<f32> = Vec2::new(0.0, (-2.0 * JUMP_HEIGHT * (WALK_SPEED * WALK_SPEED)) / ((JUMP_WIDTH / 2.0) * (JUMP_WIDTH / 2.0)));
-pub const MAX_GRAVITY: f32 = -400.0;
-
-pub const PLAYER_START: Vec2<f32> = Vec2::new(40.0, 24.0);
-pub const PLAYER_SIZE: Size2 = Size2::new(12, 28);
-pub const PLAYER_SPRITE: SrcRect = SrcRect::new(Vec2::new(0, 0), PLAYER_SIZE);
-pub const PLAYER_COLLIDER: CollisionBox = Rec2::new(Vec2::new(0.0, 0.0), PLAYER_SIZE);
