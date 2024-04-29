@@ -98,7 +98,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Velocity::default(),
     RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),
-    Health::build(PLAYER_BASE_HEALTH as i32).expect("Failed to build player health"),
+    Health::build(PLAYER_BASE_HEALTH).expect("Failed to build player health"),
   ));
 
   system.add(Schedule::PostUpdate, sys_player_controller);

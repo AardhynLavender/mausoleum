@@ -1,18 +1,18 @@
 use num::clamp;
 
-pub const MIN_HEALTH: i32 = 0;
+pub const MIN_HEALTH: u32 = 0;
 
 #[derive(PartialEq, Debug)]
-pub enum LiveState { Alive(i32), Dead }
+pub enum LiveState { Alive(u32), Dead }
 
 #[derive(Debug)]
 pub struct Health {
-  current: i32,
-  max: i32,
+  current: u32,
+  max: u32,
 }
 
 impl Health {
-  pub fn build(max: i32) -> Result<Self, String> {
+  pub fn build(max: u32) -> Result<Self, String> {
     if max <= MIN_HEALTH { return Err(String::from("Health must be greater than or equal to 0.")); }
     Ok(Self { current: max, max })
   }
@@ -21,23 +21,25 @@ impl Health {
     if self.current <= MIN_HEALTH { LiveState::Dead } else { LiveState::Alive(self.current) }
   }
   /// Get the current health.
-  pub fn get_health(&self) -> i32 { self.current }
+  pub fn get_health(&self) -> u32 { self.current }
   /// Get the maximum health.
-  pub fn get_max(&self) -> i32 { self.max }
+  pub fn get_max(&self) -> u32 { self.max }
   /// Raise the maximum health by the given amount.
-  pub fn set_max(&mut self, amount: i32) {
+  pub fn set_max(&mut self, amount: u32) {
     self.max = amount;
     if self.current < self.max { self.current = self.max; }
   }
 
   /// Damage the health by the given amount.
-  pub fn deal(&mut self, amount: i32) -> LiveState {
-    self.current = clamp(self.current - amount, MIN_HEALTH, self.max);
+  pub fn deal(&mut self, amount: u32) -> LiveState {
+    let after = self.current as i32 - amount as i32;
+    self.current = clamp(after, MIN_HEALTH as i32, self.max as i32) as u32;
     self.get_state()
   }
   /// Heal the health by the given amount.
-  pub fn heal(&mut self, amount: i32) -> LiveState {
-    self.deal(-amount)
+  pub fn heal(&mut self, amount: u32) -> LiveState {
+    self.current = clamp(self.current + amount, MIN_HEALTH, self.max);
+    self.get_state()
   }
 }
 

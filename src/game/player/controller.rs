@@ -94,9 +94,7 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
   // Health //
 
   let player_health = PLAYER_BASE_HEALTH + inventory.count(&Collectable(CollectableType::Health)) as u32 * HEALTH_PICKUP_INCREASE;
-  if health.get_max() != player_health as i32 {
-    health.set_max(player_health as i32);
-  }
+  if health.get_max() != player_health { health.set_max(player_health); }
 
   // Combat //
 
