@@ -7,7 +7,7 @@ Metroidvania inspired game written Rust using the SDL2 library.
 A demo is available on [itch.io](https://aardhyn.itch.io/metroidvania?secret=LVcE1KUSyv1Rv86NoDFq8xnLUVc).
 
 Or download the latest precompiled executable for your platform
-under [Releases](https://github.com/AardhynLavender/Tetris/releases).
+under [Releases](https://github.com/AardhynLavender/metroidvania/releases).
 
 ## Installation
 
