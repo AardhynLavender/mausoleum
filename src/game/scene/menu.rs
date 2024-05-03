@@ -89,7 +89,7 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
       0 => {
         let save_data = SaveData::from_file(USER_SAVE_FILE)
           .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
-            .expect("Failed to load default save data"));
+            .unwrap_or(SaveData::default()));
         scene.queue_next(LevelScene::new(save_data))
       }
       1 => println!("Not implemented yet"),
