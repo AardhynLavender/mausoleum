@@ -4,17 +4,15 @@ use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::TileCollider;
 use crate::game::physics::collision::{Collider, make_collision_box};
 use crate::game::physics::position::Position;
-use crate::game::scene::level::meta::{CollectableType, TileLayerType};
+use crate::game::scene::level::meta::{Collectable, TileLayerType};
 use crate::game::scene::level::room::use_room;
 
-/// Marks a combo as collectable
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Collectable(pub CollectableType);
-
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Collection(Vec<Collectable>);
 
 impl Collection {
+  /// Instantiate a new collection
+  pub fn new(items: impl Iterator<Item=Collectable>) -> Self { Self(items.collect()) }
   // Check if the collection contains a collectable
   pub fn has(&self, collectable: &Collectable) -> bool { self.0.contains(&collectable) }
   /// Take a collectable from the collection
@@ -37,6 +35,8 @@ impl Collection {
       .filter(|c| **c == *collectable)
       .count()
   }
+  /// Iterate over the collection
+  pub fn iter(&self) -> impl Iterator<Item=&Collectable> { self.0.iter() }
 }
 
 pub fn sys_collectable(SysArgs { world, state, .. }: &mut SysArgs) {

@@ -105,6 +105,20 @@
         ]
     },
     {
+        "color": "#ffaaff00",
+        "drawFill": true,
+        "id": 19,
+        "members": [
+        ],
+        "name": "Save",
+        "type": "class",
+        "useAs": [
+            "property",
+            "object",
+            "project"
+        ]
+    },
+    {
         "color": "#ffff007f",
         "drawFill": true,
         "id": 10,

@@ -7,4 +7,6 @@ target/
 
 # Tiled
 
+user_save.json
+
 *.tiled-session

@@ -73,8 +73,8 @@ impl RoomRegistry {
       let collider_entity = world.add((collider, ));
       colliders.insert(tilemap_name.clone(), collider_entity);
 
-      let room = Room::build(tilemap, position);
-      rooms.insert(tilemap_name.clone(), room);
+      let room = Room::build(tilemap_name.clone(), tilemap, position);
+      rooms.insert(tilemap_name, room);
     }
 
     Ok(Self {

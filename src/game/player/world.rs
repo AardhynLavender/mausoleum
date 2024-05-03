@@ -20,6 +20,7 @@ use crate::game::player::combat::{PLAYER_BASE_HEALTH, PlayerCombat};
 use crate::game::player::controller::{PlayerController, sys_player_controller};
 use crate::game::player::physics::{calculate_gravity, INITIAL_JUMP_HEIGHT, INITIAL_JUMP_WIDTH, INITIAL_WALK_SPEED};
 use crate::game::scene::level::collision::RoomCollision;
+use crate::game::scene::level::meta::Collectable;
 
 /**
  * Useful queries for the player entity
@@ -72,7 +73,7 @@ pub fn use_player(world: &mut World) -> PlayerQuery {
 }
 
 /// Set up the world for the player
-pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager, position: Vec2<f32>) {
+pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager, inventory: impl Iterator<Item=Collectable>, position: Vec2<f32>) {
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
@@ -94,7 +95,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     LayerPlayer::default(),
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
-    Collection::default(),
+    Collection::new(inventory),
     Velocity::default(),
     RoomCollision::default(),
     Collider::new(PLAYER_COLLIDER),

@@ -18,6 +18,8 @@ use crate::game::creature::ripper::sys_ripper;
 use crate::game::creature::spiky::sys_spiky;
 use crate::game::creature::zoomer::sys_zoomer;
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
+use crate::game::persistence::data::SaveData;
+use crate::game::persistence::world::sys_save;
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::frozen::sys_thaw;
 use crate::game::physics::gravity::sys_gravity;
@@ -38,20 +40,13 @@ pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 
 const PLAYER_START: Vec2<f32> = Vec2::new(314.0, 212.0);
 
-#[allow(unused)]
-pub struct LevelState {
-  level_key: String,
-  room_registry: RoomRegistry,
-}
-
 pub struct LevelScene {
-  level_key: String,
+  save_data: SaveData,
 }
 
 impl LevelScene {
-  pub fn build(level_key: impl Into<String>) -> Result<Self, String> {
-    Ok(Self { level_key: level_key.into() })
-  }
+  /// Build the level scene from the save data
+  pub fn new(save_data: SaveData) -> Self { Self { save_data } }
 }
 
 impl Scene for LevelScene {
@@ -62,8 +57,11 @@ impl Scene for LevelScene {
       .map_err(|e| println!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
 
+    let save_room = self.save_data.save_room();
+    let inventory = self.save_data.inventory();
+
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
-    room_registry.transition_to_room(world, asset, &self.level_key).expect("Failed to add room to world");
+    room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
 
@@ -73,7 +71,7 @@ impl Scene for LevelScene {
       .get_bounds()
       .origin;
     let player_position = Vec2::from(room_position) + PLAYER_START;
-    make_player(world, system, asset, player_position);
+    make_player(world, system, asset, inventory.into_iter(), player_position);
     make_player_health_text(world, asset);
 
     state.add(room_registry).expect("Failed to add level state")
@@ -95,6 +93,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, sys_thaw);
     system.add(PHYSICS_SCHEDULE, sys_collectable);
     system.add(PHYSICS_SCHEDULE, sys_tile_collision);
+    system.add(PHYSICS_SCHEDULE, sys_save);
     system.add(PHYSICS_SCHEDULE, sys_room_transition);
 
     // rendering //

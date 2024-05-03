@@ -13,12 +13,11 @@ use crate::engine::state::State;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
-use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
+use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, DEV_SAVE_FILE, TITLE_Y, USER_SAVE_FILE, WINDOW};
+use crate::game::persistence::data::SaveData;
 use crate::game::physics::position::Position;
 use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
-
-pub const STARTING_ROOM: &str = "save_0";
 
 // State //
 
@@ -87,7 +86,12 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
-      0 => scene.queue_next(LevelScene::build(STARTING_ROOM).expect("Failed to build level scene")),
+      0 => {
+        let save_data = SaveData::from_file(USER_SAVE_FILE)
+          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+            .expect("Failed to load default save data"));
+        scene.queue_next(LevelScene::new(save_data))
+      }
       1 => println!("Not implemented yet"),
       2 => event.queue_quit(),
       _ => panic!("Invalid selection")
