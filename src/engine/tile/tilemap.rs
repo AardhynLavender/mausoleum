@@ -2,7 +2,7 @@
  * Tilemap structure and utilities
  */
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::Hash;
 
 use hecs::Entity;
@@ -19,8 +19,11 @@ use crate::engine::utility::direction::{Direction, DIRECTIONS, QUARTER_ROTATION,
 /// Index of a tile in a tilemap
 pub type MapIndex = usize;
 
+/// Index of an object in a tilemap
+pub type ObjectIndex = usize;
+
 #[derive(Copy, Clone, PartialEq, Default)]
-pub enum TileMutation {
+pub enum TilemapMutation {
   #[default]
   /// Remove the tile entity, but keep the concept
   Local,
@@ -38,7 +41,7 @@ pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, L
   objects: Vec<ObjMeta>,
   tile_size: Size2,
   tile_entities: HashMap<MapIndex, Entity>,
-  object_entities: HashSet<Entity>,
+  object_entities: HashMap<ObjectIndex, Entity>,
   dimensions: Size2,
 }
 
@@ -62,7 +65,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       dimensions,
       layers,
       tile_entities: HashMap::with_capacity(tile_count),
-      object_entities: HashSet::with_capacity(object_count),
+      object_entities: HashMap::with_capacity(object_count),
     })
   }
 
@@ -80,6 +83,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
     }
     Ok(())
   }
+  /// Remove a tile concept from the session
   fn remove_tile_concept(&mut self, handle: &TileHandle<TileMeta, LayerMeta>) {
     self.layers
       .get_mut(&handle.layer)
@@ -88,6 +92,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       .expect("Invalid handle index!")
       .take();
   }
+  /// Mutate a tile concept in the session
   fn mutate_tile_concept(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, concept: TileConcept<TileMeta>) {
     self.layers
       .get_mut(&handle.layer)
@@ -97,20 +102,20 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       .replace(concept);
   }
   /// Add a tile to the world by invoking an injected remove function on the concept
-  pub fn remove_tile(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut remove: impl FnMut(Entity), mutation: TileMutation) {
+  pub fn remove_tile(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut remove: impl FnMut(Entity), mutation: TilemapMutation) {
     if let Some(entity) = self.tile_entities.remove(&handle.index) {
       remove(entity);
-      if mutation == TileMutation::Session { self.remove_tile_concept(handle); }
+      if mutation == TilemapMutation::Session { self.remove_tile_concept(handle); }
     };
   }
   /// invoke fn for each neighbor of a tile handle
-  pub fn for_neighbour(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut repair: impl FnMut(&mut TileHandle<TileMeta, LayerMeta>, Direction), mutation: TileMutation) {
+  pub fn for_neighbour(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut repair: impl FnMut(&mut TileHandle<TileMeta, LayerMeta>, Direction), mutation: TilemapMutation) {
     let mut check = Direction::Up;
     for _ in 0..DIRECTIONS / 2 {
       let check_result = self.query_tile(handle.layer, TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
       if let Ok(mut handle) = TileHandle::try_from(check_result) {
         repair(&mut handle, check);
-        if mutation == TileMutation::Session {
+        if mutation == TilemapMutation::Session {
           self.mutate_tile_concept(&handle, handle.concept);
         }
       }
@@ -133,9 +138,22 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       })
   }
 
+  /// Add objects to the world by invoking an injected add function on each object
   pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {
-    for object in &self.objects { self.object_entities.insert(add(object)?); }
+    for (index, object) in self.objects.iter().enumerate() { self.object_entities.insert(index, add(object)?); }
     Ok(())
+  }
+  /// Remove an object from the world
+  pub fn remove_object(&mut self, entity: Entity, mut remove: impl FnMut(Entity), mutation: TilemapMutation) -> Result<(), String> {
+    let index = *self.object_entities.iter().find(|(_, e)| **e == entity).ok_or("Invalid entity")?.0;
+    if self.object_entities.remove(&index).is_some() {
+      remove(entity);
+      if mutation == TilemapMutation::Session {
+        self.objects.remove(index);
+      }
+      return Ok(());
+    }
+    Err(String::from("Entity not found"))
   }
   /// Remove tiles from the world by invoking an injected remove function on each entity
   pub fn remove_objects(&mut self, mut remove: impl FnMut(Entity)) {

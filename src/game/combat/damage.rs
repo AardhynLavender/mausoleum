@@ -4,6 +4,7 @@ use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_colli
 use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::tile::TileCollider;
+use crate::engine::tile::tilemap::TilemapMutation;
 use crate::engine::time::ConsumeAction;
 use crate::engine::world::World;
 use crate::game::combat::health::{Health, LiveState};
@@ -103,6 +104,8 @@ pub fn creature_damage(world: &mut World, state: &mut State) {
 
   let room = use_room(state);
   for entity in dead_creatures {
-    room.remove_entity(entity, world);
+    room
+      .remove_entity(entity, world, TilemapMutation::Session) // creatures stay dead during the session
+      .expect("failed to kill creature");
   }
 }

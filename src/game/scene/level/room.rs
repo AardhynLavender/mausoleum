@@ -17,7 +17,7 @@ use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::{Tilemap, TileMutation};
+use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
 use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
@@ -126,7 +126,7 @@ impl Room {
     self.tilemap.remove_tiles(|entity| world.free_now(entity).unwrap_or(()));
   }
   /// Remove a tile from the tilemap
-  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>, mutation: TileMutation) {
+  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>, mutation: TilemapMutation) {
     self.tilemap.remove_tile(
       &handle,
       |entity| {
@@ -171,15 +171,20 @@ impl Room {
     self.entities.insert(world.add(components));
   }
   /// Attempt to remove an entity from the world that is registered with this room
-  pub fn remove_entity(&mut self, entity: Entity, world: &mut World) -> bool {
-    if self.entities.remove(&entity) { return world.free_now(entity).is_ok(); };
-    false
+  pub fn remove_entity(&mut self, entity: Entity, world: &mut World, mutation: TilemapMutation) -> Result<(), String> {
+    if !self.entities.remove(&entity) { return Err(String::from("Entity not found in room")); }
+    world.free_now(entity)?;
+    if mutation == TilemapMutation::Session {
+      self.tilemap.remove_object(entity, |entity| {
+        world.free_now(entity).ok();
+      }, mutation)?;
+    }
+    Ok(())
   }
   /// Remove all entities associated with the room
   fn remove_entities(&mut self, world: &mut World) {
     for entity in self.entities.drain() {
-      // ignore errors as some entities may have already been removed
-      world.free_now(entity).ok();
+      world.free_now(entity).ok(); // ignore errors as some entities may have already been removed
     }
   }
 

@@ -12,7 +12,7 @@ use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::TileCollider;
-use crate::engine::tile::tilemap::TileMutation;
+use crate::engine::tile::tilemap::TilemapMutation;
 use crate::engine::world::World;
 use crate::game::physics::collision::{Collider, Fragile, make_collision_box};
 use crate::game::physics::frozen::Frozen;
@@ -63,7 +63,7 @@ pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
         if strong && rocket || (soft && (rocket || bullet)) {
           let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
           if let Ok(handle) = TileHandle::try_from(result) {
-            room.remove_tile(world, handle, TileMutation::Session);
+            room.remove_tile(world, handle, TilemapMutation::Session);
           } else {
             panic!("No concept associated with destroyed tile");
           }
