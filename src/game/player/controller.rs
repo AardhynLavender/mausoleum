@@ -55,9 +55,12 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
     println!("{:?}", inventory);
   }
 
-  // Jump //
+  /*
+    todo: cast downward rays of `jump_widow` length downwards to check if the player is on the floor
+  */
+  let on_floor = velocity.0.y == 0.0;
 
-  if is_control(Control::Select, Behaviour::Pressed, event) {
+  if on_floor && is_control(Control::Select, Behaviour::Pressed, event) {
     // todo: don't calculate gravity and velocity every time the player jumps...
     let high_jump = inventory.has(&Collectable::HighJump);
     let jump_height = if high_jump { HIGH_JUMP_BOOTS_JUMP_HEIGHT } else { INITIAL_JUMP_HEIGHT };

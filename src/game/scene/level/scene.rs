@@ -85,8 +85,8 @@ impl Scene for LevelScene {
 
     // physics //
 
-    system.add(PHYSICS_SCHEDULE, sys_velocity);
     system.add(PHYSICS_SCHEDULE, sys_gravity);
+    system.add(PHYSICS_SCHEDULE, sys_velocity);
     system.add(PHYSICS_SCHEDULE, sys_damage);
     system.add(PHYSICS_SCHEDULE, sys_thaw);
     system.add(PHYSICS_SCHEDULE, sys_collectable);
