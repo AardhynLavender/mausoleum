@@ -38,8 +38,6 @@ const WORLD_PATH: &str = "asset/world.world";
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
 
-const PLAYER_START: Vec2<f32> = Vec2::new(314.0, 212.0);
-
 pub struct LevelScene {
   save_data: SaveData,
 }
@@ -70,7 +68,7 @@ impl Scene for LevelScene {
       .expect("no current room")
       .get_bounds()
       .origin;
-    let player_position = Vec2::from(room_position) + PLAYER_START;
+    let player_position = self.save_data.position() + Vec2::<f32>::from(room_position);
     make_player(world, system, asset, inventory.into_iter(), player_position);
     make_player_health_text(world, asset);
 

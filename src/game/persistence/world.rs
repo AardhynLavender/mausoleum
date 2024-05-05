@@ -11,6 +11,7 @@ use crate::game::physics::collision::{Collider, make_collision_box};
 use crate::game::physics::position::Position;
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::room::use_room;
+use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 /// Marks a region within a room where the player can save their progress
@@ -52,7 +53,7 @@ pub fn make_save_area(save_room: String, area: CollisionBox) -> Result<SaveAreaB
 }
 
 /// Save the player's progress when they enter a save area
-pub fn sys_save(SysArgs { world, asset, event, state, .. }: &mut SysArgs) {
+pub fn sys_save(SysArgs { world, asset, event, state, scene, .. }: &mut SysArgs) {
   let PlayerQuery { position, collider, .. } = use_player(world);
   let player_box = make_collision_box(&position, &collider);
   let save_key = is_control(Control::Up, Behaviour::Pressed, event);
@@ -99,10 +100,14 @@ pub fn sys_save(SysArgs { world, asset, event, state, .. }: &mut SysArgs) {
       .copied()
       .collect::<Vec<_>>();
     let save_room = use_room(state).get_name();
+    let player_position = use_player(world).position.0;
     println!("Saving progress in room: {}", save_room);
-    SaveData::build(save_room, collection)
-      .expect("Failed to build save data")
-      .to_file(USER_SAVE_FILE)
+
+    let save_data = SaveData::build(save_room, collection, player_position)
+      .expect("Failed to build save data");
+    save_data.to_file(USER_SAVE_FILE)
       .expect("Failed to save progress");
+
+    scene.queue_next(LevelScene::new(save_data));
   }
 }
