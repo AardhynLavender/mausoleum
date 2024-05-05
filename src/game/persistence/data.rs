@@ -94,8 +94,8 @@ mod tests {
     let save_1 = SaveData::try_from(raw_1).expect("Failed to convert raw save data");
     assert_eq!(save_1.save_room, "save_61");
     assert_eq!(save_1.inventory, vec![Collectable::IceBeam, Collectable::MissileTank, Collectable::HighJump, Collectable::Health, Collectable::Health, Collectable::Health]);
-    assert_eq!(save_1.position, 15.67);
-    assert_eq!(save_1.position, 71.0);
+    assert_eq!(save_1.x, 15.67);
+    assert_eq!(save_1.y, 71.0);
 
     let raw_2 = RawSaveData {
       save_room: String::from("save_64"),
