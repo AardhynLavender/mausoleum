@@ -2,6 +2,7 @@ use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_colli
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::TileCollider;
+use crate::engine::tile::tilemap::TileMutation;
 use crate::game::physics::collision::{Collider, make_collision_box};
 use crate::game::physics::position::Position;
 use crate::game::scene::level::meta::{Collectable, TileLayerType};
@@ -71,6 +72,6 @@ pub fn sys_collectable(SysArgs { world, state, .. }: &mut SysArgs) {
   for collectable in to_free {
     let tile_query = room.query_tile(TileLayerType::Collision, TileQuery::Entity(collectable));
     let tile_handle = TileHandle::try_from(tile_query).expect("Failed to create handle for tile");
-    room.remove_tile(world, tile_handle);
+    room.remove_tile(world, tile_handle, TileMutation::Persistent);
   }
 }

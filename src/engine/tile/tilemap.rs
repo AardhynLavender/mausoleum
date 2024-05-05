@@ -19,6 +19,18 @@ use crate::engine::utility::direction::{Direction, DIRECTIONS, QUARTER_ROTATION,
 /// Index of a tile in a tilemap
 pub type MapIndex = usize;
 
+#[derive(Copy, Clone, PartialEq, Default)]
+pub enum TileMutation {
+  #[default]
+  /// Remove the tile entity, but keep the concept
+  Local,
+  /// Remove the tile entity and concept
+  Session,
+  /// Remove the tile entity, concept, and persist the change into save data
+  #[allow(unused)]
+  Persistent,
+}
+
 /// Manages a grid of entities
 pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
@@ -68,17 +80,39 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
     }
     Ok(())
   }
+  fn remove_tile_concept(&mut self, handle: &TileHandle<TileMeta, LayerMeta>) {
+    self.layers
+      .get_mut(&handle.layer)
+      .expect("Invalid handle layer!")
+      .get_mut(handle.index)
+      .expect("Invalid handle index!")
+      .take();
+  }
+  fn mutate_tile_concept(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, concept: TileConcept<TileMeta>) {
+    self.layers
+      .get_mut(&handle.layer)
+      .expect("Invalid handle layer!")
+      .get_mut(handle.index)
+      .expect("Invalid handle index!")
+      .replace(concept);
+  }
   /// Add a tile to the world by invoking an injected remove function on the concept
-  pub fn remove_tile(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut remove: impl FnMut(Entity)) {
-    if let Some(entity) = self.tile_entities.remove(&handle.index) { remove(entity) };
+  pub fn remove_tile(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut remove: impl FnMut(Entity), mutation: TileMutation) {
+    if let Some(entity) = self.tile_entities.remove(&handle.index) {
+      remove(entity);
+      if mutation == TileMutation::Session { self.remove_tile_concept(handle); }
+    };
   }
   /// invoke fn for each neighbor of a tile handle
-  pub fn for_neighbour(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut repair: impl FnMut(TileHandle<TileMeta, LayerMeta>, Direction)) {
+  pub fn for_neighbour(&mut self, handle: &TileHandle<TileMeta, LayerMeta>, mut repair: impl FnMut(&mut TileHandle<TileMeta, LayerMeta>, Direction), mutation: TileMutation) {
     let mut check = Direction::Up;
     for _ in 0..DIRECTIONS / 2 {
       let check_result = self.query_tile(handle.layer, TileQuery::Coordinate(handle.coordinate + check.to_coordinate()));
-      if let Ok(handle) = TileHandle::try_from(check_result) {
-        repair(handle, check)
+      if let Ok(mut handle) = TileHandle::try_from(check_result) {
+        repair(&mut handle, check);
+        if mutation == TileMutation::Session {
+          self.mutate_tile_concept(&handle, handle.concept);
+        }
       }
       check = check.rotate(Rotation::Left, QUARTER_ROTATION);
     }
@@ -91,13 +125,12 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
   pub fn get_dimensions(&self) -> Size2 { self.dimensions * self.tile_size }
   /// Get a tile at a coordinate
   fn get_concept(&self, layer: LayerMeta, index: MapIndex) -> Option<&TileConcept<TileMeta>> {
-    if let Some(tiles) = self.layers.get(&layer) {
-      if index >= tiles.len() { return None; }
-      return tiles
-        .get(index)
-        .map_or(None, |tile| tile.as_ref());
-    }
-    return None;
+    self
+      .layers
+      .get(&layer)
+      .and_then(|layer| {
+        layer.get(index).and_then(Option::as_ref)
+      })
   }
 
   pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {

@@ -17,7 +17,7 @@ use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::Tilemap;
+use crate::engine::tile::tilemap::{Tilemap, TileMutation};
 use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
@@ -126,12 +126,14 @@ impl Room {
     self.tilemap.remove_tiles(|entity| world.free_now(entity).unwrap_or(()));
   }
   /// Remove a tile from the tilemap
-  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>) {
+  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>, mutation: TileMutation) {
     self.tilemap.remove_tile(
       &handle,
       |entity| {
         world.free_now(entity).unwrap_or(())
-      });
+      },
+      mutation,
+    );
     self.tilemap.for_neighbour(
       &handle,
       |handle, neighbour| {
@@ -142,7 +144,11 @@ impl Room {
         }
         let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
         tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
-      });
+        let new_mask = tile_collider.mask.clone();
+        handle.concept.mask = new_mask;
+      },
+      mutation,
+    );
   }
 
   // Entities //
