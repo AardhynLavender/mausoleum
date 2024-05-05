@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::utility::io::write_file;
+use crate::engine::utility::io::{delete_file, write_file};
 use crate::game::persistence::assertion::{assert_inventory, assert_save_room};
 use crate::game::persistence::constant::{DEFAULT_PLAYER_POSITION, DEFAULT_SAVE_ROOM};
 use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data};
@@ -54,6 +54,11 @@ impl SaveData {
   /// Load save data from a file
   pub fn from_file(filepath: impl AsRef<std::path::Path>) -> Result<Self, String> {
     deserialize_save_data(filepath).and_then(SaveData::try_from)
+  }
+  /// Removes the save data file and returns default save data
+  pub fn from_erased(filepath: impl AsRef<std::path::Path>) -> Result<Self, String> {
+    delete_file(filepath)?;
+    Ok(SaveData::default())
   }
   /// Save the save data to a file
   pub fn to_file(&self, filepath: impl AsRef<std::path::Path>) -> Result<(), String> {

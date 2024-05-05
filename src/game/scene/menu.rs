@@ -92,8 +92,15 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
             .unwrap_or(SaveData::default()));
         scene.queue_next(LevelScene::new(save_data))
       }
-      1 => println!("Not implemented yet"),
-      2 => event.queue_quit(),
+      1 => {
+        // delete old save data
+        let save_data = SaveData::from_erased(USER_SAVE_FILE)
+          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+            .unwrap_or(SaveData::default()));
+        scene.queue_next(LevelScene::new(save_data))
+      }
+      2 => println!("Not implemented yet"),
+      3 => event.queue_quit(),
       _ => panic!("Invalid selection")
     }
   }

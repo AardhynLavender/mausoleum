@@ -13,6 +13,11 @@ pub fn write_file(filepath: impl AsRef<Path>, data: String) -> Result<(), String
   std::fs::write(filepath, data).map_err(|e| e.to_string())
 }
 
+/// Delete a file
+pub fn delete_file(filepath: impl AsRef<Path>) -> Result<(), String> {
+  std::fs::remove_file(filepath).map_err(|e| e.to_string())
+}
+
 /// Serialize T data to a JSON string
 pub fn serialize_json<T: serde::Serialize>(data: &T) -> Result<String, String> {
   serde_json::to_string(data).map_err(|e| e.to_string())
