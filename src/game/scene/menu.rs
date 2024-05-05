@@ -44,8 +44,9 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   state.add(MenuState {
     interface: Selection::build([
       world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
-      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
-      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("new game", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
+      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 3.0)))),
     ]).expect("Failed to build selection")
   }).expect("Failed to add menu state");
 }
@@ -112,8 +113,8 @@ pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) {
   let (.., entity) = state.interface.get_selection();
   let (position, text) = world.query_entity::<(&Position, &Text)>(entity).expect("Failed to get selection");
   let rect = Rec2::new(
-    Vec2::<i32>::from(position.0.clone()),
-    text.get_dimensions().clone(),
+    Vec2::<i32>::from(position.0.clone()) - Vec2::new(2, 1),
+    text.get_dimensions().clone() + Vec2::new(3, 3),
   );
   render.draw_rect(rect, color::PRIMARY);
 }
