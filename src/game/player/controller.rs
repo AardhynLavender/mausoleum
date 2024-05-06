@@ -14,22 +14,21 @@ const INITIAL_DIRECTION: Direction = Direction::Right;
 pub struct PlayerController {
   pub jump_velocity: Vec2<f32>,
   pub walk_velocity: Vec2<f32>,
-  #[allow(unused)]
-  jumping: bool,
-  #[allow(unused)]
-  can_jump: bool,
   last_walk: Direction,
   last_aim: Direction,
+  #[allow(unused)]
+  jump_start: f32,
+  jumping: bool,
   locked: bool,
 }
 
 impl Default for PlayerController {
   fn default() -> Self {
     Self {
-      jumping: false,
-      can_jump: true,
       last_walk: INITIAL_DIRECTION,
       last_aim: INITIAL_DIRECTION,
+      jump_start: 0.0,
+      jumping: false,
       walk_velocity: Vec2::new(INITIAL_WALK_SPEED, 0.0),
       jump_velocity: calculate_jump_velocity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH),
       locked: false,
@@ -45,7 +44,7 @@ impl PlayerController {
 }
 
 /// Manage and respond to player input
-pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
+pub fn sys_player_controller(SysArgs { delta, event, world, .. }: &mut SysArgs) {
   let PlayerQuery { health, velocity, inventory, controller, gravity, .. } = use_player(world);
   let aim = get_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
 
@@ -59,15 +58,27 @@ pub fn sys_player_controller(SysArgs { event, world, .. }: &mut SysArgs) {
     todo: cast downward rays of `jump_widow` length downwards to check if the player is on the floor
   */
   let on_floor = velocity.0.y == 0.0;
+  let jump_key = is_control(Control::Select, Behaviour::Pressed, event);
+  let jump_held = is_control(Control::Select, Behaviour::Held, event);
 
-  if on_floor && is_control(Control::Select, Behaviour::Pressed, event) {
-    // todo: don't calculate gravity and velocity every time the player jumps...
-    let high_jump = inventory.has(&Collectable::HighJump);
-    let jump_height = if high_jump { HIGH_JUMP_BOOTS_JUMP_HEIGHT } else { INITIAL_JUMP_HEIGHT };
-    let new_gravity = calculate_gravity(jump_height, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH);
-    let new_jump_velocity = calculate_jump_velocity(jump_height, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH);
-    velocity.0.y = new_jump_velocity.y;
-    gravity.0.y = new_gravity.y;
+  if on_floor {
+    if jump_key {
+      controller.jumping = true;
+      controller.jump_start = *delta;
+      let high_jump = inventory.has(&Collectable::HighJump);
+      let jump_height = if high_jump { HIGH_JUMP_BOOTS_JUMP_HEIGHT } else { INITIAL_JUMP_HEIGHT };
+      let new_gravity = calculate_gravity(jump_height, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH);
+      let new_jump_velocity = calculate_jump_velocity(jump_height, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH);
+      velocity.0.y = new_jump_velocity.y;
+      gravity.0.y = new_gravity.y;
+    } else {
+      controller.jumping = false;
+    }
+  }
+
+  if controller.jumping && velocity.is_going_up() && !jump_held {
+    controller.jumping = false;
+    velocity.0.y = velocity.0.y * 0.35;
   }
 
   // Walk //

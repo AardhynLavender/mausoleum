@@ -39,6 +39,7 @@ pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, L
   // store the data to build the tilemap
   layers: HashMap<LayerMeta, Vec<Option<TileConcept<TileMeta>>>>,
   tile_size: Size2,
+  objects: Vec<Option<ObjMeta>>,
   tile_entities: HashMap<MapIndex, Entity>,
   object_entities: HashMap<ObjectIndex, Entity>,
   dimensions: Size2,
