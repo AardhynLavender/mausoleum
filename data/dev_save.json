@@ -1,13 +1,6 @@
 {
   "save_room": "save_2",
-  "inventory": [
-    "missile_tank",
-    "high_jump",
-    "ice_beam",
-    "health",
-    "health",
-    "health"
-  ],
+  "inventory": [],
   "x": 1592.0,
   "y": -447.0
 }
