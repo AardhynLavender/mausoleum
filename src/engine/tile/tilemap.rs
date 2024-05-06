@@ -38,14 +38,13 @@ pub enum TilemapMutation {
 pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
   layers: HashMap<LayerMeta, Vec<Option<TileConcept<TileMeta>>>>,
-  objects: Vec<ObjMeta>,
   tile_size: Size2,
   tile_entities: HashMap<MapIndex, Entity>,
   object_entities: HashMap<ObjectIndex, Entity>,
   dimensions: Size2,
 }
 
-impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
+impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone + std::fmt::Debug {
   /// Instantiate a new tilemap from with `dimensions`
   pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, layers: Vec<TileLayer<LayerMeta, TileMeta>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
     let object_count = objects.len();
@@ -61,7 +60,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
 
     Ok(Self {
       tile_size: tileset.tile_size,
-      objects,
+      objects: objects.into_iter().map(Some).collect(),
       dimensions,
       layers,
       tile_entities: HashMap::with_capacity(tile_count),
@@ -134,26 +133,35 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       .layers
       .get(&layer)
       .and_then(|layer| {
-        layer.get(index).and_then(Option::as_ref)
+        layer
+          .get(index)
+          .and_then(Option::as_ref)
       })
   }
 
   /// Add objects to the world by invoking an injected add function on each object
   pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {
-    for (index, object) in self.objects.iter().enumerate() { self.object_entities.insert(index, add(object)?); }
+    for (index, object) in self
+      .objects
+      .iter()
+      .enumerate()
+    {
+      if let Some(object) = object { self.object_entities.insert(index, add(object)?); }
+    }
     Ok(())
   }
   /// Remove an object from the world
   pub fn remove_object(&mut self, entity: Entity, mut remove: impl FnMut(Entity), mutation: TilemapMutation) -> Result<(), String> {
     let index = *self.object_entities.iter().find(|(_, e)| **e == entity).ok_or("Invalid entity")?.0;
-    if self.object_entities.remove(&index).is_some() {
-      remove(entity);
-      if mutation == TilemapMutation::Session {
-        self.objects.remove(index);
-      }
-      return Ok(());
+    self.object_entities.remove(&index).ok_or("Invalid index")?;
+    remove(entity);
+    if mutation == TilemapMutation::Session {
+      self.objects
+        .get_mut(index)
+        .ok_or("Invalid index")?
+        .take();
     }
-    Err(String::from("Entity not found"))
+    Ok(())
   }
   /// Remove tiles from the world by invoking an injected remove function on each entity
   pub fn remove_objects(&mut self, mut remove: impl FnMut(Entity)) {
