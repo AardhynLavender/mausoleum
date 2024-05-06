@@ -1,5 +1,5 @@
 {
-  "save_room": "save_0",
+  "save_room": "save_2",
   "inventory": [
     "missile_tank",
     "high_jump",
@@ -8,6 +8,6 @@
     "health",
     "health"
   ],
-  "x": 314.0,
-  "y": 212.0
+  "x": 1592.0,
+  "y": -447.0
 }

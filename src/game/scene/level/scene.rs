@@ -4,7 +4,6 @@
 
 use std::path::Path;
 
-use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs};
@@ -63,12 +62,7 @@ impl Scene for LevelScene {
     room_registry.clamp_camera(camera);
     camera.tether();
 
-    let room_position = room_registry
-      .get_current()
-      .expect("no current room")
-      .get_bounds()
-      .origin;
-    let player_position = self.save_data.position() + Vec2::<f32>::from(room_position);
+    let player_position = self.save_data.position();
     make_player(world, system, asset, inventory.into_iter(), player_position);
     make_player_health_text(world, asset);
 
