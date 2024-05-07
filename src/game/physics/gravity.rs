@@ -9,7 +9,7 @@ use crate::game::physics::velocity::Velocity;
 
 pub const MAX_GRAVITY: f32 = 400.0;
 
-/// Marks an entity as subject to gravity
+/// Marks an entity subject to gravity
 #[derive(Default, Debug)]
 pub struct Gravity(pub Vec2<f32>);
 
