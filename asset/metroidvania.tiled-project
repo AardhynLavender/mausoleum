@@ -63,6 +63,20 @@
             "valuesAsFlags": false
         },
         {
+            "color": "#ffffff7f",
+            "drawFill": true,
+            "id": 20,
+            "members": [
+            ],
+            "name": "Grunt",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
             "color": "#ff000000",
             "drawFill": true,
             "id": 16,

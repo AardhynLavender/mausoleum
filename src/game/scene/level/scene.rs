@@ -13,6 +13,7 @@ use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::sys_ttl;
 use crate::game::creature::buzz::sys_buzz;
+use crate::game::creature::grunt::sys_grunt;
 use crate::game::creature::ripper::sys_ripper;
 use crate::game::creature::spiky::sys_spiky;
 use crate::game::creature::zoomer::sys_zoomer;
@@ -76,6 +77,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, sys_spiky);
     system.add(PHYSICS_SCHEDULE, sys_zoomer);
     system.add(PHYSICS_SCHEDULE, sys_buzz);
+    system.add(PHYSICS_SCHEDULE, sys_grunt);
 
     // physics //
 

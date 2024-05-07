@@ -23,6 +23,7 @@ use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::buzz::make_buzz;
+use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
 use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::zoomer::make_zoomer;
@@ -157,6 +158,7 @@ impl Room {
     self.tilemap.add_objects(|object| {
       let entity = match object {
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
+        ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
