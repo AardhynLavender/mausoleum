@@ -169,6 +169,32 @@
             ]
         },
         {
+            "color": "#ffaa5500",
+            "drawFill": true,
+            "id": 21,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "up"
+                }
+            ],
+            "name": "Spore",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
             "color": "#ffff0000",
             "drawFill": true,
             "id": 3,

@@ -26,6 +26,7 @@ use crate::game::creature::buzz::make_buzz;
 use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
 use crate::game::creature::spiky::make_spiky;
+use crate::game::creature::spore::make_spore;
 use crate::game::creature::zoomer::make_zoomer;
 use crate::game::persistence::world::make_save_area;
 use crate::game::physics::position::Position;
@@ -160,6 +161,7 @@ impl Room {
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
         ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),

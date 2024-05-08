@@ -16,6 +16,7 @@ use crate::game::creature::buzz::sys_buzz;
 use crate::game::creature::grunt::sys_grunt;
 use crate::game::creature::ripper::sys_ripper;
 use crate::game::creature::spiky::sys_spiky;
+use crate::game::creature::spore::sys_spore;
 use crate::game::creature::zoomer::sys_zoomer;
 use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
 use crate::game::persistence::data::SaveData;
@@ -78,6 +79,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, sys_zoomer);
     system.add(PHYSICS_SCHEDULE, sys_buzz);
     system.add(PHYSICS_SCHEDULE, sys_grunt);
+    system.add(PHYSICS_SCHEDULE, sys_spore);
 
     // physics //
 
