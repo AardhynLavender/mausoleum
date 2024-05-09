@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="13">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="18">
  <tileset firstgid="1" source="tileset.tsx"/>
  <layer id="5" name="Background" class="Layer" width="120" height="22">
   <properties>
@@ -92,19 +92,28 @@
   <object id="4" type="Zoomer" x="1128.5" y="186.5">
    <point/>
   </object>
-  <object id="5" type="Spiky" x="1272.25" y="249.75">
+  <object id="5" type="Spiky" x="1255.75" y="247.25">
    <point/>
   </object>
-  <object id="6" type="Spiky" x="1158.18" y="314.182">
+  <object id="6" type="Spiky" x="1304.18" y="250.682">
    <point/>
   </object>
-  <object id="7" type="Grunt" x="470.916" y="137.167">
+  <object id="7" type="Grunt" x="1716.92" y="315.167">
    <point/>
   </object>
-  <object id="11" type="Spore" x="536.583" y="152.833">
+  <object id="11" type="Spore" x="463.083" y="252">
    <properties>
-    <property name="direction" propertytype="Direction" value="right"/>
+    <property name="direction" propertytype="Direction" value="up"/>
    </properties>
+   <point/>
+  </object>
+  <object id="13" type="AngryBuzz" x="609.333" y="155.167">
+   <point/>
+  </object>
+  <object id="15" type="Buzz" x="1248.67" y="165.5">
+   <point/>
+  </object>
+  <object id="17" type="Ripper" x="844" y="264.5">
    <point/>
   </object>
  </objectgroup>

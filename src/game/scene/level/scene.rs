@@ -12,6 +12,7 @@ use crate::game::collectable::collectable::sys_collectable;
 use crate::game::combat::damage::sys_damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::sys_ttl;
+use crate::game::creature::angry_buzz::sys_angry_buzz;
 use crate::game::creature::buzz::sys_buzz;
 use crate::game::creature::grunt::sys_grunt;
 use crate::game::creature::ripper::sys_ripper;
@@ -80,6 +81,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, sys_buzz);
     system.add(PHYSICS_SCHEDULE, sys_grunt);
     system.add(PHYSICS_SCHEDULE, sys_spore);
+    system.add(PHYSICS_SCHEDULE, sys_angry_buzz);
 
     // physics //
 

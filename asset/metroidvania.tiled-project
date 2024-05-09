@@ -10,6 +10,26 @@
     ],
     "propertyTypes": [
         {
+            "color": "#ff00aa00",
+            "drawFill": true,
+            "id": 22,
+            "members": [
+            ],
+            "name": "AngryBuzz",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
             "id": 1,
             "name": "Breakability",
             "storageType": "string",
@@ -169,7 +189,7 @@
             ]
         },
         {
-            "color": "#ffaa5500",
+            "color": "#ff55007f",
             "drawFill": true,
             "id": 21,
             "members": [

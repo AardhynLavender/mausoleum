@@ -52,6 +52,7 @@ pub struct TileMeta {
 #[derive(Clone, Copy, Debug)]
 pub enum ObjMeta {
   BuzzConcept { position: Vec2<f32> },
+  AngryBuzzConcept { position: Vec2<f32> },
   GruntConcept { position: Vec2<f32> },
   SporeConcept { direction: Direction, position: Vec2<f32> },
   SpikyConcept { direction: Direction, position: Vec2<f32> },
@@ -85,6 +86,7 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
   let object_type = object_type.trim().to_lowercase();
   let meta = match object_type.as_str() {
     "buzz" => ObjMeta::BuzzConcept { position },
+    "angrybuzz" => ObjMeta::AngryBuzzConcept { position },
     "grunt" => ObjMeta::GruntConcept { position },
     "ripper" => {
       let direction = Direction::try_from(String::from(get_property("direction", properties).unwrap_or(""))).unwrap_or(Direction::Right);

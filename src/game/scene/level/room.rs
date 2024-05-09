@@ -22,6 +22,7 @@ use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
+use crate::game::creature::angry_buzz::make_angry_buzz;
 use crate::game::creature::buzz::make_buzz;
 use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
@@ -159,6 +160,7 @@ impl Room {
     self.tilemap.add_objects(|object| {
       let entity = match object {
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
+        ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
         ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
