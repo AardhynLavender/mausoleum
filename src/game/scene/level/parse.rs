@@ -98,8 +98,10 @@ pub fn tilemap_from_tiled(tiled_tilemap: &TiledTilemap, tiled_tileset: &Tileset<
       TiledTilemapChildren::ObjectLayer(child) => Some(tilemap_objects_from_tiled(child)),
       _ => None,
     })
-    .next()
-    .unwrap_or(Ok(vec![]))?;
+    .collect::<Result<Vec<_>, _>>()?
+    .into_iter()
+    .flatten()
+    .collect();
 
   let tilemap = Tilemap::build(tiled_tileset, dimensions, layers, objects)?;
 

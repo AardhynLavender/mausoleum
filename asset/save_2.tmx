@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="12">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="13">
  <tileset firstgid="1" source="tileset.tsx"/>
  <layer id="5" name="Background" class="Layer" width="120" height="22">
   <properties>
@@ -109,6 +109,6 @@
   </object>
  </objectgroup>
  <objectgroup id="2" name="Save" class="Sa">
-  <object id="1" name="Test Save" type="Save" x="944" y="240.083" width="31" height="47.5833"/>
+  <object id="1" name="Save 3" type="Save" x="944.333" y="240.75" width="31" height="47.5833"/>
  </objectgroup>
 </map>
