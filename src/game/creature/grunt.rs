@@ -20,7 +20,7 @@ use crate::engine::utility::random::random;
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::creature::CreatureLayer;
-use crate::game::physics::collision::Collider;
+use crate::game::physics::collision::{Collider, make_collision_box};
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
@@ -134,20 +134,21 @@ pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resu
 
 /// Grunt system
 pub fn sys_grunt(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { position: player_position, .. } = use_player(world);
+  let PlayerQuery { position: player_position, collider: player_collider, .. } = use_player(world);
   let debug = use_preferences(state).debug;
-  let player_position = player_position.0;
-  for (_, (grunt, grunt_position, grunt_damage, grunt_velocity)) in world
-    .query::<(&mut Grunt, &Position, &mut Damage, &mut Velocity)>()
+  let player_centroid = make_collision_box(player_position, player_collider).centroid();
+  for (_, (grunt, grunt_position, grunt_damage, grunt_velocity, grunt_collider)) in world
+    .query::<(&mut Grunt, &Position, &mut Damage, &mut Velocity, &Collider)>()
     .without::<&Frozen>()
   {
     // only update state if the grunt is on the floor
     if grunt_velocity.is_going_down() { return; }
-    let next_state = grunt.0.update(grunt_position.0, player_position);
+    let grunt_centroid = make_collision_box(grunt_position, grunt_collider).centroid();
+    let next_state = grunt.0.update(grunt_centroid, player_centroid);
     let (direction, speed, damage) = match next_state {
       GruntState::Idle { direction, .. } => (direction, GRUNT_IDLE_SPEED, GRUNT_DAMAGE_IDLE),
       GruntState::Charge { direction, .. } => {
-        if debug { render.draw_line(camera.translate(grunt_position.0), camera.translate(player_position), color::PRIMARY); }
+        if debug { render.draw_line(camera.translate(grunt_centroid), camera.translate(player_centroid), color::PRIMARY); }
         (Some(direction), GRUNT_CHARGE_SPEED, GRUNT_DAMAGE_CHARGE)
       }
     };
