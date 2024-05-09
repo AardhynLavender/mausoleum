@@ -26,8 +26,8 @@ impl Collider {
 }
 
 /// Render colliders in the world while debugging
-pub fn sys_render_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) {
-  if !use_preferences(state).debug { return; }
+pub fn sys_render_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) -> Result<(), String> {
+  if !use_preferences(state).debug { return Ok(()); }
 
   for (_, (position, collider)) in world.query::<(&Position, &Collider)>() {
     let new_position = camera.translate(Vec2::from(position.0));
@@ -36,6 +36,8 @@ pub fn sys_render_colliders(SysArgs { world, camera, render, state, .. }: &mut S
       RGBA::new(0, 255, 0, OPAQUE),
     );
   }
+
+  Ok(())
 }
 
 /// Create a worldspace collision box from a position and collider

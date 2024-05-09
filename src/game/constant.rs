@@ -30,3 +30,8 @@ pub const WINDOW_SIZE: Vec2<u32> = Vec2::new(
 
 pub const WINDOW: Aligner = Aligner::new(Rec2::new(Vec2::const_default(), LOGICAL_SIZE));
 
+// Persistence //
+
+pub const DEV_SAVE_FILE: &str = "data/dev_save.json";
+pub const USER_SAVE_FILE: &str = "user_save.json";
+

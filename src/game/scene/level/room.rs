@@ -17,16 +17,19 @@ use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::Tilemap;
+use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
 use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
 use crate::engine::world::World;
-use crate::game::collectable::collectable::Collectable;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
+use crate::game::creature::angry_buzz::make_angry_buzz;
 use crate::game::creature::buzz::make_buzz;
+use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
 use crate::game::creature::spiky::make_spiky;
+use crate::game::creature::spore::make_spore;
 use crate::game::creature::zoomer::make_zoomer;
+use crate::game::persistence::world::make_save_area;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::preferences::use_preferences;
@@ -60,6 +63,7 @@ pub struct ActiveRoom;
 // Structures //
 
 pub struct Room {
+  name: String,
   position: Vec2<f32>,
   tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>,
   entities: HashSet<Entity>,
@@ -67,8 +71,8 @@ pub struct Room {
 
 impl Room {
   /// Instantiate a new room
-  pub fn build(tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>) -> Self {
-    Self { tilemap, position, entities: HashSet::new() }
+  pub fn build(name: String, tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>) -> Self {
+    Self { name, tilemap, position, entities: HashSet::new() }
   }
 
   // Tilemap //
@@ -102,7 +106,7 @@ impl Room {
         }
 
         if let Some(collectable) = tile.data.meta.collectable {
-          world.add_components(entity, (Collectable(collectable), ))?;
+          world.add_components(entity, (collectable, ))?;
         }
 
         if tile.data.meta.breakability == TileBreakability::Soft {
@@ -113,7 +117,7 @@ impl Room {
 
         let damage = tile.data.meta.damage;
         if damage > 0 {
-          world.add_components(entity, (PlayerHostile::default(), Damage::new(damage)))?;
+          world.add_components(entity, (PlayerHostile, Damage::new(damage)))?;
         }
       }
 
@@ -125,12 +129,14 @@ impl Room {
     self.tilemap.remove_tiles(|entity| world.free_now(entity).unwrap_or(()));
   }
   /// Remove a tile from the tilemap
-  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>) {
+  pub fn remove_tile(&mut self, world: &mut World, handle: TileHandle<TileMeta, TileLayerType>, mutation: TilemapMutation) {
     self.tilemap.remove_tile(
       &handle,
       |entity| {
         world.free_now(entity).unwrap_or(())
-      });
+      },
+      mutation,
+    );
     self.tilemap.for_neighbour(
       &handle,
       |handle, neighbour| {
@@ -141,7 +147,11 @@ impl Room {
         }
         let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
         tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
-      });
+        let new_mask = tile_collider.mask.clone();
+        handle.concept.mask = new_mask;
+      },
+      mutation,
+    );
   }
 
   // Entities //
@@ -150,9 +160,13 @@ impl Room {
     self.tilemap.add_objects(|object| {
       let entity = match object {
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
+        ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
+        ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
+        ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),
       };
       self.entities.insert(entity);
       Ok(entity)
@@ -163,15 +177,20 @@ impl Room {
     self.entities.insert(world.add(components));
   }
   /// Attempt to remove an entity from the world that is registered with this room
-  pub fn remove_entity(&mut self, entity: Entity, world: &mut World) -> bool {
-    if self.entities.remove(&entity) { return world.free_now(entity).is_ok(); };
-    false
+  pub fn remove_entity(&mut self, entity: Entity, world: &mut World, mutation: TilemapMutation) -> Result<(), String> {
+    if !self.entities.remove(&entity) { return Err(String::from("Entity not found in room")); }
+    world.free_now(entity)?;
+    if mutation == TilemapMutation::Session {
+      self.tilemap.remove_object(entity, |entity| {
+        world.free_now(entity).ok();
+      }, mutation)?;
+    }
+    Ok(())
   }
   /// Remove all entities associated with the room
   fn remove_entities(&mut self, world: &mut World) {
     for entity in self.entities.drain() {
-      // ignore errors as some entities may have already been removed
-      world.free_now(entity).ok();
+      world.free_now(entity).ok(); // ignore errors as some entities may have already been removed
     }
   }
 
@@ -207,15 +226,18 @@ impl Room {
     let dimensions = self.tilemap.get_dimensions();
     CameraBounds::new(position, dimensions)
   }
+  /// Get the name of the room
+  pub fn get_name(&self) -> String { self.name.clone() }
 }
 
 /// Render rectangles around the colliders that start room transitions
-pub fn sys_render_room_colliders(SysArgs { world, render, camera, state, .. }: &mut SysArgs) {
-  if !use_preferences(state).debug { return; }
+pub fn sys_render_room_colliders(SysArgs { world, render, camera, state, .. }: &mut SysArgs) -> Result<(), String> {
+  if !use_preferences(state).debug { return Ok(()); }
   for (_, room_collider) in world.query::<&RoomCollider>() {
     let pos = Vec2::<i32>::from(camera.translate(room_collider.collision_box.origin));
     render.draw_rect(Rec2::new(pos, room_collider.collision_box.size), RGBA::new(0, 0, 255, OPAQUE));
   }
+  Ok(())
 }
 
 /// Use the current room mutably

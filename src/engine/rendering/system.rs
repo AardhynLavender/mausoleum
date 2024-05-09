@@ -6,7 +6,7 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::camera::StickyLayer;
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::{layer, Renderer};
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::game::physics::position::Position;
 
 /// components marking entities as renderable
@@ -19,16 +19,19 @@ type QueryRenderable<'a> = (Renderable<'a>, &'a Position, );
 type QueryRenderableOf<'a, L> = (Renderable<'a>, &'a Position, &'a L);
 
 /// Entities with a sprite and position are rendered
-pub fn sys_render(args: &mut SysArgs) {
-  render_layer::<layer::Layer1>(args);
-  render_layer::<layer::Layer2>(args);
-  render_layer::<layer::Layer3>(args);
-  render_layer::<layer::Layer4>(args);
-  render_layer::<layer::Layer5>(args);
-  render_layer::<layer::Layer6>(args);
-  render_layer::<layer::Layer7>(args);
-  render_layer::<layer::Layer8>(args);
-  render_sticky(args);
+impl Systemize for Renderer {
+  fn system(args: &mut SysArgs) -> Result<(), String> {
+    render_layer::<layer::Layer1>(args);
+    render_layer::<layer::Layer2>(args);
+    render_layer::<layer::Layer3>(args);
+    render_layer::<layer::Layer4>(args);
+    render_layer::<layer::Layer5>(args);
+    render_layer::<layer::Layer6>(args);
+    render_layer::<layer::Layer7>(args);
+    render_layer::<layer::Layer8>(args);
+    render_sticky(args);
+    Ok(())
+  }
 }
 
 /// render entities of layer T

@@ -70,9 +70,16 @@ impl<T: UnitPrimitive> Vec2<T> {
 }
 
 impl Vec2<f32> {
+  /// Instantiate a unit vector from an angle
+  pub fn from_degrees(angle: f32) -> Self {
+    let angle = angle.to_radians();
+    Vec2::new(angle.cos(), angle.sin())
+  }
+  /// Convert a vector to an angle in degrees
+  pub fn to_degrees(&self) -> f32 { self.y.atan2(self.x).to_degrees() }
   /// Get the size of the vector
   pub fn get_magnitude(&self) -> f32 { ((self.x.pow(2) + self.y.pow(2)) as f32).sqrt() }
-  /// Normalize version of the vector
+  /// Normalized version of the vector
   pub fn normalize(&mut self) -> Self {
     *self = *self / self.get_magnitude();
     *self
@@ -328,6 +335,11 @@ impl Rec2<f32, Size> {
     let origin = self.origin <= other.origin;
     let extent = self.origin + Vec2::from(self.size) >= other.origin + Vec2::from(other.size);
     return origin && extent;
+  }
+
+  /// Returns the centroid of the rectangle
+  pub fn centroid(&self) -> Vec2<f32> {
+    Vec2::new(self.origin.x + (self.size.x / 2) as f32, self.origin.y + (self.size.y / 2) as f32)
   }
 }
 

@@ -8,3 +8,4 @@ pub mod creature;
 pub mod player;
 pub mod preferences;
 pub mod collectable;
+pub mod persistence;

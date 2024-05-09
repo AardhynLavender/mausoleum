@@ -54,7 +54,11 @@ impl<'app, 'fonts> SysArgs<'app, 'fonts> {
 }
 
 /// A system mutably queries and/or updates the world
-pub type System = fn(&mut SysArgs);
+pub type System = fn(&mut SysArgs) -> Result<(), String>;
+
+pub trait Systemize {
+  fn system(args: &mut SysArgs) -> Result<(), String>;
+}
 
 /// Manages the scheduling of mutable systems
 #[derive(Default)]
@@ -87,13 +91,16 @@ impl SystemManager {
   }
 
   /// call the systems of a schedule
-  pub fn update(&mut self, schedule: Schedule, args: &mut SysArgs) {
-    match schedule {
+  pub fn update(&mut self, schedule: Schedule, args: &mut SysArgs) -> Result<(), String> {
+    let systems = match schedule {
       Schedule::FrameUpdate => self.frame_systems.iter(),
       Schedule::FixedUpdate => self.fixed_systems.iter(),
       Schedule::PostUpdate => self.render_systems.iter(),
-    }.for_each(|system| {
-      system(args);
-    });
+    };
+    for system in systems {
+      system(args)?;
+    }
+
+    Ok(())
   }
 }

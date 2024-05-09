@@ -10,7 +10,7 @@ use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::parse::{TiledParser, TiledTilemapChildren};
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
@@ -73,8 +73,8 @@ impl RoomRegistry {
       let collider_entity = world.add((collider, ));
       colliders.insert(tilemap_name.clone(), collider_entity);
 
-      let room = Room::build(tilemap, position);
-      rooms.insert(tilemap_name.clone(), room);
+      let room = Room::build(tilemap_name.clone(), tilemap, position);
+      rooms.insert(tilemap_name, room);
     }
 
     Ok(Self {
@@ -161,32 +161,33 @@ impl RoomRegistry {
 // Systems //
 
 /// Check for room collisions and enact room transitions
-pub fn sys_room_transition(SysArgs { world, camera, asset, state, .. }: &mut SysArgs) {
-  let PlayerQuery { position, collider: player_collider, .. } = use_player(world);
-  let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
-  let mut room_collisions = Vec::new();
-  for (_, room_collider) in world.query::<Without<&RoomCollider, &ActiveRoom>>() {
-    let collision = rec2_collision(&room_collider.collision_box, &player_box, CollisionMask::default());
-    if collision.is_some() {
-      room_collisions.push(room_collider.clone());
+impl Systemize for RoomRegistry {
+  fn system(SysArgs { world, camera, asset, state, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { position, collider: player_collider, .. } = use_player(world);
+    let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
+    let mut room_collisions = Vec::new();
+    for (_, room_collider) in world.query::<Without<&RoomCollider, &ActiveRoom>>() {
+      let collision = rec2_collision(&room_collider.collision_box, &player_box, CollisionMask::default());
+      if collision.is_some() {
+        room_collisions.push(room_collider.clone());
+      }
     }
+
+    if room_collisions.len() == 0 { return Ok(()); }
+    if room_collisions.len() > 1 { return Err(String::from("Multiple room collisions")); }
+
+    let room = room_collisions.first().ok_or(String::from("No room collision"))?;
+
+    let room_registry = state.get_mut::<RoomRegistry>()?;
+    room_registry.transition_to_room(world, asset, &room.room)?;
+    room_registry.clamp_camera(camera);
+
+    let entry_bounds = room_registry.get_entry_bounds()?;
+    let PlayerQuery { position, collider, .. } = use_player(world);
+    let mut player_box = Rec2::new(position.0 + collider.0.origin, collider.0.size);
+    player_box.clamp_position(&Rec2::new(Vec2::<f32>::from(entry_bounds.origin), entry_bounds.size));
+    position.0 = player_box.origin;
+
+    Ok(())
   }
-
-  if room_collisions.len() == 0 { return; }
-  if room_collisions.len() > 1 { panic!("Player is colliding with multiple rooms"); }
-
-  let room = room_collisions
-    .first()
-    .expect("Failed to find room to enter");
-
-  let room_registry = state.get_mut::<RoomRegistry>().expect("Failed to get room registry");
-  room_registry.transition_to_room(world, asset, &room.room).expect("Failed to set current room");
-  room_registry.clamp_camera(camera);
-
-  let entry_bounds = room_registry.get_entry_bounds().expect("Failed to get entry bounds");
-  let PlayerQuery { position, collider, .. } = use_player(world);
-  let mut player_box = Rec2::new(position.0 + collider.0.origin, collider.0.size);
-  player_box.clamp_position(&Rec2::new(Vec2::<f32>::from(entry_bounds.origin), entry_bounds.size));
-  position.0 = player_box.origin;
 }
-

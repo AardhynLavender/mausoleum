@@ -28,31 +28,31 @@ impl SceneManager {
   }
 
   /// Queue the next scene
-  pub fn queue_next(&mut self, scene: impl Scene + 'static) {
-    self.next = Some(Box::new(scene));
-  }
-
+  pub fn queue_next(&mut self, scene: impl Scene + 'static) { self.next = Some(Box::new(scene)); }
   /// Check if there is a scene in the queue
-  pub fn is_queue(&self) -> bool {
-    self.next.is_some()
-  }
+  pub fn is_queue(&self) -> bool { self.next.is_some() }
 
-  /// Destroy the current scene and set up the next
-  pub fn next(&mut self, args: &mut LifecycleArgs) {
-    args.world.free_all_now();
-    args.system.clear();
-    add_internal_systems(args.system);
-    add_internal_entities(&mut args.world);
-
-    // destroy the current scene
+  /// Destroy the current scene
+  fn destroy(&mut self, args: &mut LifecycleArgs) {
     if let Some(current) = self.scene.as_mut() {
       current.destroy(args);
     }
-    // set up the next scene
+    args.world.free_all_now();
+    args.system.clear();
+  }
+  /// Load the next scene
+  fn load(&mut self, args: &mut LifecycleArgs) {
+    add_internal_systems(args.system);
+    add_internal_entities(&mut args.world);
     if let Some(next) = self.next.as_mut() {
       next.setup(args);
       next.add_systems(args);
       self.scene = self.next.take();
     }
+  }
+  /// Destroy the current scene and set up the next
+  pub fn next(&mut self, args: &mut LifecycleArgs) {
+    self.destroy(args);
+    self.load(args);
   }
 }

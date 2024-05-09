@@ -1,6 +1,6 @@
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::renderer::layer;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alias::Size;
 use crate::game::physics::position::Position;
 
@@ -76,29 +76,29 @@ pub struct CameraTether {
 
 impl CameraTether {
   /// Instantiate a new camera tether with an offset of `offset`
-  pub fn new(offset: Vec2<i32>) -> Self {
-    Self {
-      offset
-    }
-  }
+  pub fn new(offset: Vec2<i32>) -> Self { Self { offset } }
 }
 
 /// Query the world for camera tethers
 pub type QueryCameraTether<'a> = (&'a CameraTether, &'a Position);
 
 // /// Update the camera position based on it's tethers
-pub fn sys_tether(SysArgs { camera, world, .. }: &mut SysArgs) {
-  if !camera.tethered { return; }
+impl Systemize for CameraTether {
+  fn system(SysArgs { camera, world, .. }: &mut SysArgs) -> Result<(), String> {
+    if !camera.tethered { return Ok(()); }
 
-  if let Some((_, (tether, position))) = world
-    .query::<QueryCameraTether>()
-    .into_iter()
-    .next()
-  {
-    camera.set_position(Vec2::<i32>::from(position.0) + tether.offset);
-  } else {
-    eprintln!("Camera tethered but no tether found! releasing camera...");
-    camera.release(Vec2::default());
+    if let Some((_, (tether, position))) = world
+      .query::<QueryCameraTether>()
+      .into_iter()
+      .next()
+    {
+      camera.set_position(Vec2::<i32>::from(position.0) + tether.offset);
+    } else {
+      eprintln!("Camera tethered but no tether found! releasing camera...");
+      camera.release(Vec2::default());
+    }
+
+    Ok(())
   }
 }
 

@@ -10,7 +10,7 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::Timer;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
@@ -24,7 +24,7 @@ use crate::game::player::world::{PLAYER_SIZE, PlayerQuery, use_player};
 use crate::game::scene::level::collision::RoomCollision;
 
 pub const PLAYER_BASE_HEALTH: u32 = 50;
-pub const HEALTH_PICKUP_INCREASE: u32 = 25;
+pub const HEALTH_PICKUP_INCREASE: u32 = 10;
 pub const HIT_COOLDOWN: u64 = 500;
 
 const PROJECTILE_COOLDOWN: u64 = 200;
@@ -41,7 +41,6 @@ const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
 pub const THAW_DURATION: u64 = 5000;
 
 /// Mark an entity as being hostile to the player
-#[derive(Default)]
 pub struct PlayerHostile;
 
 /// Store player specific data
@@ -66,38 +65,35 @@ impl PlayerCombat {
   }
 }
 
-/// Render the player's hit cooldown
-pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { combat, position, .. } = use_player(world);
-  if !combat.hit_cooldown.done() {
-    render.draw_rect(Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
+impl Systemize for PlayerCombat {
+  /// Render the player's hit cooldown
+  fn system(SysArgs { world, render, camera, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { combat, position, .. } = use_player(world);
+    if !combat.hit_cooldown.done() {
+      let rect = Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32));
+      render.draw_rect(rect, RGBA::new(255, 0, 255, OPAQUE));
+    }
+
+    Ok(())
   }
 }
 
 /// Available weapon types for the player
 #[derive(PartialEq)]
-pub enum Weapon {
-  Bullet,
-  Rocket,
-  IceBeam,
-}
+pub enum Weapon { Bullet, Rocket, IceBeam }
 
 pub type ProjectileLayer = layer::Layer8;
 
 /// Mark an entity as a bullet projectile
-#[derive(Default)]
 pub struct Bullet;
 
 /// Mark an entity as a rocket projectile
-#[derive(Default)]
 pub struct Rocket;
 
 /// Mark an entity as a projectile that freezes creatures
-#[derive(Default)]
 pub struct IceBeam;
 
 /// Mark an entity as damaging to creatures but the player
-#[derive(Default)]
 pub struct CreatureHostile;
 
 /// Fire a plasma projectile in the direction the player is aiming

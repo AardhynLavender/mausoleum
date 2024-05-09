@@ -10,6 +10,26 @@
     ],
     "propertyTypes": [
         {
+            "color": "#ff00aa00",
+            "drawFill": true,
+            "id": 22,
+            "members": [
+            ],
+            "name": "AngryBuzz",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
             "id": 1,
             "name": "Breakability",
             "storageType": "string",
@@ -61,6 +81,20 @@
                 "left"
             ],
             "valuesAsFlags": false
+        },
+        {
+            "color": "#ffffff7f",
+            "drawFill": true,
+            "id": 20,
+            "members": [
+            ],
+            "name": "Grunt",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
         },
         {
             "color": "#ff000000",
@@ -115,6 +149,20 @@
             ]
         },
         {
+            "color": "#ffaaff00",
+            "drawFill": true,
+            "id": 19,
+            "members": [
+            ],
+            "name": "Save",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
             "color": "#ffff007f",
             "drawFill": true,
             "id": 10,
@@ -137,6 +185,32 @@
             "useAs": [
                 "property",
                 "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55007f",
+            "drawFill": true,
+            "id": 21,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "up"
+                }
+            ],
+            "name": "Spore",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
                 "project"
             ]
         },

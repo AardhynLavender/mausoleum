@@ -13,12 +13,11 @@ use crate::engine::state::State;
 use crate::engine::system::{Schedule, SysArgs};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
-use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, TITLE_Y, WINDOW};
+use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, DEV_SAVE_FILE, TITLE_Y, USER_SAVE_FILE, WINDOW};
+use crate::game::persistence::data::SaveData;
 use crate::game::physics::position::Position;
 use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
-
-pub const STARTING_ROOM: &str = "save_0";
 
 // State //
 
@@ -45,8 +44,9 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   state.add(MenuState {
     interface: Selection::build([
       world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
-      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
-      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("new game", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
+      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
+      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 3.0)))),
     ]).expect("Failed to build selection")
   }).expect("Failed to add menu state");
 }
@@ -76,33 +76,48 @@ impl Scene for MenuScene {
 // Systems //
 
 /// Manage the selection of the main menu
-pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
-  let state = state.get_mut::<MenuState>().expect("Failed to get menu state");
-  if is_control(Control::Down, Behaviour::Pressed, event) {
-    state.interface += 1;
-  }
-  if is_control(Control::Up, Behaviour::Pressed, event) {
-    state.interface -= 1;
-  }
+pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
+  let state = state.get_mut::<MenuState>()?;
+  if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
+  if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
-      0 => scene.queue_next(LevelScene::build(STARTING_ROOM).expect("Failed to build level scene")),
-      1 => println!("Not implemented yet"),
-      2 => event.queue_quit(),
-      _ => panic!("Invalid selection")
+      0 => {
+        let save_data = SaveData::from_file(USER_SAVE_FILE)
+          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+            .unwrap_or(SaveData::default()));
+        scene.queue_next(LevelScene::new(save_data))
+      }
+      1 => {
+        // delete old save data and start from default
+        let save_data = SaveData::from_erased(USER_SAVE_FILE)
+          .unwrap_or(SaveData::default());
+        scene.queue_next(LevelScene::new(save_data))
+      }
+      2 => println!("Not implemented yet"),
+      3 => event.queue_quit(),
+      _ => {
+        return Err(String::from("Invalid menu selection"));
+      }
     }
   }
+
+  Ok(())
 }
 
 /// Render a box around the selected item
-pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) {
-  let state = state.get::<MenuState>().expect("Failed to get menu state");
+pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) -> Result<(), String> {
+  let state = state.get::<MenuState>()?;
   let (.., entity) = state.interface.get_selection();
-  let (position, text) = world.query_entity::<(&Position, &Text)>(entity).expect("Failed to get selection");
+  let (position, text) = world
+    .query_entity::<(&Position, &Text)>(entity)
+    .map_err(|_| String::from("Failed to get selected text"))?;
   let rect = Rec2::new(
-    Vec2::<i32>::from(position.0.clone()),
-    text.get_dimensions().clone(),
+    Vec2::<i32>::from(position.0.clone()) - Vec2::new(2, 1),
+    text.get_dimensions().clone() + Vec2::new(3, 3),
   );
   render.draw_rect(rect, color::PRIMARY);
+
+  Ok(())
 }
