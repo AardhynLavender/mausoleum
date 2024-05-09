@@ -129,21 +129,3 @@ pub fn rec2_collision(r1: &CollisionBox, r2: &CollisionBox, mask: CollisionMask)
     None
   }
 }
-
-#[cfg(test)]
-mod tests {
-  #[test]
-  fn maskless_collision() {
-    todo!("Implement maskless collision test")
-  }
-
-  #[test]
-  fn full_mask_collision() {
-    todo!("Implement mask collision test")
-  }
-
-  #[test]
-  fn partial_mask_collision() {
-    todo!("Implement partial mask collision test")
-  }
-}

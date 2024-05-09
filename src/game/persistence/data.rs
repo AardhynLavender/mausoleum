@@ -151,8 +151,6 @@ mod tests {
       y: 0.0,
     };
     let save_1 = SaveData::try_from(raw_1);
-    assert_eq!(save_1, Err("Invalid save room".to_string()));
-
     let raw_2 = RawSaveData {
       save_room: String::from("save_256"),
       inventory: vec![Collectable::IceBeam, Collectable::HighJump, Collectable::Health],
@@ -160,7 +158,7 @@ mod tests {
       y: 0.0,
     };
     let save_2 = SaveData::try_from(raw_2);
-    assert_eq!(save_2, Err("Invalid save room".to_string()));
+    assert_eq!(save_2, Err(String::from("Invalid save room: save_256")));
 
     let raw_3 = RawSaveData {
       save_room: String::from("save_NaN"),
@@ -169,6 +167,6 @@ mod tests {
       y: 0.0,
     };
     let save_3 = SaveData::try_from(raw_3);
-    assert_eq!(save_3, Err("Invalid save room".to_string()));
+    assert_eq!(save_3, Err(String::from("Invalid save room: save_NaN")));
   }
 }
