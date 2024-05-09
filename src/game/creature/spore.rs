@@ -12,7 +12,7 @@ use crate::engine::asset::texture::TextureKey;
 use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::component::Sprite;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::{ConsumeAction, Timer};
 use crate::engine::utility::alias::{Size, Size2};
 use crate::engine::utility::direction::Direction;
@@ -53,14 +53,41 @@ pub struct Spore {
   cell_asset: TextureKey,
 }
 
-/// An indestructible damaging cell spawned by a spore
-pub struct SporeCell;
-
 impl Spore {
   /// Instantiate a new spore
   pub fn build(direction: Direction, cell_asset: TextureKey) -> Result<Self, String> {
     invariant(direction.is_cardinal(), "Spore direction must be cardinal")?;
     Ok(Self { direction, cell_asset, spawn_cooldown: Timer::new(Duration::from_millis(CELL_SPAWN_INTERVAL_MS), true) })
+  }
+}
+
+impl Systemize for Spore {
+  /// Process Buzz logic each frame
+  fn system(SysArgs { world, .. }: &mut SysArgs) -> Result<(), String> {
+    let spore_cells = world
+      .query::<(&Position, &mut Spore)>()
+      .without::<&Frozen>()
+      .into_iter()
+      .map(|(_, (position, spore))| {
+        if !spore.spawn_cooldown.consume(ConsumeAction::Restart) { return vec![]; }
+        let start_deg = f32::from(spore.direction) - CELL_SPAWN_SPREAD_DEG / 2.0;
+        let end_deg = start_deg + CELL_SPAWN_SPREAD_DEG;
+        let cell_position = Vec2::<f32>::from(DIMENSIONS / 2 - CELL_DIMENSIONS / 2) + position.0;
+        let cells = ((start_deg as i32)..(end_deg as i32))
+          .step_by(CELL_SPAWN_STEP_DEG as usize)
+          .map(|angle| {
+            make_spore_cell(spore.cell_asset, cell_position, angle as f32 - QUARTER_ROTATION_DEG)
+          })
+          .collect::<Vec<_>>();
+        cells
+      })
+      .collect::<Vec<_>>();
+
+    for spore in spore_cells {
+      for cell in spore { world.add(cell); }
+    }
+
+    Ok(())
   }
 }
 
@@ -81,6 +108,10 @@ pub fn make_spore(asset_manager: &mut AssetManager, position: Vec2<f32>, directi
   ))
 }
 
+/// An indestructible damaging cell spawned by a spore
+pub struct SporeCell;
+
+/// Compose the components of a spore cell
 pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> impl DynamicBundle {
   (
     PlayerHostile,
@@ -95,30 +126,4 @@ pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> 
     Fragile,
     CreatureLayer::default(),
   )
-}
-
-/// Iterate over spores and spawn their cells when the cooldown is up
-pub fn sys_spore(SysArgs { world, .. }: &mut SysArgs) {
-  let spore_cells = world
-    .query::<(&Position, &mut Spore)>()
-    .without::<&Frozen>()
-    .into_iter()
-    .map(|(_, (position, spore))| {
-      if !spore.spawn_cooldown.consume(ConsumeAction::Restart) { return vec![]; }
-      let start_deg = f32::from(spore.direction) - CELL_SPAWN_SPREAD_DEG / 2.0;
-      let end_deg = start_deg + CELL_SPAWN_SPREAD_DEG;
-      let cell_position = Vec2::<f32>::from(DIMENSIONS / 2 - CELL_DIMENSIONS / 2) + position.0;
-      let cells = ((start_deg as i32)..(end_deg as i32))
-        .step_by(CELL_SPAWN_STEP_DEG as usize)
-        .map(|angle| {
-          make_spore_cell(spore.cell_asset, cell_position, angle as f32 - QUARTER_ROTATION_DEG)
-        })
-        .collect::<Vec<_>>();
-      cells
-    })
-    .collect::<Vec<_>>();
-
-  for spore in spore_cells {
-    for cell in spore { world.add(cell); }
-  }
 }

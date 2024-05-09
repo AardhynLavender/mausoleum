@@ -2,7 +2,7 @@ use crate::engine::component::text::TextBuilder;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::color;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::game::constant::{USER_SAVE_FILE, WINDOW};
 use crate::game::persistence::assertion::assert_save_room;
@@ -41,6 +41,67 @@ impl SaveArea {
   pub fn use_area(&mut self) { self.used = true; }
 }
 
+/// Save the player's progress when they enter a save area
+impl Systemize for SaveArea {
+  fn system(SysArgs { world, asset, event, state, scene, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { position, collider, .. } = use_player(world);
+    let player_box = make_collision_box(&position, &collider);
+    let save_key = is_control(Control::Up, Behaviour::Pressed, event);
+    let mut in_save_area = false;
+
+    let active_save_rooms = world
+      .query::<(&mut SaveArea, &Position, &Collider)>()
+      .into_iter()
+      .filter_map(|(_, (area, position, collider))| {
+        let save_box = make_collision_box(&position, &collider);
+        if rec2_collision(&player_box, &save_box, CollisionMask::full()).is_some() && !area.used {
+          in_save_area = true;
+          if save_key { area.use_area(); }
+          if !area.active {
+            area.activate();
+            return Some(area.clone());
+          }
+        } else if area.active {
+          area.deactivate();
+          return Some(area.clone());
+        }
+        return None;
+      })
+      .collect::<Vec<_>>();
+
+    if let Some(area) = active_save_rooms.first() {
+      if area.active {
+        let typeface = asset.typeface
+          .use_store()
+          .get("typeface")?;
+        let mut builder = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, &WINDOW);
+        world.add(builder.make_text::<SaveText>("Press up to save", Alignment::new(Align::Center(0.0), Align::Center(0.0))));
+      } else {
+        let save_text = world.query::<&SaveText>().into_iter().next();
+        if let Some((entity, _)) = save_text { world.free_now(entity)?; }
+      }
+    }
+
+    if save_key && in_save_area {
+      let collection = use_player(world)
+        .inventory
+        .iter()
+        .copied()
+        .collect::<Vec<_>>();
+      let save_room = use_room(state).get_name();
+      let player_position = use_player(world).position.0;
+
+      let save_data = SaveData::build(save_room, collection, player_position)?;
+      save_data.to_file(USER_SAVE_FILE)?;
+
+      scene.queue_next(LevelScene::new(save_data));
+    }
+
+    Ok(())
+  }
+}
+
+/// Save area components
 type SaveAreaBundle = (SaveArea, Position, Collider);
 
 /// Compose save area components from a save room and collision box
@@ -50,64 +111,4 @@ pub fn make_save_area(save_room: String, area: CollisionBox) -> Result<SaveAreaB
     Position::from(area.origin),
     Collider(CollisionBox::new(Vec2::default(), area.size))
   ))
-}
-
-/// Save the player's progress when they enter a save area
-pub fn sys_save(SysArgs { world, asset, event, state, scene, .. }: &mut SysArgs) {
-  let PlayerQuery { position, collider, .. } = use_player(world);
-  let player_box = make_collision_box(&position, &collider);
-  let save_key = is_control(Control::Up, Behaviour::Pressed, event);
-  let mut in_save_area = false;
-
-  let active_save_rooms = world
-    .query::<(&mut SaveArea, &Position, &Collider)>()
-    .into_iter()
-    .filter_map(|(_, (area, position, collider))| {
-      let save_box = make_collision_box(&position, &collider);
-      if rec2_collision(&player_box, &save_box, CollisionMask::full()).is_some() && !area.used {
-        in_save_area = true;
-        if save_key { area.use_area(); }
-        if !area.active {
-          area.activate();
-          return Some(area.clone());
-        }
-      } else if area.active {
-        area.deactivate();
-        return Some(area.clone());
-      }
-      return None;
-    })
-    .collect::<Vec<_>>();
-
-  if let Some(area) = active_save_rooms.first() {
-    if area.active {
-      let typeface = asset.typeface
-        .use_store()
-        .get("typeface")
-        .expect("Failed to get typeface");
-      let mut builder = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, &WINDOW);
-      world.add(builder.make_text::<SaveText>("Press UP to save", Alignment::new(Align::Center(0.0), Align::Center(0.0))));
-    } else {
-      let save_text = world.query::<&SaveText>().into_iter().next();
-      if let Some((entity, _)) = save_text { world.free_now(entity).expect("Failed to remove save text"); }
-    }
-  }
-
-  if save_key && in_save_area {
-    let collection = use_player(world)
-      .inventory
-      .iter()
-      .copied()
-      .collect::<Vec<_>>();
-    let save_room = use_room(state).get_name();
-    let player_position = use_player(world).position.0;
-    println!("Saving progress in room: {}", save_room);
-
-    let save_data = SaveData::build(save_room, collection, player_position)
-      .expect("Failed to build save data");
-    save_data.to_file(USER_SAVE_FILE)
-      .expect("Failed to save progress");
-
-    scene.queue_next(LevelScene::new(save_data));
-  }
 }

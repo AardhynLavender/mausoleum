@@ -6,31 +6,31 @@ use std::path::Path;
 
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs};
+use crate::engine::system::{Schedule, SysArgs, Systemize};
 use crate::engine::tile::parse::TiledParser;
-use crate::game::collectable::collectable::sys_collectable;
-use crate::game::combat::damage::sys_damage;
+use crate::game::collectable::collectable::Collection;
+use crate::game::combat::damage::Damage;
 use crate::game::combat::health::LiveState;
-use crate::game::combat::ttl::sys_ttl;
-use crate::game::creature::angry_buzz::sys_angry_buzz;
-use crate::game::creature::buzz::sys_buzz;
-use crate::game::creature::grunt::sys_grunt;
-use crate::game::creature::ripper::sys_ripper;
-use crate::game::creature::spiky::sys_spiky;
-use crate::game::creature::spore::sys_spore;
-use crate::game::creature::zoomer::sys_zoomer;
-use crate::game::interface::hud::{make_player_health_text, sys_render_player_health};
+use crate::game::combat::ttl::TimeToLive;
+use crate::game::creature::angry_buzz::AngryBuzz;
+use crate::game::creature::buzz::Buzz;
+use crate::game::creature::grunt::Grunt;
+use crate::game::creature::ripper::Ripper;
+use crate::game::creature::spiky::Spiky;
+use crate::game::creature::spore::Spore;
+use crate::game::creature::zoomer::Zoomer;
+use crate::game::interface::hud::{make_player_health_text, PlayerHealth};
 use crate::game::persistence::data::SaveData;
-use crate::game::persistence::world::sys_save;
+use crate::game::persistence::world::SaveArea;
 use crate::game::physics::collision::sys_render_colliders;
-use crate::game::physics::frozen::sys_thaw;
-use crate::game::physics::gravity::sys_gravity;
-use crate::game::physics::velocity::sys_velocity;
-use crate::game::player::combat::sys_render_cooldown;
+use crate::game::physics::frozen::Frozen;
+use crate::game::physics::gravity::Gravity;
+use crate::game::physics::velocity::Velocity;
+use crate::game::player::combat::PlayerCombat;
 use crate::game::player::world::{make_player, PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
-use crate::game::scene::level::collision::{sys_render_tile_colliders, sys_tile_collision};
-use crate::game::scene::level::registry::{RoomRegistry, sys_room_transition};
+use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
+use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
@@ -75,37 +75,37 @@ impl Scene for LevelScene {
   fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
     // Creatures //
 
-    system.add(PHYSICS_SCHEDULE, sys_ripper);
-    system.add(PHYSICS_SCHEDULE, sys_spiky);
-    system.add(PHYSICS_SCHEDULE, sys_zoomer);
-    system.add(PHYSICS_SCHEDULE, sys_buzz);
-    system.add(PHYSICS_SCHEDULE, sys_grunt);
-    system.add(PHYSICS_SCHEDULE, sys_spore);
-    system.add(PHYSICS_SCHEDULE, sys_angry_buzz);
+    system.add(PHYSICS_SCHEDULE, AngryBuzz::system);
+    system.add(PHYSICS_SCHEDULE, Buzz::system);
+    system.add(PHYSICS_SCHEDULE, Grunt::system);
+    system.add(PHYSICS_SCHEDULE, Ripper::system);
+    system.add(PHYSICS_SCHEDULE, Spiky::system);
+    system.add(PHYSICS_SCHEDULE, Spore::system);
+    system.add(PHYSICS_SCHEDULE, Zoomer::system);
 
     // physics //
 
-    system.add(PHYSICS_SCHEDULE, sys_gravity);
-    system.add(PHYSICS_SCHEDULE, sys_velocity);
-    system.add(PHYSICS_SCHEDULE, sys_damage);
-    system.add(PHYSICS_SCHEDULE, sys_thaw);
-    system.add(PHYSICS_SCHEDULE, sys_collectable);
-    system.add(PHYSICS_SCHEDULE, sys_tile_collision);
-    system.add(PHYSICS_SCHEDULE, sys_save);
-    system.add(PHYSICS_SCHEDULE, sys_room_transition);
+    system.add(PHYSICS_SCHEDULE, Gravity::system);
+    system.add(PHYSICS_SCHEDULE, Velocity::system);
+    system.add(PHYSICS_SCHEDULE, Damage::system);
+    system.add(PHYSICS_SCHEDULE, Frozen::system);
+    system.add(PHYSICS_SCHEDULE, Collection::system);
+    system.add(PHYSICS_SCHEDULE, SaveArea::system);
+    system.add(PHYSICS_SCHEDULE, RoomCollision::system);
+    system.add(PHYSICS_SCHEDULE, RoomRegistry::system);
 
     // rendering //
 
+    system.add(Schedule::PostUpdate, PlayerHealth::system);
+    system.add(Schedule::PostUpdate, PlayerCombat::system);
     system.add(Schedule::PostUpdate, sys_render_tile_colliders);
     system.add(Schedule::PostUpdate, sys_render_colliders);
     system.add(Schedule::PostUpdate, sys_render_room_colliders);
-    system.add(Schedule::PostUpdate, sys_render_player_health);
-    system.add(Schedule::PostUpdate, sys_render_cooldown);
 
     // misc //
 
-    system.add(PHYSICS_SCHEDULE, sys_ttl);
-    system.add(Schedule::PostUpdate, sys_level_events);
+    system.add(PHYSICS_SCHEDULE, TimeToLive::system);
+    system.add(Schedule::PostUpdate, LevelScene::system);
   }
   /// Clean up the level scene
   fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
@@ -114,15 +114,18 @@ impl Scene for LevelScene {
 }
 
 /// Listen for level events
-pub fn sys_level_events(SysArgs { event, scene, world, state, .. }: &mut SysArgs) {
-  let PlayerQuery { health, .. } = use_player(world);
-  let dead = health.get_state() == LiveState::Dead;
-  let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
-  if dead || exit { scene.queue_next(MenuScene) }
+impl Systemize for LevelScene {
+  fn system(SysArgs { event, scene, world, state, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { health, .. } = use_player(world);
+    let dead = health.get_state() == LiveState::Dead;
+    let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
+    if dead || exit { scene.queue_next(MenuScene) }
 
-  let preferences = use_preferences(state);
-  if is_control(Control::Debug, Behaviour::Pressed, event) {
-    preferences.debug = !preferences.debug;
+    let preferences = use_preferences(state);
+    if is_control(Control::Debug, Behaviour::Pressed, event) {
+      preferences.debug = !preferences.debug;
+    }
+
+    Ok(())
   }
 }
-

@@ -12,7 +12,7 @@ use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::color;
 use crate::engine::rendering::component::Sprite;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::Timer;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
@@ -47,6 +47,7 @@ const GRUNT_CHARGE_COOLDOWN_MS: u64 = 1000;
 const GRUNT_TURN_COOLDOWN_MIN: u64 = 1000;
 const GRUNT_TURN_COOLDOWN_MAX: u64 = 5000;
 
+/// Randomize the direction of the Grunt
 fn randomize_direction() -> Option<Direction> {
   match random(0, 3) {
     0 => Some(Direction::Left),
@@ -56,11 +57,12 @@ fn randomize_direction() -> Option<Direction> {
   }
 }
 
+/// Compute the side a Grunt should face
 fn compute_side(position: Vec2<f32>, player_position: Vec2<f32>) -> Direction {
   if player_position.x < position.x { Direction::Left } else { Direction::Right }
 }
 
-/// Buzz state
+/// Grunt state
 #[derive(Debug, Copy, Clone)]
 pub enum GruntState {
   Idle { direction: Option<Direction>, turn_timer: Timer, charge_cooldown: Timer },
@@ -112,9 +114,45 @@ impl GruntState {
 
 // Grunt component
 #[derive(Default)]
-struct Grunt(pub GruntState);
+pub struct Grunt(pub GruntState);
 
-/// Add a Grunt to the world
+impl Systemize for Grunt {
+  /// Process Grunt logic each frame
+  fn system(SysArgs { state, camera, render, world, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { position: player_position, collider: player_collider, .. } = use_player(world);
+    let debug = use_preferences(state).debug;
+    let player_centroid = make_collision_box(player_position, player_collider).centroid();
+    for (_, (grunt, grunt_position, grunt_damage, grunt_velocity, grunt_collider)) in world
+      .query::<(&mut Grunt, &Position, &mut Damage, &mut Velocity, &Collider)>()
+      .without::<&Frozen>()
+    {
+      // skip state update if the Grunt is falling
+      if grunt_velocity.is_going_down() { return Ok(()); }
+
+      let grunt_centroid = make_collision_box(grunt_position, grunt_collider).centroid();
+      let next_state = grunt.0.update(grunt_centroid, player_centroid);
+      let (direction, speed, damage) = match next_state {
+        GruntState::Idle { direction, .. } => (direction, GRUNT_IDLE_SPEED, GRUNT_DAMAGE_IDLE),
+        GruntState::Charge { direction, .. } => {
+          if debug { render.draw_line(camera.translate(grunt_centroid), camera.translate(player_centroid), color::PRIMARY); }
+          (Some(direction), GRUNT_CHARGE_SPEED, GRUNT_DAMAGE_CHARGE)
+        }
+      };
+
+      grunt_damage.amount = damage;
+
+      if let Some(direction) = direction {
+        grunt_velocity.0.x = Vec2::<f32>::from(direction.to_coordinate()).x * speed;
+      } else {
+        grunt_velocity.remove_x();
+      }
+    }
+
+    Ok(())
+  }
+}
+
+/// Compose the components for a Grunt
 pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Result<impl DynamicBundle, String> {
   let grunt = asset_manager.texture.load(Path::new(GRUNT_ASSET))?;
   Ok((
@@ -130,35 +168,4 @@ pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resu
     Health::build(GRUNT_HEALTH).expect("Failed to build health"),
     RoomCollision,
   ))
-}
-
-/// Grunt system
-pub fn sys_grunt(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { position: player_position, collider: player_collider, .. } = use_player(world);
-  let debug = use_preferences(state).debug;
-  let player_centroid = make_collision_box(player_position, player_collider).centroid();
-  for (_, (grunt, grunt_position, grunt_damage, grunt_velocity, grunt_collider)) in world
-    .query::<(&mut Grunt, &Position, &mut Damage, &mut Velocity, &Collider)>()
-    .without::<&Frozen>()
-  {
-    // only update state if the grunt is on the floor
-    if grunt_velocity.is_going_down() { return; }
-    let grunt_centroid = make_collision_box(grunt_position, grunt_collider).centroid();
-    let next_state = grunt.0.update(grunt_centroid, player_centroid);
-    let (direction, speed, damage) = match next_state {
-      GruntState::Idle { direction, .. } => (direction, GRUNT_IDLE_SPEED, GRUNT_DAMAGE_IDLE),
-      GruntState::Charge { direction, .. } => {
-        if debug { render.draw_line(camera.translate(grunt_centroid), camera.translate(player_centroid), color::PRIMARY); }
-        (Some(direction), GRUNT_CHARGE_SPEED, GRUNT_DAMAGE_CHARGE)
-      }
-    };
-
-    grunt_damage.amount = damage;
-
-    if let Some(direction) = direction {
-      grunt_velocity.0.x = Vec2::<f32>::from(direction.to_coordinate()).x * speed;
-    } else {
-      grunt_velocity.remove_x();
-    }
-  }
 }

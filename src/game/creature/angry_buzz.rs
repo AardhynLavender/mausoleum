@@ -13,7 +13,7 @@ use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::color;
 use crate::engine::rendering::component::Sprite;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::{ConsumeAction, Timer};
 use crate::engine::utility::alias::Size2;
 use crate::game::combat::damage::Damage;
@@ -48,7 +48,7 @@ const SPIT_SPEED: f32 = 256.0;
 pub type AngryBuzzState = BuzzState;
 
 // Buzz component
-struct AngryBuzz {
+pub struct AngryBuzz {
   state: AngryBuzzState,
   #[allow(dead_code)]
   spit_cooldown: Timer,
@@ -65,7 +65,50 @@ impl AngryBuzz {
   }
 }
 
-/// Add a Buzz to the world
+/// Buzz system
+impl Systemize for AngryBuzz {
+  /// Process Buzz logic each frame
+  fn system(SysArgs { state, camera, render, world, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { position: player_position, collider, .. } = use_player(world);
+    let debug = use_preferences(state).debug;
+    let player_centroid = make_collision_box(player_position, collider).centroid();
+
+    let spits =
+      world
+        .query::<(&mut AngryBuzz, &Position, &mut Velocity, &Collider)>()
+        .without::<&Frozen>()
+        .into_iter()
+        .filter_map(|(_, (angry_buzz, angry_buzz_position, angry_buzz_velocity, angry_buzz_collider))| {
+          let angry_buzz_centroid = make_collision_box(angry_buzz_position, angry_buzz_collider).centroid();
+          let unit_transform = (player_centroid - angry_buzz_centroid).normalize();
+          if angry_buzz.state.update(angry_buzz_centroid, player_centroid) == AngryBuzzState::Follow {
+            angry_buzz_velocity.0 = unit_transform * SPEED;
+            if debug {
+              render.draw_line(camera.translate(angry_buzz_centroid), camera.translate(player_centroid), color::PRIMARY);
+            }
+
+            if angry_buzz.spit_cooldown.consume(ConsumeAction::Restart) {
+              let spit_unit_transform = Vec2::new(unit_transform.x, 0.0);
+              return Some(make_spit(angry_buzz_centroid, angry_buzz.spit_asset, spit_unit_transform.to_degrees()));
+            }
+          } else {
+            // todo: implement idle behavior
+            angry_buzz_velocity.0 = Vec2::default();
+          }
+
+          None
+        })
+        .collect::<Vec<_>>();
+
+    for spit in spits {
+      world.add(spit);
+    }
+
+    Ok(())
+  }
+}
+
+/// Compose the components for an AngryBuzz
 pub fn make_angry_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Result<impl DynamicBundle, String> {
   let buzz = asset_manager.texture.load(Path::new(ASSET))?;
   Ok((
@@ -82,6 +125,7 @@ pub fn make_angry_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) ->
   ))
 }
 
+/// Compose the components for a Buzz's spit
 pub fn make_spit(position: Vec2<f32>, spit_texture: TextureKey, angle: f32) -> impl DynamicBundle {
   (
     PlayerHostile,
@@ -96,42 +140,4 @@ pub fn make_spit(position: Vec2<f32>, spit_texture: TextureKey, angle: f32) -> i
     TimeToLive::new(SPIT_DURATION_MS),
     RoomCollision,
   )
-}
-
-/// Buzz system
-pub fn sys_angry_buzz(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { position: player_position, collider, .. } = use_player(world);
-  let debug = use_preferences(state).debug;
-  let player_centroid = make_collision_box(player_position, collider).centroid();
-
-  let spits =
-    world
-      .query::<(&mut AngryBuzz, &Position, &mut Velocity, &Collider)>()
-      .without::<&Frozen>()
-      .into_iter()
-      .filter_map(|(_, (angry_buzz, angry_buzz_position, angry_buzz_velocity, angry_buzz_collider))| {
-        let angry_buzz_centroid = make_collision_box(angry_buzz_position, angry_buzz_collider).centroid();
-        let unit_transform = (player_centroid - angry_buzz_centroid).normalize();
-        if angry_buzz.state.update(angry_buzz_centroid, player_centroid) == AngryBuzzState::Follow {
-          angry_buzz_velocity.0 = unit_transform * SPEED;
-          if debug {
-            render.draw_line(camera.translate(angry_buzz_centroid), camera.translate(player_centroid), color::PRIMARY);
-          }
-
-          if angry_buzz.spit_cooldown.consume(ConsumeAction::Restart) {
-            let spit_unit_transform = Vec2::new(unit_transform.x, 0.0);
-            return Some(make_spit(angry_buzz_centroid, angry_buzz.spit_asset, spit_unit_transform.to_degrees()));
-          }
-        } else {
-          // todo: implement idle behavior
-          angry_buzz_velocity.0 = Vec2::default();
-        }
-
-        None
-      })
-      .collect::<Vec<_>>();
-
-  for spit in spits {
-    world.add(spit);
-  }
 }

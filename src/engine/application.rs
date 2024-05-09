@@ -46,7 +46,7 @@ impl<'a> Engine<'a> {
   }
 
   /// Load assets, setup state, and start the main loop
-  pub fn start(&mut self, assets: &mut AssetManager) {
+  pub fn start(&mut self, assets: &mut AssetManager) -> Result<(), String> {
     let mut systems = SystemManager::new();
 
     (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets));
@@ -58,8 +58,8 @@ impl<'a> Engine<'a> {
       // process fixed updates
       self.last_frame.process_accumulated(|fixed_time| {
         let mut args = SysArgs::new(fixed_time, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
-        systems.update(Schedule::FixedUpdate, &mut args);
-      });
+        systems.update(Schedule::FixedUpdate, &mut args)
+      })?;
 
       if self.scenes.is_queue() {
         self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets))
@@ -71,13 +71,15 @@ impl<'a> Engine<'a> {
       }
 
       let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
-      systems.update(Schedule::FrameUpdate, &mut args);
-      systems.update(Schedule::PostUpdate, &mut args);
+      systems.update(Schedule::FrameUpdate, &mut args)?;
+      systems.update(Schedule::PostUpdate, &mut args)?;
 
       self.subsystem.renderer.present();
     }
 
     (self.lifecycle.destroy)();
+
+    Ok(())
   }
 }
 
@@ -97,7 +99,7 @@ impl Application {
     let mut assets = AssetManager::new(&subsystem.renderer, &ttf_context);
 
     let mut engine = Engine::new(&mut subsystem, dimensions, actions, initial_scene);
-    engine.start(&mut assets);
+    engine.start(&mut assets)?;
 
     Ok(())
   }

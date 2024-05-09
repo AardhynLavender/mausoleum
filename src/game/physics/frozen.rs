@@ -7,7 +7,7 @@ use std::time::Duration;
 use hecs::Entity;
 
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask};
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::tile::TileCollider;
 use crate::engine::time::Timer;
 use crate::engine::world::World;
@@ -23,6 +23,21 @@ impl Frozen {
   pub fn new(thaw_ms: u64) -> Self {
     let duration = Duration::from_millis(thaw_ms);
     Self(Timer::new(duration, true))
+  }
+}
+
+impl Systemize for Frozen {
+  /// Process thawing entities
+  fn system(SysArgs { world, .. }: &mut SysArgs) -> Result<(), String> {
+    let frozen_entities = world
+      .query::<&Frozen>()
+      .into_iter()
+      .map(|(entity, frozen)| (entity, *frozen))
+      .collect::<Vec<(Entity, Frozen)>>();
+    for (entity, frozen) in frozen_entities {
+      if frozen.0.done() { thaw_entity(entity, world).expect("Failed to thaw entity"); }
+    }
+    Ok(())
   }
 }
 
@@ -42,14 +57,3 @@ pub fn thaw_entity(entity: Entity, world: &mut World) -> Result<(), String> {
   )>(entity).map(|_| ())
 }
 
-/// Thaw entities marked as frozen when their timer is up
-pub fn sys_thaw(SysArgs { world, .. }: &mut SysArgs) {
-  let frozen_entities = world
-    .query::<&Frozen>()
-    .into_iter()
-    .map(|(entity, frozen)| (entity, *frozen))
-    .collect::<Vec<(Entity, Frozen)>>();
-  for (entity, frozen) in frozen_entities {
-    if frozen.0.done() { thaw_entity(entity, world).expect("Failed to thaw entity"); }
-  }
-}

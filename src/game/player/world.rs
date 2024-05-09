@@ -8,6 +8,7 @@ use crate::engine::rendering::camera::CameraTether;
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{Schedule, SystemManager};
+use crate::engine::system::Systemize;
 use crate::engine::utility::alias::Size2;
 use crate::engine::world::World;
 use crate::game::collectable::collectable::Collection;
@@ -17,7 +18,7 @@ use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::{PLAYER_BASE_HEALTH, PlayerCombat};
-use crate::game::player::controller::{PlayerController, sys_player_controller};
+use crate::game::player::controller::PlayerController;
 use crate::game::player::physics::{calculate_gravity, INITIAL_JUMP_HEIGHT, INITIAL_JUMP_WIDTH, INITIAL_WALK_SPEED};
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::Collectable;
@@ -102,6 +103,6 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Health::build(PLAYER_BASE_HEALTH).expect("Failed to build player health"),
   ));
 
-  system.add(Schedule::PostUpdate, sys_player_controller);
+  system.add(Schedule::PostUpdate, PlayerController::system);
 }
 

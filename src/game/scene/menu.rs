@@ -76,14 +76,10 @@ impl Scene for MenuScene {
 // Systems //
 
 /// Manage the selection of the main menu
-pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
-  let state = state.get_mut::<MenuState>().expect("Failed to get menu state");
-  if is_control(Control::Down, Behaviour::Pressed, event) {
-    state.interface += 1;
-  }
-  if is_control(Control::Up, Behaviour::Pressed, event) {
-    state.interface -= 1;
-  }
+pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
+  let state = state.get_mut::<MenuState>()?;
+  if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
+  if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
   if is_control(Control::Select, Behaviour::Pressed, event) {
     let (index, ..) = state.interface.get_selection();
     match index {
@@ -101,19 +97,27 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
       }
       2 => println!("Not implemented yet"),
       3 => event.queue_quit(),
-      _ => panic!("Invalid selection")
+      _ => {
+        return Err(String::from("Invalid menu selection"));
+      }
     }
   }
+
+  Ok(())
 }
 
 /// Render a box around the selected item
-pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) {
-  let state = state.get::<MenuState>().expect("Failed to get menu state");
+pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) -> Result<(), String> {
+  let state = state.get::<MenuState>()?;
   let (.., entity) = state.interface.get_selection();
-  let (position, text) = world.query_entity::<(&Position, &Text)>(entity).expect("Failed to get selection");
+  let (position, text) = world
+    .query_entity::<(&Position, &Text)>(entity)
+    .map_err(|_| String::from("Failed to get selected text"))?;
   let rect = Rec2::new(
     Vec2::<i32>::from(position.0.clone()) - Vec2::new(2, 1),
     text.get_dimensions().clone() + Vec2::new(3, 3),
   );
   render.draw_rect(rect, color::PRIMARY);
+
+  Ok(())
 }

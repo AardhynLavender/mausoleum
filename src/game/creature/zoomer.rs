@@ -12,7 +12,7 @@ use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::query::{TileQuery, TileQueryResult};
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
@@ -45,6 +45,28 @@ pub struct Zoomer {
   pub turning: bool,
 }
 
+impl Systemize for Zoomer {
+  /// Process Zoomer logic each frame
+  fn system(SysArgs { world, render, state, camera, .. }: &mut SysArgs) -> Result<(), String> {
+    let debug = use_preferences(state).debug;
+    let room = use_room(state);
+
+    for (_, (zoomer, velocity, position)) in world
+      .query::<(&mut Zoomer, &mut Velocity, &mut Position)>()
+    {
+      let direction = Direction::try_from(velocity.0).expect("Zoomer must have velocity!");
+
+      let (leading_coordinate, leading_position) = compute_leading(zoomer, room, direction, position, velocity);
+      if debug { render.draw_rect(Rec2::new(camera.translate(leading_position), TILE_SIZE), RGBA::new(255, 128, 0, OPAQUE)); }
+
+      let cling_position = compute_cling(zoomer, room, direction, leading_coordinate, position, velocity);
+      if debug { render.draw_rect(Rec2::new(camera.translate(cling_position), TILE_SIZE), RGBA::new(128, 255, 0, OPAQUE)); }
+    }
+
+    Ok(())
+  }
+}
+
 /// Add a Zoomer to the world
 pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initial_direction: Direction) -> Result<impl DynamicBundle, String> {
   if initial_direction.is_ordinal() { return Err(String::from("Zoomer must be initialized with an ordinal direction")); }
@@ -63,23 +85,6 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
     Damage::new(ZOOMER_DAMAGE),
     Health::build(ZOOMER_HEALTH).expect("Failed to build health")
   ))
-}
-
-/// Process Zoomer pathfinding and debug rendering
-pub fn sys_zoomer(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
-  let debug = use_preferences(state).debug;
-  let room = use_room(state);
-  for (_, (zoomer, velocity, position)) in world
-    .query::<(&mut Zoomer, &mut Velocity, &mut Position)>()
-  {
-    let direction = Direction::try_from(velocity.0).expect("Zoomer must have velocity!");
-
-    let (leading_coordinate, leading_position) = compute_leading(zoomer, room, direction, position, velocity);
-    if debug { render.draw_rect(Rec2::new(camera.translate(leading_position), TILE_SIZE), RGBA::new(255, 128, 0, OPAQUE)); }
-
-    let cling_position = compute_cling(zoomer, room, direction, leading_coordinate, position, velocity);
-    if debug { render.draw_rect(Rec2::new(camera.translate(cling_position), TILE_SIZE), RGBA::new(128, 255, 0, OPAQUE)); }
-  }
 }
 
 /// Get the leading edge of the zoomer collision box.

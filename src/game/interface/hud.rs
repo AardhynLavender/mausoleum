@@ -1,7 +1,7 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::{make_text, Text};
 use crate::engine::rendering::color::color;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
 use crate::game::constant::WINDOW;
@@ -22,12 +22,16 @@ pub fn make_player_health_text(world: &mut World, asset: &mut AssetManager) {
   );
 }
 
-pub fn sys_render_player_health(SysArgs { world, .. }: &mut SysArgs) {
-  let PlayerQuery { health, .. } = use_player(world);
-  let text = format!("{}", health);
-  let (_, (health_text, ..)) = world.query::<(&mut Text, &PlayerHealth)>()
-    .into_iter()
-    .next()
-    .expect("Failed to get player health text");
-  health_text.set_content(text);
+impl Systemize for PlayerHealth {
+  fn system(SysArgs { world, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { health, .. } = use_player(world);
+    let text = format!("{}", health);
+    let (_, (health_text, ..)) = world.query::<(&mut Text, &PlayerHealth)>()
+      .into_iter()
+      .next()
+      .ok_or(String::from("Failed to get player health text"))?;
+    health_text.set_content(text);
+
+    Ok(())
+  }
 }

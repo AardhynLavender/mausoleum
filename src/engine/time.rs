@@ -42,11 +42,12 @@ impl Frame {
     (delta, alpha)
   }
   /// Process the accumulated time in fixed delta increments
-  pub fn process_accumulated(&mut self, mut processor: impl FnMut(f32)) {
+  pub fn process_accumulated(&mut self, mut processor: impl FnMut(f32) -> Result<(), String>) -> Result<(), String> {
     while self.accumulator >= self.fixed_delta {
       self.accumulator -= self.fixed_delta;
-      processor(self.fixed_delta);
+      processor(self.fixed_delta)?;
     }
+    Ok(())
   }
 }
 

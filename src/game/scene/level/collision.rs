@@ -9,7 +9,7 @@ use hecs::Entity;
 use crate::engine::geometry::collision::{Collision, CollisionBox, rec2_collision};
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::{OPAQUE, RGBA};
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::query::{TileHandle, TileQuery};
 use crate::engine::tile::tile::TileCollider;
 use crate::engine::tile::tilemap::TilemapMutation;
@@ -30,76 +30,80 @@ pub const MAX_COLLISION_PHASES: u32 = 10;
 pub struct RoomCollision;
 
 /// Resolve tile collisions for entities collideable with rooms tiles
-pub fn sys_tile_collision(SysArgs { world, state, .. }: &mut SysArgs) {
-  let colliders = world
-    .query::<(&Position, &Collider)>()
-    .with::<&RoomCollision>()
-    .without::<&Frozen>()
-    .into_iter()
-    .map(|(entity, (position, collider))| {
-      (entity, (*position, *collider))
-    })
-    .collect::<HashMap<_, _>>();
+impl Systemize for RoomCollision {
+  fn system(SysArgs { world, state, .. }: &mut SysArgs) -> Result<(), String> {
+    let colliders = world
+      .query::<(&Position, &Collider)>()
+      .with::<&RoomCollision>()
+      .without::<&Frozen>()
+      .into_iter()
+      .map(|(entity, (position, collider))| {
+        (entity, (*position, *collider))
+      })
+      .collect::<HashMap<_, _>>();
 
-  let room = use_room(state);
+    let room = use_room(state);
 
-  for (entity, (position, collider)) in &colliders {
-    let mut collision_box = make_collision_box(position, collider);
-    let mut phase = 0;
-    'resolving: loop {
-      phase += 1;
-      let collision = get_tile_collisions(world, &collision_box).next();
-      if let Some((tile, collision, position)) = collision {
-        if phase > MAX_COLLISION_PHASES {
-          // eprintln!("Infinite collision resolution loop detected, what do?");
-          return;
-        }
-
-        let strong = world.has_component::<Strong>(tile).expect("Failed to retrieve the entity");
-        let soft = world.has_component::<Soft>(tile).expect("Failed to retrieve the entity");
-        let bullet = world.has_component::<Bullet>(*entity).expect("Failed to retrieve the entity");
-        let rocket = world.has_component::<Rocket>(*entity).expect("Failed to retrieve the entity");
-        if strong && rocket || (soft && (rocket || bullet)) {
-          let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
-          if let Ok(handle) = TileHandle::try_from(result) {
-            room.remove_tile(world, handle, TilemapMutation::Session);
-          } else {
-            panic!("No concept associated with destroyed tile");
+    for (entity, (position, collider)) in &colliders {
+      let mut collision_box = make_collision_box(position, collider);
+      let mut phase = 0;
+      'resolving: loop {
+        phase += 1;
+        let collision = get_tile_collisions(world, &collision_box).next();
+        if let Some((tile, collision, position)) = collision {
+          if phase > MAX_COLLISION_PHASES {
+            // return Err(String::from("Infinite collision resolution loop detected"));
+            return Ok(());
           }
-        }
 
-        let fragile = world.has_component::<Fragile>(*entity).expect("Failed to retrieve the entity");
-        if fragile {
-          world.free_now(*entity).expect("Failed to free entity");
+          let strong = world.has_component::<Strong>(tile)?;
+          let soft = world.has_component::<Soft>(tile)?;
+          let bullet = world.has_component::<Bullet>(*entity)?;
+          let rocket = world.has_component::<Rocket>(*entity)?;
+          if strong && rocket || (soft && (rocket || bullet)) {
+            let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
+            if let Ok(handle) = TileHandle::try_from(result) {
+              room.remove_tile(world, handle, TilemapMutation::Session);
+            } else {
+              return Err(String::from("Failed to remove tile"));
+            }
+          }
+
+          let fragile = world.has_component::<Fragile>(*entity)?;
+          if fragile {
+            world.free_now(*entity)?;
+            break 'resolving;
+          }
+
+          let mut position = world.get_component_mut::<Position>(*entity)?;
+          let mut velocity = world.get_component_mut::<Velocity>(*entity)?;
+          let resolution = collision.get_resolution();
+          position.0 = position.0 - resolution;
+          if resolution.y > 0.0 && velocity.0.y > 0.0 {
+            // cut vertical acceleration if resolving up while falling
+            // eg: landing on a platform
+            position.0.y = position.0.y.round();
+            velocity.0.y = 0.0;
+          } else if resolution.y < 0.0 && velocity.0.y < 0.0 {
+            // cut vertical acceleration if resolving down while jumping
+            // eg: hitting head on a platform
+            position.0.y = position.0.y.round();
+            velocity.0.y = 0.0;
+          } else if resolution.x != 0.0 {
+            // cut horizontal acceleration if resolving left or right
+            // eg: hitting a wall
+            position.0.x = position.0.x.round();
+            velocity.0.x = 0.0;
+          }
+
+          collision_box = make_collision_box(&position, collider); // update the collision box with the new position
+        } else {
           break 'resolving;
         }
+      };
+    }
 
-        let mut position = world.get_component_mut::<Position>(*entity).expect("Failed to retrieve entity");
-        let mut velocity = world.get_component_mut::<Velocity>(*entity).expect("Failed to retrieve entity");
-        let resolution = collision.get_resolution();
-        position.0 = position.0 - resolution;
-        if resolution.y > 0.0 && velocity.0.y > 0.0 {
-          // cut vertical acceleration if resolving up while falling
-          // eg: landing on a platform
-          position.0.y = position.0.y.round();
-          velocity.0.y = 0.0;
-        } else if resolution.y < 0.0 && velocity.0.y < 0.0 {
-          // cut vertical acceleration if resolving down while jumping
-          // eg: hitting head on a platform
-          position.0.y = position.0.y.round();
-          velocity.0.y = 0.0;
-        } else if resolution.x != 0.0 {
-          // cut horizontal acceleration if resolving left or right
-          // eg: hitting a wall
-          position.0.x = position.0.x.round();
-          velocity.0.x = 0.0;
-        }
-
-        collision_box = make_collision_box(&position, collider); // update the collision box with the new position
-      } else {
-        break 'resolving;
-      }
-    };
+    Ok(())
   }
 }
 
@@ -115,8 +119,8 @@ fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox)
 }
 
 /// Render the tile colliders to the screen when debug mode is active
-pub fn sys_render_tile_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) {
-  if !use_preferences(state).debug { return; }
+pub fn sys_render_tile_colliders(SysArgs { world, camera, render, state, .. }: &mut SysArgs) -> Result<(), String> {
+  if !use_preferences(state).debug { return Ok(()); }
 
   for (_, (position, collider)) in world.query::<(&Position, &TileCollider)>() {
     let color = RGBA::new(255, 0, 0, OPAQUE);
@@ -128,4 +132,6 @@ pub fn sys_render_tile_colliders(SysArgs { world, camera, render, state, .. }: &
     if collider.mask.bottom { render.draw_line(p + Vec2::new(0, height as i32 - 1), p + Vec2::new(width as i32 - 1, height as i32 - 1), color); }
     if collider.mask.left { render.draw_line(p, p + Vec2::new(0, height as i32 - 1), color); }
   }
+
+  Ok(())
 }

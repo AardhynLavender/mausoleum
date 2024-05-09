@@ -2,7 +2,7 @@ use hecs::{Component, Entity, Or};
 
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::state::State;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::tile::TileCollider;
 use crate::engine::tile::tilemap::TilemapMutation;
 use crate::engine::time::ConsumeAction;
@@ -45,14 +45,16 @@ fn get_damage<Mask>(world: &mut World, collision_box: &CollisionBox) -> Option<(
   None
 }
 
-// Deal damage to creatures and the player
-pub fn sys_damage(SysArgs { world, state, .. }: &mut SysArgs) {
-  player_damage(world);
-  creature_damage(world, state);
+impl Systemize for Damage {
+  /// Process damage each frame
+  fn system(SysArgs { world, state, .. }: &mut SysArgs) -> Result<(), String> {
+    player_damage(world)?;
+    creature_damage(world, state)
+  }
 }
 
 // Damage the player when colliding with dangerous entities
-pub fn player_damage(world: &mut World) {
+pub fn player_damage(world: &mut World) -> Result<(), String> {
   let PlayerQuery { position, collider, .. } = use_player(world);
   let player_box = CollisionBox::new(position.0, collider.0.size);
 
@@ -63,10 +65,12 @@ pub fn player_damage(world: &mut World) {
       combat.hit_cooldown.reset();
     }
   }
+
+  Ok(())
 }
 
 /// Damage creatures when colliding with player projectiles
-pub fn creature_damage(world: &mut World, state: &mut State) {
+pub fn creature_damage(world: &mut World, state: &mut State) -> Result<(), String> {
   let creatures = world
     .query::<(&Position, &Collider)>()
     .with::<(&PlayerHostile, &Health)>()
@@ -76,7 +80,7 @@ pub fn creature_damage(world: &mut World, state: &mut State) {
     })
     .collect::<Vec<_>>();
 
-  if creatures.is_empty() { return; }
+  if creatures.is_empty() { return Ok(()); }
 
   let dead_creatures = creatures
     .iter()
@@ -104,8 +108,8 @@ pub fn creature_damage(world: &mut World, state: &mut State) {
 
   let room = use_room(state);
   for entity in dead_creatures {
-    room
-      .remove_entity(entity, world, TilemapMutation::Session) // creatures stay dead during the session
-      .expect("failed to kill creature");
+    room.remove_entity(entity, world, TilemapMutation::Session)?; // creatures stay dead during the session
   }
+
+  Ok(())
 }

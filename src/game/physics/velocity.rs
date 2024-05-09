@@ -3,7 +3,7 @@
  */
 
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 
@@ -58,13 +58,17 @@ impl From<Vec2<f32>> for Velocity {
   fn from(vec: Vec2<f32>) -> Self { Self(vec) }
 }
 
-/// Apply `Velocity` components to `Position` components
-pub fn sys_velocity(SysArgs { delta, world, .. }: &mut SysArgs) {
-  for (_, (position, velocity)) in world
-    .query::<(&mut Position, &mut Velocity)>()
-    .without::<&Frozen>()
-  {
-    position.0 = position.0 + velocity.0 * *delta;
+impl Systemize for Velocity {
+  /// Process velocity each frame
+  fn system(SysArgs { delta, world, .. }: &mut SysArgs) -> Result<(), String> {
+    for (_, (position, velocity)) in world
+      .query::<(&mut Position, &mut Velocity)>()
+      .without::<&Frozen>()
+    {
+      position.0 = position.0 + velocity.0 * *delta;
+    }
+
+    Ok(())
   }
 }
 

@@ -10,7 +10,7 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::color::{OPAQUE, RGBA};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
-use crate::engine::system::SysArgs;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::Timer;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::direction::Direction;
@@ -65,21 +65,22 @@ impl PlayerCombat {
   }
 }
 
-/// Render the player's hit cooldown
-pub fn sys_render_cooldown(SysArgs { world, render, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { combat, position, .. } = use_player(world);
-  if !combat.hit_cooldown.done() {
-    render.draw_rect(Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32)), RGBA::new(255, 0, 255, OPAQUE));
+impl Systemize for PlayerCombat {
+  /// Render the player's hit cooldown
+  fn system(SysArgs { world, render, camera, .. }: &mut SysArgs) -> Result<(), String> {
+    let PlayerQuery { combat, position, .. } = use_player(world);
+    if !combat.hit_cooldown.done() {
+      let rect = Rec2::new(Vec2::<i32>::from(camera.translate(position.0)) - 2, Size2::new(16, 32));
+      render.draw_rect(rect, RGBA::new(255, 0, 255, OPAQUE));
+    }
+
+    Ok(())
   }
 }
 
 /// Available weapon types for the player
 #[derive(PartialEq)]
-pub enum Weapon {
-  Bullet,
-  Rocket,
-  IceBeam,
-}
+pub enum Weapon { Bullet, Rocket, IceBeam }
 
 pub type ProjectileLayer = layer::Layer8;
 
