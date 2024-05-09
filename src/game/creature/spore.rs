@@ -54,7 +54,6 @@ pub struct Spore {
 }
 
 /// An indestructible damaging cell spawned by a spore
-#[derive(Default)]
 pub struct SporeCell;
 
 impl Spore {
@@ -71,7 +70,7 @@ pub fn make_spore(asset_manager: &mut AssetManager, position: Vec2<f32>, directi
   let cell = asset_manager.texture.load(Path::new(CELL_ASSET))?;
   let floored_position = floor_to_tile(position);
   Ok((
-    PlayerHostile::default(),
+    PlayerHostile,
     Spore::build(direction, cell)?,
     Sprite::new(spore, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(floored_position),
@@ -84,7 +83,7 @@ pub fn make_spore(asset_manager: &mut AssetManager, position: Vec2<f32>, directi
 
 pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> impl DynamicBundle {
   (
-    PlayerHostile::default(),
+    PlayerHostile,
     SporeCell,
     Sprite::new(texture, Rec2::new(Vec2::default(), CELL_DIMENSIONS)),
     Position::from(position),
@@ -92,7 +91,7 @@ pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> 
     Velocity::from(Vec2::from_degrees(angle) * CELL_SPEED),
     Gravity::new(CELL_GRAVITY),
     Damage::new(CELL_DAMAGE),
-    RoomCollision::default(),
+    RoomCollision,
     Fragile,
     CreatureLayer::default(),
   )

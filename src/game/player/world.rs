@@ -97,7 +97,7 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
     Collection::new(inventory),
     Velocity::default(),
-    RoomCollision::default(),
+    RoomCollision,
     Collider::new(PLAYER_COLLIDER),
     Health::build(PLAYER_BASE_HEALTH).expect("Failed to build player health"),
   ));

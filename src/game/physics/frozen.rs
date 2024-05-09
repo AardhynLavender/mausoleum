@@ -14,7 +14,7 @@ use crate::engine::world::World;
 
 /// Mark an entity as frozen.
 ///
-/// Frozen entities _should_ not affected by physics.
+/// Frozen entities are not effected by physics and other systems until they thaw.
 #[derive(Copy, Clone)]
 pub struct Frozen(pub Timer);
 

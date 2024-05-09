@@ -27,7 +27,6 @@ use crate::game::scene::level::room::use_room;
 pub const MAX_COLLISION_PHASES: u32 = 10;
 
 /// Entities with this component will collide with room tiles and be resolved
-#[derive(Default)]
 pub struct RoomCollision;
 
 /// Resolve tile collisions for entities collideable with rooms tiles

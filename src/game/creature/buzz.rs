@@ -67,8 +67,8 @@ struct Buzz(pub BuzzState);
 pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Result<impl DynamicBundle, String> {
   let buzz = asset_manager.texture.load(Path::new(BUZZ_ASSET))?;
   Ok((
-    PlayerHostile::default(),
-    Buzz::default(),
+    PlayerHostile,
+    Buzz,
     Sprite::new(buzz, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position::from(position),
     Velocity::default(),
@@ -76,7 +76,7 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
     CreatureLayer::default(),
     Damage::new(BUZZ_DAMAGE),
     Health::build(BUZZ_HEALTH).expect("Failed to build health"),
-    RoomCollision::default(),
+    RoomCollision,
   ))
 }
 

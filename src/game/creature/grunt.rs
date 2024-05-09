@@ -63,10 +63,13 @@ fn compute_side(position: Vec2<f32>, player_position: Vec2<f32>) -> Direction {
 /// Buzz state
 #[derive(Debug, Copy, Clone)]
 pub enum GruntState {
-  /// the Buzz will float about idly within the room
   Idle { direction: Option<Direction>, turn_timer: Timer, charge_cooldown: Timer },
   /// The Grunt will charge in a direction for a time
   Charge { timer: Timer, direction: Direction },
+}
+
+impl Default for GruntState {
+  fn default() -> Self { GruntState::build_idle() }
 }
 
 impl GruntState {
@@ -108,18 +111,14 @@ impl GruntState {
 }
 
 // Grunt component
+#[derive(Default)]
 struct Grunt(pub GruntState);
-
-impl Default for Grunt {
-  /// Instantiate a default idle Grunt
-  fn default() -> Self { Grunt(GruntState::build_idle()) }
-}
 
 /// Add a Grunt to the world
 pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Result<impl DynamicBundle, String> {
   let grunt = asset_manager.texture.load(Path::new(GRUNT_ASSET))?;
   Ok((
-    PlayerHostile::default(),
+    PlayerHostile,
     Grunt::default(),
     Sprite::new(grunt, Rec2::new(Vec2::default(), GRUNT_DIMENSIONS)),
     Position::from(position),
@@ -129,7 +128,7 @@ pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resu
     Gravity::new(GRUNT_GRAVITY),
     Damage::new(GRUNT_DAMAGE_IDLE),
     Health::build(GRUNT_HEALTH).expect("Failed to build health"),
-    RoomCollision::default(),
+    RoomCollision,
   ))
 }
 

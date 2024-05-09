@@ -12,7 +12,8 @@ use crate::engine::rendering::color::RGBA;
 
 /// Z layer for rendering
 ///
-/// Highly recommend using alias to attach semantics to units
+/// Because the user might use an alias, we need this redundant default constructor to keep the Rust
+/// compiler happy
 pub mod layer {
   #[derive(Default)]
   pub struct Layer1;

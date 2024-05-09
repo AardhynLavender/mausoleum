@@ -52,7 +52,7 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   let floored_position = floor_to_tile(position);
 
   Ok((
-    PlayerHostile::default(),
+    PlayerHostile,
     Zoomer { rotation: Rotation::Right, last_cling: None, last_lead: None, turning: false },
     Sprite::new(zoomer, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(floored_position),

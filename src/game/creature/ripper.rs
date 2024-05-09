@@ -33,7 +33,6 @@ const RIPPER_HEALTH: u32 = 30;
 const RIPPER_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 8);
 
-#[derive(Default)]
 pub struct Ripper;
 
 /// Add a `Ripper` to the world
@@ -46,8 +45,8 @@ pub fn make_ripper(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
   let floored_position = floor_to_tile(position);
 
   Ok((
-    PlayerHostile::default(),
-    Ripper::default(),
+    PlayerHostile,
+    Ripper,
     Sprite::new(ripper, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(floored_position),
     Velocity::from(Vec2::<f32>::from(initial_direction.to_coordinate()) * RIPPER_SPEED),

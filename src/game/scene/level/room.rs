@@ -116,7 +116,7 @@ impl Room {
 
         let damage = tile.data.meta.damage;
         if damage > 0 {
-          world.add_components(entity, (PlayerHostile::default(), Damage::new(damage)))?;
+          world.add_components(entity, (PlayerHostile, Damage::new(damage)))?;
         }
       }
 

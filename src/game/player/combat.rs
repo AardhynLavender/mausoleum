@@ -41,7 +41,6 @@ const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
 pub const THAW_DURATION: u64 = 5000;
 
 /// Mark an entity as being hostile to the player
-#[derive(Default)]
 pub struct PlayerHostile;
 
 /// Store player specific data
@@ -85,19 +84,15 @@ pub enum Weapon {
 pub type ProjectileLayer = layer::Layer8;
 
 /// Mark an entity as a bullet projectile
-#[derive(Default)]
 pub struct Bullet;
 
 /// Mark an entity as a rocket projectile
-#[derive(Default)]
 pub struct Rocket;
 
 /// Mark an entity as a projectile that freezes creatures
-#[derive(Default)]
 pub struct IceBeam;
 
 /// Mark an entity as damaging to creatures but the player
-#[derive(Default)]
 pub struct CreatureHostile;
 
 /// Fire a plasma projectile in the direction the player is aiming

@@ -39,7 +39,6 @@ const WIDTH: Vec2<f32> = Vec2::new(DIMENSIONS.x as f32, 0.0);
 const HEIGHT: Vec2<f32> = Vec2::new(0.0, DIMENSIONS.y as f32);
 
 // Spiky component
-#[derive(Default)]
 struct Spiky;
 
 /// Add a Spiky to the world
@@ -50,8 +49,8 @@ pub fn make_spiky(asset_manager: &mut AssetManager, position: Vec2<f32>, initial
   let spiky = asset_manager.texture.load(Path::new(SPIKY_ASSET))?;
   let floored_position = floor_to_tile(position);
   Ok((
-    PlayerHostile::default(),
-    Spiky::default(),
+    PlayerHostile,
+    Spiky,
     Sprite::new(spiky, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position(floored_position),
     Gravity::new(Vec2::new(0.0, 0.0)),
