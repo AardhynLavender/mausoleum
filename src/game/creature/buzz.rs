@@ -16,7 +16,7 @@ use crate::engine::utility::alias::Size2;
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::creature::CreatureLayer;
-use crate::game::physics::collision::Collider;
+use crate::game::physics::collision::{Collider, make_collision_box};
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
@@ -28,7 +28,7 @@ use crate::game::scene::level::collision::RoomCollision;
 const BUZZ_SPEED: f32 = 96.0;
 const BUZZ_ASSET: &str = "asset/buzz.png";
 const BUZZ_HEALTH: u32 = 20;
-const BUZZ_DAMAGE: u32 = 10;
+const BUZZ_DAMAGE: u32 = 8;
 const DIMENSIONS: Size2 = Size2::new(8, 8);
 
 const BUZZ_FOLLOW_RADIUS: f32 = 256.0;
@@ -68,7 +68,7 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
   let buzz = asset_manager.texture.load(Path::new(BUZZ_ASSET))?;
   Ok((
     PlayerHostile,
-    Buzz,
+    Buzz::default(),
     Sprite::new(buzz, Rec2::new(Vec2::default(), DIMENSIONS)),
     Position::from(position),
     Velocity::default(),
@@ -82,17 +82,21 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
 
 /// Buzz system
 pub fn sys_buzz(SysArgs { world, render, state, camera, .. }: &mut SysArgs) {
-  let PlayerQuery { position: player_position, .. } = use_player(world);
+  let PlayerQuery { position: player_position, collider, .. } = use_player(world);
   let debug = use_preferences(state).debug;
-  let player_position = player_position.0;
-  for (_, (buzz, buzz_position, buzz_velocity)) in world
-    .query::<(&mut Buzz, &Position, &mut Velocity)>()
+  let player_centroid = make_collision_box(player_position, collider).centroid();
+
+  for (_, (buzz, buzz_position, buzz_velocity, collider)) in world
+    .query::<(&mut Buzz, &Position, &mut Velocity, &Collider)>()
     .without::<&Frozen>()
   {
-    let unit_transform = (player_position - buzz_position.0).normalize();
-    if buzz.0.update(buzz_position.0, player_position) == BuzzState::Follow {
+    let buzz_centroid = make_collision_box(buzz_position, collider).centroid();
+    let unit_transform = (player_centroid - buzz_centroid).normalize();
+    if buzz.0.update(buzz_centroid, player_centroid) == BuzzState::Follow {
       buzz_velocity.0 = unit_transform * BUZZ_SPEED;
-      if debug { render.draw_line(camera.translate(buzz_position.0), camera.translate(player_position), color::PRIMARY); }
+      if debug {
+        render.draw_line(camera.translate(buzz_centroid), camera.translate(player_centroid), color::PRIMARY);
+      }
     } else {
       // todo: implement idle behavior
       buzz_velocity.0 = Vec2::default();
