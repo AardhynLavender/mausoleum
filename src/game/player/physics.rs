@@ -7,7 +7,7 @@ use crate::engine::geometry::shape::Vec2;
 // 5 tiles
 pub const INITIAL_JUMP_HEIGHT: f32 = 80.0;
 // 7 tiles
-pub const HIGH_JUMP_BOOTS_JUMP_HEIGHT: f32 = INITIAL_JUMP_HEIGHT + 32.0;
+pub const HIGH_JUMP_BOOTS_JUMP_HEIGHT: f32 = INITIAL_JUMP_HEIGHT + 24.0;
 // 6 tiles
 pub const INITIAL_JUMP_WIDTH: f32 = 96.0;
 // 3 tiles per second

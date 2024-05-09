@@ -115,10 +115,10 @@
   <object id="8" type="Spiky" x="186.333" y="346.333">
    <point/>
   </object>
-  <object id="9" type="Buzz" x="503.667" y="759">
+  <object id="9" type="AngryBuzz" x="451.667" y="537.667">
    <point/>
   </object>
-  <object id="10" type="Buzz" x="134.667" y="759.333">
+  <object id="10" type="AngryBuzz" x="311.334" y="874.666">
    <point/>
   </object>
  </objectgroup>
