@@ -94,10 +94,9 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) {
         scene.queue_next(LevelScene::new(save_data))
       }
       1 => {
-        // delete old save data
+        // delete old save data and start from default
         let save_data = SaveData::from_erased(USER_SAVE_FILE)
-          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
-            .unwrap_or(SaveData::default()));
+          .unwrap_or(SaveData::default());
         scene.queue_next(LevelScene::new(save_data))
       }
       2 => println!("Not implemented yet"),
