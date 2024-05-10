@@ -2,10 +2,13 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::utility::alias::Coordinate;
 
 /**
- * Direction and conversion utilities
+ * Direction and rotation structures and  conversion utilities
  */
 
+// Axis Direction //
+
 /// Axis' direction
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AxisDirection {
   Positive,
   Zero,
@@ -25,15 +28,33 @@ impl AxisDirection {
   }
 }
 
+// Compass Direction Type //
+
 /// A snap type for directions
-pub enum SnapType {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CompassDirectionType {
   Ordinal,
   Cardinal,
-  Any,
 }
 
-pub const HALF_ROTATION: usize = DIRECTIONS / 2;
-pub const QUARTER_ROTATION: usize = DIRECTIONS / 4;
+impl TryFrom<String> for CompassDirectionType {
+  type Error = String;
+  fn try_from(value: String) -> Result<Self, Self::Error> {
+    let normalized = value.trim().to_lowercase();
+    Ok(match normalized.as_str() {
+      "ordinal" => CompassDirectionType::Ordinal,
+      "cardinal" => CompassDirectionType::Cardinal,
+      _ => return Err(String::from("Failed to convert string to CompassDirectionType")),
+    })
+  }
+}
+
+// Rotation //
+
+pub const FULL_ROTATION_DEG: u32 = 360;
+pub const HALF_ROTATION_DEG: u32 = 180;
+pub const QUARTER_ROTATION_DEG: u32 = 90;
+pub const EIGHTH_ROTATION_DEG: u32 = 45;
 
 /// A 2D binary rotation direction
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -55,6 +76,11 @@ impl Rotation {
 }
 
 // Direction //
+
+pub const FULL_DIRECTION_ROTATION: usize = DIRECTIONS;
+pub const HALF_DIRECTION_ROTATION: usize = DIRECTIONS / 2;
+pub const QUARTER_DIRECTION_ROTATION: usize = DIRECTIONS / 4;
+pub const EIGHTH_DIRECTION_ROTATION: usize = DIRECTIONS / 8;
 
 /// A cardinal or ordinal direction
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -137,13 +163,13 @@ impl TryFrom<String> for Direction {
     let normalized = value.trim().to_lowercase();
     Ok(match normalized.as_str() {
       "up" => Direction::Up,
-      "upright" => Direction::UpRight,
+      "upright" | "up_right" => Direction::UpRight,
       "right" => Direction::Right,
-      "downright" => Direction::DownRight,
+      "downright" | "down_right" => Direction::DownRight,
       "down" => Direction::Down,
-      "downleft" => Direction::DownLeft,
+      "downleft" | "down_left" => Direction::DownLeft,
       "left" => Direction::Left,
-      "upleft" => Direction::UpLeft,
+      "upleft" | "up_left" => Direction::UpLeft,
       _ => return Err(String::from("Failed to convert string to Direction")),
     })
   }
@@ -214,6 +240,22 @@ mod tests {
   }
 
   #[test]
+  fn test_axis_direction_new() {
+    assert_eq!(AxisDirection::new(0.0), AxisDirection::Zero);
+    assert_eq!(AxisDirection::new(0.1), AxisDirection::Positive);
+    assert_eq!(AxisDirection::new(-0.1), AxisDirection::Negative);
+  }
+
+  #[test]
+  fn test_compass_direction_type_from_string() {
+    assert_eq!(CompassDirectionType::try_from(String::from("ordinal")), Ok(CompassDirectionType::Ordinal), "String is 'ordinal'");
+    assert_eq!(CompassDirectionType::try_from(String::from("cardinal")), Ok(CompassDirectionType::Cardinal), "String is 'cardinal'");
+    assert_eq!(CompassDirectionType::try_from(String::from("arbitrary string")), Err(String::from("Failed to convert string to CompassDirectionType")), "String is invalid");
+    assert_eq!(CompassDirectionType::try_from(String::from("")), Err(String::from("Failed to convert string to CompassDirectionType")), "String is empty");
+    assert_eq!(CompassDirectionType::try_from(String::from(" cArdiNal   ")), Ok(CompassDirectionType::Cardinal), "strings are normalized before conversion");
+  }
+
+  #[test]
   fn test_from_vec2() {
     assert_eq!(Direction::try_from(Vec2::new(0.0, -1.2)), Ok(Direction::Up), "Vector is moving Up");
     assert_eq!(Direction::try_from(Vec2::new(2.0, -1.2)), Ok(Direction::UpRight), "Vector is moving UpRight");
@@ -230,12 +272,16 @@ mod tests {
   fn text_from_string() {
     assert_eq!(Direction::try_from(String::from("up")), Ok(Direction::Up), "String is 'up'");
     assert_eq!(Direction::try_from(String::from("upright")), Ok(Direction::UpRight), "String is 'upright'");
+    assert_eq!(Direction::try_from(String::from("up_right")), Ok(Direction::UpRight), "String is 'up_right'");
     assert_eq!(Direction::try_from(String::from("right")), Ok(Direction::Right), "String is 'right'");
     assert_eq!(Direction::try_from(String::from("downright")), Ok(Direction::DownRight), "String is 'downright'");
+    assert_eq!(Direction::try_from(String::from("down_right")), Ok(Direction::DownRight), "String is 'down_right'");
     assert_eq!(Direction::try_from(String::from("down")), Ok(Direction::Down), "String is 'down'");
     assert_eq!(Direction::try_from(String::from("downleft")), Ok(Direction::DownLeft), "String is 'downleft'");
+    assert_eq!(Direction::try_from(String::from("down_left")), Ok(Direction::DownLeft), "String is 'down_left'");
     assert_eq!(Direction::try_from(String::from("left")), Ok(Direction::Left), "String is 'left'");
     assert_eq!(Direction::try_from(String::from("upleft")), Ok(Direction::UpLeft), "String is 'upleft'");
+    assert_eq!(Direction::try_from(String::from("up_left")), Ok(Direction::UpLeft), "String is 'up_left'");
     assert_eq!(Direction::try_from(String::from("arbitrary string")), Err(String::from("Failed to convert string to Direction")), "String is invalid");
     assert_eq!(Direction::try_from(String::from("")), Err(String::from("Failed to convert string to Direction")), "String is empty");
     assert_eq!(Direction::try_from(String::from(" uP   ")), Ok(Direction::Up), "strings are normalized before conversion");
