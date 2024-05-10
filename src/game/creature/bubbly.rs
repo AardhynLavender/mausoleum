@@ -1,5 +1,3 @@
-#![allow(warnings)]
-
 use std::path::Path;
 
 use hecs::DynamicBundle;
@@ -22,7 +20,7 @@ use crate::game::player::combat::PlayerHostile;
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::utility::math::floor_to_tile;
 
-const SPEED: f32 = 80.0;
+const SPEED: f32 = 40.0;
 const ASSET: &str = "asset/bubbly.png";
 const HEALTH: u32 = 30;
 const DAMAGE: u32 = 15;

@@ -151,6 +151,8 @@ mod tests {
       y: 0.0,
     };
     let save_1 = SaveData::try_from(raw_1);
+    assert_eq!(save_1, Err(String::from("Invalid save room: bad_save")));
+
     let raw_2 = RawSaveData {
       save_room: String::from("save_256"),
       inventory: vec![Collectable::IceBeam, Collectable::HighJump, Collectable::Health],

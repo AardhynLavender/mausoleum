@@ -15,7 +15,7 @@ use crate::engine::rendering::component::Sprite;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::query::{TileQuery, TileQueryResult};
 use crate::engine::utility::alias::{Coordinate, Size2};
-use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
+use crate::engine::utility::direction::{Direction, QUARTER_DIRECTION_ROTATION, Rotation};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::constant::TILE_SIZE;
@@ -116,7 +116,7 @@ fn compute_leading(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, p
     zoomer.last_lead = Some(leading_coordinate);
     if leading_tile.is_some() {
       let rotation = zoomer.rotation.clone().invert();
-      let new_direction = direction.rotate(rotation, QUARTER_ROTATION);
+      let new_direction = direction.rotate(rotation, QUARTER_DIRECTION_ROTATION);
       velocity.0 = Vec2::<f32>::from(new_direction.to_coordinate()) * ZOOMER_SPEED;
       position.0 = round_to_tile(position.0);
     };
@@ -126,7 +126,7 @@ fn compute_leading(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, p
 
 // Get the coordinate of the tile that the zoomer "clings" to.
 fn get_cling_coordinate(coordinate: Coordinate, direction: Direction, rotation: Rotation) -> Coordinate {
-  coordinate - direction.to_coordinate() + direction.rotate(rotation, QUARTER_ROTATION).to_coordinate()
+  coordinate - direction.to_coordinate() + direction.rotate(rotation, QUARTER_DIRECTION_ROTATION).to_coordinate()
 }
 
 /// Updates a Zoomer direction based on the tile it "clings" to.
@@ -165,7 +165,7 @@ fn round_bend(zoomer: &mut Zoomer, direction: Direction) -> Option<Vec2<f32>> {
   }
   zoomer.turning = true;
 
-  let new_direction = direction.rotate(zoomer.rotation, QUARTER_ROTATION);
+  let new_direction = direction.rotate(zoomer.rotation, QUARTER_DIRECTION_ROTATION);
   let new_direction_unit = Vec2::<f32>::from(new_direction.to_coordinate());
   let new_velocity = new_direction_unit * ZOOMER_SPEED;
 

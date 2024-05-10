@@ -27,8 +27,8 @@ pub const PLAYER_BASE_HEALTH: u32 = 50;
 pub const HEALTH_PICKUP_INCREASE: u32 = 10;
 pub const HIT_COOLDOWN: u64 = 500;
 
-const PROJECTILE_COOLDOWN: u64 = 200;
-const PROJECTILE_LIFETIME: u64 = 1000;
+const PROJECTILE_COOLDOWN: u64 = 300;
+const PROJECTILE_LIFETIME: u64 = 500;
 const PROJECTILE_SPEED: f32 = 300.0;
 
 const BULLET_DAMAGE: u32 = 10;
@@ -38,7 +38,7 @@ const ROCKET_DAMAGE: u32 = 20;
 const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
 const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
-pub const THAW_DURATION: u64 = 5000;
+pub const THAW_DURATION: u64 = 5_000;
 
 /// Mark an entity as being hostile to the player
 pub struct PlayerHostile;

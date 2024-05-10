@@ -14,7 +14,7 @@ use crate::engine::tile::tilelayer::TileLayer;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::{Coordinate, Size2};
 use crate::engine::utility::conversion::{coordinate_to_index, index_to_coordinate, position_to_coordinate};
-use crate::engine::utility::direction::{Direction, DIRECTIONS, QUARTER_ROTATION, Rotation};
+use crate::engine::utility::direction::{Direction, DIRECTIONS, QUARTER_DIRECTION_ROTATION, Rotation};
 
 /// Index of a tile in a tilemap
 pub type MapIndex = usize;
@@ -119,7 +119,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
           self.mutate_tile_concept(&handle, handle.concept);
         }
       }
-      check = check.rotate(Rotation::Left, QUARTER_ROTATION);
+      check = check.rotate(Rotation::Left, QUARTER_DIRECTION_ROTATION);
     }
   }
   /// Remove tiles from the world by invoking an injected remove function on each entity
