@@ -32,6 +32,32 @@
         "valuesAsFlags": false
     },
     {
+        "color": "#ffaa007f",
+        "drawFill": true,
+        "id": 23,
+        "members": [
+            {
+                "name": "direction",
+                "propertyType": "Direction",
+                "type": "string",
+                "value": "up"
+            }
+        ],
+        "name": "Bubbly",
+        "type": "class",
+        "useAs": [
+            "property",
+            "map",
+            "layer",
+            "object",
+            "tile",
+            "tileset",
+            "wangcolor",
+            "wangset",
+            "project"
+        ]
+    },
+    {
         "color": "#ff55aa7f",
         "drawFill": true,
         "id": 12,
@@ -66,9 +92,13 @@
         "type": "enum",
         "values": [
             "up",
+            "upRight",
             "right",
+            "downRight",
             "down",
-            "left"
+            "downLeft",
+            "left",
+            "upLeft"
         ],
         "valuesAsFlags": false
     },

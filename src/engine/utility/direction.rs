@@ -57,8 +57,9 @@ impl Rotation {
 // Direction //
 
 /// A cardinal or ordinal direction
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
+  #[default]
   Up,
   UpRight,
   Right,

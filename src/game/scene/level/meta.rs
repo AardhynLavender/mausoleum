@@ -51,14 +51,15 @@ pub struct TileMeta {
 /// Metadata for a tilemap object
 #[derive(Clone, Copy, Debug)]
 pub enum ObjMeta {
-  BuzzConcept { position: Vec2<f32> },
   AngryBuzzConcept { position: Vec2<f32> },
+  BubblyConcept { position: Vec2<f32>, direction: Direction },
+  BuzzConcept { position: Vec2<f32> },
   GruntConcept { position: Vec2<f32> },
-  SporeConcept { direction: Direction, position: Vec2<f32> },
-  SpikyConcept { direction: Direction, position: Vec2<f32> },
-  ZoomerConcept { direction: Direction, position: Vec2<f32> },
-  RipperConcept { direction: Direction, position: Vec2<f32> },
   SaveAreaConcept { position: Vec2<f32>, collision_box: CollisionBox },
+  SpikyConcept { direction: Direction, position: Vec2<f32> },
+  SporeConcept { direction: Direction, position: Vec2<f32> },
+  RipperConcept { direction: Direction, position: Vec2<f32> },
+  ZoomerConcept { direction: Direction, position: Vec2<f32> },
 }
 
 /// The behaviour and rendering order of a tile layer
@@ -85,31 +86,35 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
   let position = Vec2::new(*x, *y);
   let object_type = object_type.trim().to_lowercase();
   let meta = match object_type.as_str() {
-    "buzz" => ObjMeta::BuzzConcept { position },
     "angrybuzz" => ObjMeta::AngryBuzzConcept { position },
+    "buzz" => ObjMeta::BuzzConcept { position },
+    "bubbly" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      ObjMeta::BubblyConcept { direction, position }
+    }
     "grunt" => ObjMeta::GruntConcept { position },
-    "ripper" => {
-      let direction = Direction::try_from(String::from(get_property("direction", properties).unwrap_or(""))).unwrap_or(Direction::Right);
-      ObjMeta::RipperConcept { direction, position }
-    }
-    "spore" => {
-      let direction = Direction::try_from(String::from(get_property("direction", properties).unwrap_or(""))).unwrap_or(Direction::Up);
-      ObjMeta::SporeConcept { direction, position }
-    }
-    "spiky" => {
-      let direction = Direction::try_from(String::from(get_property("direction", properties).unwrap_or(""))).unwrap_or(Direction::Right);
-      ObjMeta::SpikyConcept { direction, position }
-    }
-    "zoomer" => {
-      let direction = Direction::try_from(String::from(get_property("direction", properties).unwrap_or(""))).unwrap_or(Direction::Right);
-      ObjMeta::ZoomerConcept { direction, position }
-    }
     "save" => {
       if let (Some(width), Some(height)) = (*width, *height) {
         let bounds = Rec2::new(position, Size2::new(width as Size, height as Size));
         return Ok(ObjMeta::SaveAreaConcept { position, collision_box: CollisionBox::from(bounds) });
       }
       return Err(String::from("Save area must have a width and height"));
+    }
+    "spore" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      ObjMeta::SporeConcept { direction, position }
+    }
+    "spiky" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      ObjMeta::SpikyConcept { direction, position }
+    }
+    "ripper" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      ObjMeta::RipperConcept { direction, position }
+    }
+    "zoomer" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      ObjMeta::ZoomerConcept { direction, position }
     }
     _ => return Err(String::from(format!("Unknown object type: {}", object_type))),
   };
@@ -160,9 +165,17 @@ pub fn parse_tilelayer(properties: &Option<TiledProperties>) -> Result<TileLayer
   Ok(TileLayerType::default())
 }
 
+pub fn parse_direction(property: &str, properties: &Option<TiledProperties>) -> Result<Direction, String> {
+  if let Some(prop) = get_property(property, properties) {
+    let direction = Direction::try_from(String::from(prop)).map_err(|err| err.to_string())?;
+    return Ok(direction);
+  }
+  Err(String::from("Direction property not found"))
+}
+
 /// Extract the damage property from a collection of properties
-pub fn parse_damage(properties: &Option<TiledProperties>) -> Result<u32, String> {
-  if let Some(prop) = get_property("damage", properties) {
+pub fn parse_damage(property: &str, properties: &Option<TiledProperties>) -> Result<u32, String> {
+  if let Some(prop) = get_property(property, properties) {
     let value = prop.parse::<u32>().map_err(|err| err.to_string())?;
     return Ok(value);
   }

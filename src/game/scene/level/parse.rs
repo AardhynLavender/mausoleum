@@ -31,7 +31,7 @@ pub fn tileset_meta_from_tiled(tiled_tileset: &TiledTileset) -> Result<HashMap<T
     if tile._type != TILED_TILE_CLASS { return Err(format!("Invalid tile type: {}, for tile: {}", tile._type, tile_key)); }
     let breakability = parse_breakability(&tile.properties)?;
     let collectable = parse_collectable(&tile.properties)?;
-    let damage = parse_damage(&tile.properties)?;
+    let damage = parse_damage("damage", &tile.properties)?;
     meta.insert(tile_key, TileMeta { breakability, collectable, damage });
   }
   Ok(meta)

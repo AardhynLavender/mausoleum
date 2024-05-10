@@ -13,6 +13,7 @@ use crate::game::combat::damage::Damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::TimeToLive;
 use crate::game::creature::angry_buzz::AngryBuzz;
+use crate::game::creature::bubbly::Bubbly;
 use crate::game::creature::buzz::Buzz;
 use crate::game::creature::grunt::Grunt;
 use crate::game::creature::ripper::Ripper;
@@ -76,11 +77,12 @@ impl Scene for LevelScene {
     // Creatures //
 
     system.add(PHYSICS_SCHEDULE, AngryBuzz::system);
+    system.add(PHYSICS_SCHEDULE, Bubbly::system);
     system.add(PHYSICS_SCHEDULE, Buzz::system);
     system.add(PHYSICS_SCHEDULE, Grunt::system);
-    system.add(PHYSICS_SCHEDULE, Ripper::system);
     system.add(PHYSICS_SCHEDULE, Spiky::system);
     system.add(PHYSICS_SCHEDULE, Spore::system);
+    system.add(PHYSICS_SCHEDULE, Ripper::system);
     system.add(PHYSICS_SCHEDULE, Zoomer::system);
 
     // physics //

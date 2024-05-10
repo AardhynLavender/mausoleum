@@ -23,6 +23,7 @@ use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::angry_buzz::make_angry_buzz;
+use crate::game::creature::bubbly::make_bubbly;
 use crate::game::creature::buzz::make_buzz;
 use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
@@ -159,14 +160,15 @@ impl Room {
   pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
     self.tilemap.add_objects(|object| {
       let entity = match object {
-        ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
         ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
+        ObjMeta::BubblyConcept { position, direction, .. } => world.add(make_bubbly(assets, self.position + *position, *direction)?),
+        ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
-        ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
-        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
-        ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
-        ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
         ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),
+        ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
+        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
+        ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
       };
       self.entities.insert(entity);
       Ok(entity)
