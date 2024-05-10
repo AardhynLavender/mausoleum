@@ -17,6 +17,7 @@ use crate::game::creature::bubbly::Bubbly;
 use crate::game::creature::buzz::Buzz;
 use crate::game::creature::grunt::Grunt;
 use crate::game::creature::ripper::Ripper;
+use crate::game::creature::rotund::Rotund;
 use crate::game::creature::spiky::Spiky;
 use crate::game::creature::spore::Spore;
 use crate::game::creature::zoomer::Zoomer;
@@ -83,6 +84,7 @@ impl Scene for LevelScene {
     system.add(PHYSICS_SCHEDULE, Spiky::system);
     system.add(PHYSICS_SCHEDULE, Spore::system);
     system.add(PHYSICS_SCHEDULE, Ripper::system);
+    system.add(PHYSICS_SCHEDULE, Rotund::system);
     system.add(PHYSICS_SCHEDULE, Zoomer::system);
 
     // physics //

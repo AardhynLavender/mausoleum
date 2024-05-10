@@ -18,7 +18,7 @@ use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
-use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
+use crate::engine::utility::direction::{HALF_DIRECTION_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
@@ -27,6 +27,7 @@ use crate::game::creature::bubbly::make_bubbly;
 use crate::game::creature::buzz::make_buzz;
 use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
+use crate::game::creature::rotund::make_rotund;
 use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::spore::make_spore;
 use crate::game::creature::zoomer::make_zoomer;
@@ -147,7 +148,7 @@ impl Room {
           world.add_components(handle.entity, (TileCollider::new(collision_box, CollisionMask::default()), )).expect("Failed to add tile collider");
         }
         let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
-        tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
+        tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_DIRECTION_ROTATION), true).expect("failed to set side");
         let new_mask = tile_collider.mask.clone();
         handle.concept.mask = new_mask;
       },
@@ -168,6 +169,7 @@ impl Room {
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
         ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::RotundConcept { direction, position, spit_axis } => world.add(make_rotund(assets, self.position + *position, *direction, *spit_axis)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
       };
       self.entities.insert(entity);

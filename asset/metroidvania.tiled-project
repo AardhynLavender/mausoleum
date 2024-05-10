@@ -96,6 +96,18 @@
             "valuesAsFlags": false
         },
         {
+            "id": 25,
+            "name": "CompassDirectionType",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "cardinal",
+                "ordinal",
+                ""
+            ],
+            "valuesAsFlags": false
+        },
+        {
             "id": 6,
             "name": "Direction",
             "storageType": "string",
@@ -175,6 +187,38 @@
             "useAs": [
                 "property",
                 "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffffff00",
+            "drawFill": true,
+            "id": 24,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "upRight"
+                },
+                {
+                    "name": "spit_axis",
+                    "propertyType": "CompassDirectionType",
+                    "type": "string",
+                    "value": "ordinal"
+                }
+            ],
+            "name": "Rotund",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
                 "project"
             ]
         },

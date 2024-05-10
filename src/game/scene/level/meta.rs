@@ -8,7 +8,7 @@ use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::tile::parse::{TiledObject, TiledProperties, TiledProperty};
 use crate::engine::utility::alias::{Size, Size2};
-use crate::engine::utility::direction::Direction;
+use crate::engine::utility::direction::{CompassDirectionType, Direction};
 
 /// The type of collectable item
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -59,6 +59,7 @@ pub enum ObjMeta {
   SpikyConcept { direction: Direction, position: Vec2<f32> },
   SporeConcept { direction: Direction, position: Vec2<f32> },
   RipperConcept { direction: Direction, position: Vec2<f32> },
+  RotundConcept { direction: Direction, position: Vec2<f32>, spit_axis: CompassDirectionType },
   ZoomerConcept { direction: Direction, position: Vec2<f32> },
 }
 
@@ -112,6 +113,11 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
       let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
       ObjMeta::RipperConcept { direction, position }
     }
+    "rotund" => {
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      let spit_axis = parse_compass_direction_type("spit_axis", properties).unwrap_or(CompassDirectionType::Ordinal);
+      ObjMeta::RotundConcept { direction, position, spit_axis }
+    }
     "zoomer" => {
       let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
       ObjMeta::ZoomerConcept { direction, position }
@@ -152,6 +158,7 @@ pub fn parse_breakability(properties: &Option<TiledProperties>) -> Result<TileBr
   Ok(TileBreakability::default())
 }
 
+/// Extract the tile layer type property from a collection of properties
 pub fn parse_tilelayer(properties: &Option<TiledProperties>) -> Result<TileLayerType, String> {
   if let Some(prop) = get_property("type", properties) {
     let layer_type = prop.trim().to_lowercase();
@@ -165,6 +172,16 @@ pub fn parse_tilelayer(properties: &Option<TiledProperties>) -> Result<TileLayer
   Ok(TileLayerType::default())
 }
 
+/// Extract a compass direction property from a collection of properties
+pub fn parse_compass_direction_type(property: &str, properties: &Option<TiledProperties>) -> Result<CompassDirectionType, String> {
+  if let Some(prop) = get_property(property, properties) {
+    let direction = CompassDirectionType::try_from(String::from(prop)).map_err(|err| err.to_string())?;
+    return Ok(direction);
+  }
+  Err(String::from("Direction property not found"))
+}
+
+/// Extract a direction property from a collection of properties
 pub fn parse_direction(property: &str, properties: &Option<TiledProperties>) -> Result<Direction, String> {
   if let Some(prop) = get_property(property, properties) {
     let direction = Direction::try_from(String::from(prop)).map_err(|err| err.to_string())?;

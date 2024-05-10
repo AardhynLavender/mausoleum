@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="18">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="120" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="25">
  <tileset firstgid="1" source="tileset.tsx"/>
  <layer id="5" name="Background" class="Layer" width="120" height="22">
   <properties>
@@ -101,16 +101,42 @@
   <object id="7" type="Grunt" x="470.916" y="137.167">
    <point/>
   </object>
-  <object id="11" type="Spore" x="536.583" y="152.833">
+  <object id="11" type="Spore" x="516.583" y="139.333">
    <properties>
-    <property name="direction" propertytype="Direction" value="right"/>
+    <property name="direction" propertytype="Direction" value="up"/>
    </properties>
    <point/>
   </object>
-  <object id="14" type="Bubbly" x="616" y="106.583">
+  <object id="14" type="Bubbly" x="797" y="87.083">
    <properties>
     <property name="direction" propertytype="Direction" value="downLeft"/>
    </properties>
+   <point/>
+  </object>
+  <object id="20" type="Rotund" x="1214" y="143">
+   <properties>
+    <property name="direction" propertytype="Direction" value="downRight"/>
+    <property name="spit_axis" propertytype="CompassDirectionType" value="ordinal"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="21" type="Rotund" x="1173" y="129.5">
+   <properties>
+    <property name="direction" propertytype="Direction" value="upRight"/>
+    <property name="spit_axis" propertytype="CompassDirectionType" value="cardinal"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="22" type="Bubbly" x="748.5" y="146.5">
+   <properties>
+    <property name="direction" propertytype="Direction" value="downRight"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="23" type="Spore" x="263.5" y="251">
+   <point/>
+  </object>
+  <object id="24" type="AngryBuzz" x="141.5" y="157">
    <point/>
   </object>
  </objectgroup>
