@@ -49,8 +49,9 @@ impl Systemize for RoomCollision {
       let mut phase = 0;
       'resolving: loop {
         phase += 1;
-        let collision = get_tile_collisions(world, &collision_box).next();
-        if let Some((tile, collision, position)) = collision {
+        let collisions = get_tile_collisions(world, &collision_box);
+        let collision = get_closest_collision(collisions);
+        if let Some((tile, collision, _, position)) = collision {
           if phase > MAX_COLLISION_PHASES {
             // return Err(String::from("Infinite collision resolution loop detected"));
             return Ok(());
@@ -107,14 +108,32 @@ impl Systemize for RoomCollision {
   }
 }
 
+pub type TileCollisionBundle = (Entity, Collision, CollisionBox, Position);
+
 /// Get all tile collisions for a given collision box
-fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox) -> impl Iterator<Item=(Entity, Collision, Position)> + 'a {
+fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox) -> impl Iterator<Item=(Entity, Collision, CollisionBox, Position)> + 'a {
   world.query::<(&Position, &TileCollider)>()
     .into_iter()
     .filter_map(|(entity, (tile_position, tile_collider, ..))| {
-      let tile_rect = &CollisionBox::new(tile_position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);
-      let collision = rec2_collision(collider_box, tile_rect, tile_collider.mask);
-      if let Some(collision) = collision { Some((entity, collision, *tile_position)) } else { None }
+      let tile_box = &CollisionBox::new(tile_position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);
+      let collision = rec2_collision(collider_box, tile_box, tile_collider.mask);
+      if let Some(collision) = collision { Some((entity, collision, *tile_box, *tile_position)) } else { None }
+    })
+}
+
+fn get_closest_collision<'a>(collisions: impl Iterator<Item=TileCollisionBundle> + 'a) -> Option<TileCollisionBundle> {
+  collisions
+    .fold(None, |closest, current| {
+      match (closest, current) {
+        (None, _) => Some(current),
+        (Some((_, closest_collision, ..)), (_, current_collision, ..)) => {
+          if current_collision.get_resolution().abs() < closest_collision.get_resolution().abs() {
+            Some(current)
+          } else {
+            Some(closest.unwrap_or(current))
+          }
+        }
+      }
     })
 }
 
