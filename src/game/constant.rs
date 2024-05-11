@@ -14,7 +14,7 @@ pub const BUTTONS_Y_GAP: f32 = 16.0;
 
 // Typeface //
 
-pub const TYPEFACE_PATH: &str = "asset/typeface.ttf";
+pub const TYPEFACE_PATH: &str = "asset/typography/typeface.ttf";
 pub const TYPEFACE_SIZE: u16 = 5;
 
 // Window //

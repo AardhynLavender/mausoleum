@@ -33,7 +33,7 @@ use crate::game::utility::math::{floor_to_tile, round_to_tile};
 const ZOOMER_SPEED: f32 = 48.0;
 const ZOOMER_HEALTH: u32 = 30;
 const ZOOMER_DAMAGE: u32 = 10;
-const ZOOMER_ASSET: &str = "asset/zoomer.png";
+const ZOOMER_ASSET: &str = "asset/sprite/zoomer.png";
 const DIMENSIONS: Size2 = Size2::new(16, 16);
 const SIZE: Vec2<f32> = Vec2::new(DIMENSIONS.x as f32, DIMENSIONS.y as f32);
 

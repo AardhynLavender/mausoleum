@@ -29,7 +29,7 @@ use crate::game::scene::level::meta::Collectable;
 
 pub const PLAYER_SIZE: Size2 = Size2::new(12, 28);
 
-const PLAYER_ASSET: &str = "asset/test.png";
+const PLAYER_ASSET: &str = "asset/sprite/player.png";
 const PLAYER_SPRITE: SrcRect = SrcRect::new(Vec2::new(0, 0), PLAYER_SIZE);
 const PLAYER_COLLIDER: CollisionBox = Rec2::new(Vec2::new(0.0, 0.0), PLAYER_SIZE);
 
@@ -79,13 +79,13 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
   let bullet = asset.texture
-    .load(Path::new("asset/plasma_burst.png"))
+    .load(Path::new("asset/sprite/plasma_burst.png"))
     .expect("Failed to load bullet texture");
   let rocket = asset.texture
-    .load(Path::new("asset/desolation_pulse.png"))
+    .load(Path::new("asset/sprite/desolation_pulse.png"))
     .expect("Failed to load rocket texture");
   let ice_beam = asset.texture
-    .load(Path::new("asset/temporal_flare.png"))
+    .load(Path::new("asset/sprite/temporal_flare.png"))
     .expect("Failed to load ice beam texture");
 
   world.add((

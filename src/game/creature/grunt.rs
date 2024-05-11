@@ -35,7 +35,7 @@ const GRUNT_CHARGE_SPEED: f32 = 192.0;
 
 const GRUNT_GRAVITY: Vec2<f32> = Vec2::new(0.0, 256.0);
 
-const GRUNT_ASSET: &str = "asset/grunt.png";
+const GRUNT_ASSET: &str = "asset/sprite/grunt.png";
 const GRUNT_HEALTH: u32 = 128;
 const GRUNT_DAMAGE_IDLE: u32 = 15;
 const GRUNT_DAMAGE_CHARGE: u32 = 25;

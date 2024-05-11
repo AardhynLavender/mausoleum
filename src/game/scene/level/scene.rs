@@ -37,7 +37,7 @@ use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-const WORLD_PATH: &str = "asset/world.world";
+const WORLD_PATH: &str = "asset/area_0/area_0.world";
 
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;

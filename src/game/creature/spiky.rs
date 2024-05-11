@@ -31,7 +31,7 @@ use crate::game::scene::level::room::use_room;
 use crate::game::utility::math::floor_to_tile;
 
 const SPIKY_SPEED: f32 = 48.0;
-const SPIKY_ASSET: &str = "asset/spiky.png";
+const SPIKY_ASSET: &str = "asset/sprite/spiky.png";
 const SPIKY_HEALTH: u32 = 30;
 const SPIKY_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 16);

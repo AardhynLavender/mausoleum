@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="40" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="5">
- <tileset firstgid="1" source="tileset.tsx"/>
+ <tileset firstgid="1" source="../tileset/tileset.tsx"/>
  <objectgroup id="5" name="Save">
   <object id="3" name="Save 1" type="Save" x="288.182" y="160.833" width="64.447" height="80.0417"/>
  </objectgroup>

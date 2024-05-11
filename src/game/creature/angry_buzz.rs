@@ -32,14 +32,14 @@ use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
 
 const SPEED: f32 = 64.0;
-const ASSET: &str = "asset/angry_buzz.png";
+const ASSET: &str = "asset/sprite/angry_buzz.png";
 const HEALTH: u32 = 80;
 const DAMAGE: u32 = 12;
 const DIMENSIONS: Size2 = Size2::new(24, 24);
 
 const SPIT_COOLDOWN: u64 = 2_000;
 const SPIT_DAMAGE: u32 = 10;
-const SPIT_ASSET: &str = "asset/angry_buzz_spit.png";
+const SPIT_ASSET: &str = "asset/sprite/angry_buzz_spit.png";
 const SPIT_DIMENSIONS: Size2 = Size2::new(8, 8);
 const SPIT_DURATION_MS: u64 = 2_000;
 const SPIT_GRAVITY: Vec2<f32> = Vec2::new(0.0, 96.0);

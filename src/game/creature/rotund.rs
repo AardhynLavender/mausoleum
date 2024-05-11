@@ -26,12 +26,12 @@ use crate::game::scene::level::collision::RoomCollision;
 use crate::game::utility::math::floor_to_tile;
 
 const SPEED: f32 = 30.0;
-const ASSET: &str = "asset/bubbly.png";
+const ASSET: &str = "asset/sprite/bubbly.png";
 const HEALTH: u32 = 50;
 const DAMAGE: u32 = 20;
 const DIMENSIONS: Size2 = Size2::new(24, 24);
 
-const SPIT_ASSET: &str = "asset/angry_buzz_spit.png";
+const SPIT_ASSET: &str = "asset/sprite/angry_buzz_spit.png";
 const SPIT_DAMAGE: u32 = 20;
 const SPIT_COOLDOWN_MS: u64 = 3_000;
 const SPIT_SPEED: f32 = 200.0;

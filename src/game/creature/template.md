@@ -30,7 +30,7 @@ use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
 
 const SPEED: f32 = 96.0;
-const ASSET: &str = "asset/asset.png";
+const ASSET: &str = "asset/sprite/asset.png";
 const HEALTH: u32 = 20;
 const DAMAGE: u32 = 8;
 const DIMENSIONS: Size2 = Size2::new(8, 8);

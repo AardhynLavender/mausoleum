@@ -28,7 +28,7 @@ use crate::game::scene::level::room::use_room;
 use crate::game::utility::math::floor_to_tile;
 
 const RIPPER_SPEED: f32 = 64.0;
-const RIPPER_ASSET: &str = "asset/ripper.png";
+const RIPPER_ASSET: &str = "asset/sprite/ripper.png";
 const RIPPER_HEALTH: u32 = 30;
 const RIPPER_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 8);
