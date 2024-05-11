@@ -13,7 +13,7 @@ use crate::engine::rendering::renderer::layer;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::time::Timer;
 use crate::engine::utility::alias::Size2;
-use crate::engine::utility::direction::Direction;
+use crate::engine::utility::direction::{Direction, QUARTER_ROTATION_DEG};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::combat::ttl::TimeToLive;
@@ -135,12 +135,14 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
 
 /// Compute the starting position and velocity and rotation of the player projectile
 pub fn compute_projectile_spawn(aim: Direction, player_position: Vec2<f32>, player_bounds: Size2) -> (Vec2<f32>, Vec2<f32>, f32) {
-  let radius = Vec2::from(player_bounds) / 2.0;
-  let centroid = player_position + radius;
-  let position = centroid + Vec2::from(aim.to_coordinate()) * radius;
-  let velocity = Vec2::from(aim.to_coordinate()) * PROJECTILE_SPEED;
-  let rotation = f32::from(aim) + 90.0;
+  let player_centroid = player_position + Vec2::<f32>::from(player_bounds / 2);
+  let projectile_centroid = Vec2::<f32>::from(BULLET_DIMENSIONS / 2);
+  let unit_vector = Vec2::from(aim.to_coordinate());
+  let position = player_centroid - projectile_centroid + unit_vector * player_bounds.x as f32;
+  let velocity = unit_vector * PROJECTILE_SPEED;
+  let rotation = f32::from(aim) + QUARTER_ROTATION_DEG as f32;
   (position, velocity, rotation)
 }
+
 
 
