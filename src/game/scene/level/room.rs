@@ -32,6 +32,7 @@ use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::spore::make_spore;
 use crate::game::creature::zoomer::make_zoomer;
 use crate::game::persistence::world::make_save_area;
+use crate::game::physics::collision::Fragile;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::preferences::use_preferences;
@@ -111,10 +112,11 @@ impl Room {
           world.add_components(entity, (collectable, ))?;
         }
 
-        if tile.data.meta.breakability == TileBreakability::Soft {
-          world.add_components(entity, (Soft, ))?;
-        } else if tile.data.meta.breakability == TileBreakability::Strong {
-          world.add_components(entity, (Strong, ))?;
+        match tile.data.meta.breakability {
+          TileBreakability::Soft => world.add_components(entity, (Soft, ))?,
+          TileBreakability::Strong => world.add_components(entity, (Strong, ))?,
+          TileBreakability::Brittle => world.add_components(entity, (Fragile, ))?,
+          _ => (),
         }
 
         let damage = tile.data.meta.damage;

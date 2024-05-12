@@ -21,7 +21,8 @@
         "values": [
             "Solid",
             "Strong",
-            "Soft"
+            "Soft",
+            "Brittle"
         ],
         "valuesAsFlags": false
     },

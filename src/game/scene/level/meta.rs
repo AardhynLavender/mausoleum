@@ -27,6 +27,7 @@ pub enum TileBreakability {
   Solid,
   Strong,
   Soft,
+  Brittle,
 }
 
 /// Strong tiles can be destroyed by StrongDestructive components
@@ -152,6 +153,7 @@ pub fn parse_breakability(properties: &Option<TiledProperties>) -> Result<TileBr
       "solid" => Ok(TileBreakability::Solid),
       "strong" => Ok(TileBreakability::Strong),
       "soft" => Ok(TileBreakability::Soft),
+      "brittle" => Ok(TileBreakability::Brittle),
       other => Err(format!("Invalid breakability: {}", other)),
     };
   }

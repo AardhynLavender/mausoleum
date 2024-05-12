@@ -268,7 +268,11 @@
             <property name="breakability" propertytype="Breakability" value="Strong"/>
         </properties>
     </tile>
-    <tile id="226" type="Tile"/>
+    <tile id="226" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Brittle"/>
+        </properties>
+    </tile>
     <tile id="227" type="Tile"/>
     <tile id="228" type="Tile"/>
     <tile id="229" type="Tile"/>

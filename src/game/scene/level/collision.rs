@@ -57,11 +57,12 @@ impl Systemize for RoomCollision {
             return Ok(());
           }
 
+          let brittle = world.has_component::<Fragile>(tile)?;
           let strong = world.has_component::<Strong>(tile)?;
           let soft = world.has_component::<Soft>(tile)?;
           let bullet = world.has_component::<Bullet>(*entity)?;
           let rocket = world.has_component::<Rocket>(*entity)?;
-          if strong && rocket || (soft && (rocket || bullet)) {
+          if brittle || strong && rocket || soft && (rocket || bullet) {
             let result = room.query_tile(TileLayerType::Collision, TileQuery::Position(position.0));
             if let Ok(handle) = TileHandle::try_from(result) {
               room.remove_tile(world, handle, TilemapMutation::Session);
