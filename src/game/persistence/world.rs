@@ -1,9 +1,12 @@
+use hecs::Entity;
+
 use crate::engine::component::text::TextBuilder;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::color::color;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alignment::{Align, Alignment};
+use crate::engine::world::World;
 use crate::game::constant::{USER_SAVE_FILE, WINDOW};
 use crate::game::persistence::assertion::assert_save_room;
 use crate::game::persistence::data::SaveData;
@@ -111,4 +114,25 @@ pub fn make_save_area(save_room: String, area: CollisionBox) -> Result<SaveAreaB
     Position::from(area.origin),
     Collider(CollisionBox::new(Vec2::default(), area.size))
   ))
+}
+
+/// Save area query
+pub struct SaveAreaQueryResult<'a> {
+  pub entity: Entity,
+  pub area: &'a mut SaveArea,
+  pub collider: CollisionBox,
+}
+
+/// Fetch the save area from the world
+/// ## Panics
+/// If the world contains no save area
+pub fn use_save_area(world: &mut World) -> SaveAreaQueryResult {
+  let (entity, (area, position, collider)) =
+    world
+      .query::<(&mut SaveArea, &Position, &Collider)>()
+      .into_iter()
+      .next()
+      .expect("No save area");
+  let collider = make_collision_box(&position, &collider);
+  SaveAreaQueryResult { entity, area, collider }
 }

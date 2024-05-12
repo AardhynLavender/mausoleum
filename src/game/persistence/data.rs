@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::utility::io::{delete_file, write_file};
 use crate::game::persistence::assertion::{assert_inventory, assert_save_room};
-use crate::game::persistence::constant::{DEFAULT_PLAYER_POSITION, DEFAULT_SAVE_ROOM};
+use crate::game::persistence::constant::DEFAULT_SAVE_ROOM;
 use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data};
 use crate::game::scene::level::meta::Collectable;
 
@@ -39,7 +39,7 @@ impl Default for SaveData {
     SaveData::build(
       String::from(DEFAULT_SAVE_ROOM),
       Inventory::default(),
-      DEFAULT_PLAYER_POSITION,
+      Vec2::default(),
     ).expect("Failed to build default save data")
   }
 }
@@ -65,11 +65,11 @@ impl SaveData {
     serialize_save_data(self).and_then(|data| write_file(filepath, data))
   }
   /// Get the save room
-  pub fn save_room(&self) -> String { self.save_room.clone() }
+  pub fn get_save_room(&self) -> String { self.save_room.clone() }
   /// Get the inventory
-  pub fn inventory(&self) -> Inventory { self.inventory.clone() }
-  /// Get the player position
-  pub fn position(&self) -> Vec2<f32> { Vec2::new(self.x, self.y) }
+  pub fn get_inventory(&self) -> Inventory { self.inventory.clone() }
+  /// Get the player offset
+  pub fn get_offset(&self) -> Vec2<f32> { Vec2::new(self.x, self.y) }
 }
 
 impl TryFrom<RawSaveData> for SaveData {

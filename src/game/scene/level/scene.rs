@@ -23,7 +23,7 @@ use crate::game::creature::spore::Spore;
 use crate::game::creature::zoomer::Zoomer;
 use crate::game::interface::hud::{make_player_health_text, PlayerHealth};
 use crate::game::persistence::data::SaveData;
-use crate::game::persistence::world::SaveArea;
+use crate::game::persistence::world::{SaveArea, use_save_area};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::gravity::Gravity;
@@ -37,7 +37,7 @@ use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-const WORLD_PATH: &str = "asset/area_0/area_0.world";
+const WORLD_PATH: &str = "asset/area_1/area_1.world";
 
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
@@ -59,16 +59,18 @@ impl Scene for LevelScene {
       .map_err(|e| println!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
 
-    let save_room = self.save_data.save_room();
-    let inventory = self.save_data.inventory();
+    let save_room = self.save_data.get_save_room();
+    let inventory = self.save_data.get_inventory();
 
     let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
     room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
 
-    let player_position = self.save_data.position();
+    let save_position = use_save_area(world).collider.origin;
+    let player_position = save_position + self.save_data.get_offset();
     make_player(world, system, asset, inventory.into_iter(), player_position);
+
     make_player_health_text(world, asset);
 
     state.add(room_registry).expect("Failed to add level state")
