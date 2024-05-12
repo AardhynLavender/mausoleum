@@ -10,12 +10,12 @@
     <tile id="5" type="Tile"/>
     <tile id="6" type="Tile">
         <properties>
-            <property name="breakability" propertytype="Breakability" value="Soft"/>
+            <property name="breakability" propertytype="Breakability" value="Solid"/>
         </properties>
     </tile>
     <tile id="7" type="Tile">
         <properties>
-            <property name="breakability" propertytype="Breakability" value="Strong"/>
+            <property name="breakability" propertytype="Breakability" value="Solid"/>
         </properties>
     </tile>
     <tile id="8" type="Tile"/>
@@ -258,8 +258,16 @@
     <tile id="221" type="Tile"/>
     <tile id="222" type="Tile"/>
     <tile id="223" type="Tile"/>
-    <tile id="224" type="Tile"/>
-    <tile id="225" type="Tile"/>
+    <tile id="224" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="225" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Strong"/>
+        </properties>
+    </tile>
     <tile id="226" type="Tile"/>
     <tile id="227" type="Tile"/>
     <tile id="228" type="Tile"/>

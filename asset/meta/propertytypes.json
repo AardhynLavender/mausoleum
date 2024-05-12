@@ -9,13 +9,7 @@
         "type": "class",
         "useAs": [
             "property",
-            "map",
-            "layer",
             "object",
-            "tile",
-            "tileset",
-            "wangcolor",
-            "wangset",
             "project"
         ]
     },
@@ -47,13 +41,7 @@
         "type": "class",
         "useAs": [
             "property",
-            "map",
-            "layer",
             "object",
-            "tile",
-            "tileset",
-            "wangcolor",
-            "wangset",
             "project"
         ]
     },
@@ -202,13 +190,7 @@
         "type": "class",
         "useAs": [
             "property",
-            "map",
-            "layer",
             "object",
-            "tile",
-            "tileset",
-            "wangcolor",
-            "wangset",
             "project"
         ]
     },
@@ -268,13 +250,7 @@
         "type": "class",
         "useAs": [
             "property",
-            "map",
-            "layer",
             "object",
-            "tile",
-            "tileset",
-            "wangcolor",
-            "wangset",
             "project"
         ]
     },
