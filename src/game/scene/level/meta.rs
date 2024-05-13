@@ -55,6 +55,7 @@ pub enum ObjMeta {
   AngryBuzzConcept { position: Vec2<f32> },
   BubblyConcept { position: Vec2<f32>, direction: Direction },
   BuzzConcept { position: Vec2<f32> },
+  EventConcept { position: Vec2<f32> },
   GruntConcept { position: Vec2<f32> },
   SaveAreaConcept { position: Vec2<f32>, collision_box: CollisionBox },
   SpikyConcept { direction: Direction, position: Vec2<f32> },
@@ -123,6 +124,7 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
       let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
       ObjMeta::ZoomerConcept { direction, position }
     }
+    "event" => ObjMeta::EventConcept { position },
     _ => return Err(String::from(format!("Unknown object type: {}", object_type))),
   };
   Ok(meta)

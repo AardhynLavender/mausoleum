@@ -104,6 +104,20 @@
         "valuesAsFlags": false
     },
     {
+        "color": "#ff55ffff",
+        "drawFill": true,
+        "id": 26,
+        "members": [
+        ],
+        "name": "Event",
+        "type": "class",
+        "useAs": [
+            "property",
+            "object",
+            "project"
+        ]
+    },
+    {
         "color": "#ffffff7f",
         "drawFill": true,
         "id": 20,

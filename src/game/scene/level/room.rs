@@ -166,6 +166,7 @@ impl Room {
         ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
         ObjMeta::BubblyConcept { position, direction, .. } => world.add(make_bubbly(assets, self.position + *position, *direction)?),
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
+        ObjMeta::EventConcept { position } => world.add((Position::from(self.position + *position), )),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
         ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
