@@ -93,8 +93,10 @@ impl Systemize for SaveArea {
         .collect::<Vec<_>>();
       let save_room = use_room(state).get_name();
       let player_position = use_player(world).position.0;
+      let save_area_position = use_save_area(world).collider.origin;
+      let saved_position = player_position - save_area_position;
 
-      let save_data = SaveData::build(save_room, collection, player_position)?;
+      let save_data = SaveData::build(save_room, collection, saved_position)?;
       save_data.to_file(USER_SAVE_FILE)?;
 
       scene.queue_next(LevelScene::new(save_data));
