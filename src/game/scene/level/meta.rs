@@ -92,7 +92,7 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
     "angrybuzz" => ObjMeta::AngryBuzzConcept { position },
     "buzz" => ObjMeta::BuzzConcept { position },
     "bubbly" => {
-      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::UpRight);
       ObjMeta::BubblyConcept { direction, position }
     }
     "grunt" => ObjMeta::GruntConcept { position },
@@ -104,7 +104,7 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
       return Err(String::from("Save area must have a width and height"));
     }
     "spore" => {
-      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::Up);
       ObjMeta::SporeConcept { direction, position }
     }
     "spiky" => {
@@ -116,7 +116,7 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
       ObjMeta::RipperConcept { direction, position }
     }
     "rotund" => {
-      let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
+      let direction = parse_direction("direction", properties).unwrap_or(Direction::UpRight);
       let spit_axis = parse_compass_direction_type("spit_axis", properties).unwrap_or(CompassDirectionType::Ordinal);
       ObjMeta::RotundConcept { direction, position, spit_axis }
     }
