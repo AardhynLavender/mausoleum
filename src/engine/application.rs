@@ -17,6 +17,7 @@ use crate::engine::world::World;
  */
 
 pub const SIMULATION_FPS: DeltaMS = 1.0 / 60.0;
+pub const MAX_FRAME_TIME: DeltaMS = 1.0 / 30.0;
 
 /// Bundles a subsystem with actions
 struct Engine<'a> {
@@ -54,6 +55,9 @@ impl<'a> Engine<'a> {
     loop {
       // compute delta time
       let (delta, ..) = self.last_frame.next();
+
+      // todo: is there a better way to do this? process the dynamic frames as fixed?
+      if delta > MAX_FRAME_TIME { continue; }
 
       // process fixed updates
       self.last_frame.process_accumulated(|fixed_time| {
