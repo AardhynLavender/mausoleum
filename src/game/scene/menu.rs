@@ -95,7 +95,7 @@ pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) -> 
           .unwrap_or(SaveData::default());
         scene.queue_next(LevelScene::new(save_data))
       }
-      2 => println!("Not implemented yet"),
+      2 => eprintln!("Not implemented yet"),
       3 => event.queue_quit(),
       _ => {
         return Err(String::from("Invalid menu selection"));

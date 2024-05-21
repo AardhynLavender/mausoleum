@@ -56,7 +56,7 @@ impl Scene for LevelScene {
   fn setup(&self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
     let path = Path::new(WORLD_PATH);
     let parser = TiledParser::parse(path)
-      .map_err(|e| println!("Failed to parse Tiled data: {}", e))
+      .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
 
     let save_room = self.save_data.get_save_room();
