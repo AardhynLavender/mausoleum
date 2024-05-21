@@ -27,17 +27,20 @@ pub const PLAYER_BASE_HEALTH: u32 = 50;
 pub const HEALTH_PICKUP_INCREASE: u32 = 10;
 pub const HIT_COOLDOWN: u64 = 500;
 
-const PROJECTILE_COOLDOWN: u64 = 200;
-const PROJECTILE_LIFETIME: u64 = 500;
+const PROJECTILE_TTL: u64 = 2_500;
 const PROJECTILE_SPEED: f32 = 300.0;
 
 const BULLET_DAMAGE: u32 = 10;
+const BULLET_COOLDOWN: u64 = 200;
 const BULLET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
 const ROCKET_DAMAGE: u32 = 20;
+const ROCKET_COOLDOWN: u64 = 1_000;
 const ROCKET_DIMENSIONS: Size2 = Size2::new(12, 3);
 
 const ICE_BEAM_DIMENSIONS: Size2 = Size2::new(12, 3);
+const ICE_COOLDOWN: u64 = 1_000;
+
 pub const THAW_DURATION: u64 = 5_000;
 
 /// Mark an entity as being hostile to the player
@@ -46,7 +49,9 @@ pub struct PlayerHostile;
 /// Store player specific data
 pub struct PlayerCombat {
   pub hit_cooldown: Timer,
-  pub trigger_cooldown: Timer,
+  pub bullet_cooldown: Timer,
+  pub rocket_cooldown: Timer,
+  pub ice_cooldown: Timer,
   pub bullet_texture: TextureKey,
   pub rocket_texture: TextureKey,
   pub ice_beam_texture: TextureKey,
@@ -60,7 +65,9 @@ impl PlayerCombat {
       bullet_texture,
       rocket_texture,
       ice_beam_texture,
-      trigger_cooldown: Timer::new(Duration::from_millis(PROJECTILE_COOLDOWN), false),
+      bullet_cooldown: Timer::new(Duration::from_millis(BULLET_COOLDOWN), false),
+      rocket_cooldown: Timer::new(Duration::from_millis(ROCKET_COOLDOWN), false),
+      ice_cooldown: Timer::new(Duration::from_millis(ICE_COOLDOWN), false),
     }
   }
 }
@@ -101,18 +108,26 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
   let PlayerQuery { combat, position, .. } = use_player(world);
   let (position, velocity, rotation) = compute_projectile_spawn(aim, position.0, PLAYER_SIZE);
 
-  let (dimensions, texture) = match weapon {
-    Weapon::Bullet => (BULLET_DIMENSIONS, combat.bullet_texture),
-    Weapon::Rocket => (ROCKET_DIMENSIONS, combat.rocket_texture),
-    Weapon::IceBeam => (ICE_BEAM_DIMENSIONS, combat.ice_beam_texture)
+  let (dimensions, texture, damage) = match weapon {
+    Weapon::Bullet => (BULLET_DIMENSIONS, combat.bullet_texture, BULLET_DAMAGE, ),
+    Weapon::Rocket => (ROCKET_DIMENSIONS, combat.rocket_texture, ROCKET_DAMAGE, ),
+    Weapon::IceBeam => (ICE_BEAM_DIMENSIONS, combat.ice_beam_texture, 0, )
   };
 
   let collision_box = CollisionBox::new(Vec2::new(0.0, 0.0), dimensions);
   let mut sprite = Sprite::new(texture, SrcRect::new(Vec2::new(0, 0), dimensions));
   sprite.rotate(rotation.into());
 
-  if !combat.trigger_cooldown.done() { return; }
-  combat.trigger_cooldown.reset();
+  if !combat.bullet_cooldown.done() { return; }
+  combat.bullet_cooldown.reset();
+
+  if weapon == Weapon::Rocket {
+    if !combat.rocket_cooldown.done() { return; }
+    combat.rocket_cooldown.reset();
+  } else if weapon == Weapon::IceBeam {
+    if !combat.ice_cooldown.done() { return; }
+    combat.ice_cooldown.reset();
+  }
 
   let projectile = world.add((
     sprite,
@@ -120,16 +135,17 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
     ProjectileLayer::default(),
     Position(position),
     Velocity(velocity),
+    Damage::new(damage),
     Collider::new(collision_box),
     RoomCollision,
+    TimeToLive::new(PROJECTILE_TTL),
     Fragile,
-    TimeToLive::new(PROJECTILE_LIFETIME),
   ));
 
   match weapon {
-    Weapon::Bullet => world.add_components(projectile, (Bullet, Damage::new(BULLET_DAMAGE), )),
-    Weapon::Rocket => world.add_components(projectile, (Rocket, Damage::new(ROCKET_DAMAGE), )),
-    Weapon::IceBeam => world.add_components(projectile, (IceBeam, Damage::new(0), )),
+    Weapon::Bullet => world.add_components(projectile, (Bullet, )),
+    Weapon::Rocket => world.add_components(projectile, (Rocket, )),
+    Weapon::IceBeam => world.add_components(projectile, (IceBeam, )),
   }.expect("Failed to add weapon components to projectile")
 }
 
