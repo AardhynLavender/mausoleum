@@ -1,6 +1,12 @@
 {
   "save_room": "save_6",
-  "inventory": [],
+  "inventory": [
+    "health",
+    "health",
+    "ice_beam",
+    "missile_tank",
+    "high_jump"
+  ],
   "x": 0.0,
   "y": 0.0
 }

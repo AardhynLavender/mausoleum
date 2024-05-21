@@ -1,0 +1,26 @@
+{
+  "bullet": {
+    "name": "Plasma Burst",
+    "description": "Fast controlled bursts of plasma. Should cut though most creatures and obstacles.",
+    "key": "J",
+    "tile": -1
+  },
+  "missile_tank": {
+    "name": "Desolation Pulse",
+    "description": "Larger plasma bust module. Takes longer to change, but is more effective against obstacles and creatures.",
+    "key": "K",
+    "tile": 29
+  },
+  "high_jump": {
+    "name": "Gravity Constrictor",
+    "description": "This trinket lowers the gravity around you, allowing you to jump higher.",
+    "key": "Space",
+    "tile": 30
+  },
+  "ice_beam": {
+    "name": "Temporal Disruptor",
+    "description": "Slows time around animated targets, rendering them disabled for a time. You could probably walk on them",
+    "key": "L",
+    "tile": 31
+  }
+}

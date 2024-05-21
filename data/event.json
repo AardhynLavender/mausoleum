@@ -1,0 +1,34 @@
+{
+  "prologue": {
+    "type": "printout",
+    "data": [
+      "Temperature: 20deg C",
+      "Humidity: 47%",
+      "Wind: 5km/h",
+      "\n",
+      "Surface area scan [complete]: Primitive hostile life forms; Proceed with caution.",
+      "Depth scan [inconclusive]: Potentially unstable ground; subterranean structures probable.",
+      "\n",
+      "# High temple complex located eastward. proceed with caution. Retrieve the artifact and return shuttle."
+    ]
+  },
+  "transit": {
+    "type": "printout",
+    "data": [
+      "# Structure entrance ahead... Suspect Plasma rifle incapable of penetrating bast door.",
+      "# Assessment required"
+    ]
+  },
+  "fallen": {
+    "type": "printout",
+    "data": [
+      "# Depth scans [complete]: Unstable ground; subterranean structures highly probable."
+    ]
+  },
+  "epilogue": {
+    "type": "printout",
+    "data": [
+      "# Artifact retrieved. Return to shuttle."
+    ]
+  }
+}
