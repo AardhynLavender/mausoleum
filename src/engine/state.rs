@@ -21,7 +21,7 @@ impl State {
   pub fn get<T: 'static>(&self) -> Result<&T, String> {
     let id = TypeId::of::<T>();
     self.states.get(&id)
-      .ok_or_else(|| format!("State not found in store: {:?}", id))
+      .ok_or_else(|| format!("Failed to get immutable state. Not found in store: {:?}", id))
       .and_then(|state| {
         state.downcast_ref::<T>()
           .ok_or_else(|| format!("Failed to downcast state to {:?}", id))
@@ -31,7 +31,7 @@ impl State {
   pub fn get_mut<T: 'static>(&mut self) -> Result<&mut T, String> {
     let id = TypeId::of::<T>();
     self.states.get_mut(&id)
-      .ok_or_else(|| format!("State not found in store: {:?}", id))
+      .ok_or_else(|| format!("Failed to get mutable state. Not found in store: {:?}", id))
       .and_then(|state| {
         state.downcast_mut::<T>()
           .ok_or_else(|| format!("Failed to downcast state to {:?}", id))
@@ -42,7 +42,7 @@ impl State {
     let id = TypeId::of::<T>();
     self.states.remove(&TypeId::of::<T>())
       .map(|_| ())
-      .ok_or_else(|| format!("State not found in store: {:?}", id))
+      .ok_or_else(|| format!("Failed to remove state. Not found in store: {:?}", id))
   }
 }
 

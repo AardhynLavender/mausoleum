@@ -1,9 +1,11 @@
+use std::marker::PhantomData;
+
 use hecs::{Component, DynamicBundle};
 use sdl2::ttf::Font;
 
 use crate::engine::asset::texture::{TextureKey, TextureLoader};
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::rendering::camera::StickyLayer;
+use crate::engine::rendering::camera::Sticky1;
 use crate::engine::rendering::color::RGBA;
 use crate::engine::store::next_key;
 use crate::engine::utility::alias::Size2;
@@ -107,31 +109,30 @@ impl Text {
 // Helpers //
 
 /// Helper function to assemble the components for a text entity
-pub fn make_text<'font, 'app, C>(
+pub fn make_text<'font, 'app, Meta, Layer>(
   content: impl Into<String>,
   position: Alignment,
   aligner: &Aligner,
   color: RGBA,
   typeface: &Font<'font, 'app>,
   texture_loader: &mut TextureLoader,
-) -> impl DynamicBundle
-  where C: Component + Default + 'static,
-{
+) -> impl DynamicBundle where Meta: Component + Default, Layer: Component + Default {
   let text = Text::new(color).with_content(content, &typeface, texture_loader);
   let position = aligner.align(position, text.get_dimensions());
 
-  (Position(position), text, StickyLayer::default(), C::default(), )
+  (Position(position), text, Layer::default(), Meta::default(), )
 }
 
 /// Helper struct for creating multiple text entities
-pub struct TextBuilder<'fonts, 'app> {
+pub struct TextBuilder<'fonts, 'app, Layer = Sticky1> {
   typeface: &'app Font<'fonts, 'app>,
   texture_loader: &'app mut TextureLoader,
   color: RGBA,
   aligner: &'app Aligner,
+  layer: PhantomData<Layer>,
 }
 
-impl<'app, 'fonts> TextBuilder<'app, 'fonts> {
+impl<'app, 'fonts, Layer> TextBuilder<'app, 'fonts, Layer> where Layer: Default + Component {
   /// Instantiate a new text builder
   pub fn new(typeface: &'app Font<'fonts, 'app>, texture_loader: &'app mut TextureLoader, color: RGBA, aligner: &'app Aligner) -> Self {
     Self {
@@ -139,13 +140,14 @@ impl<'app, 'fonts> TextBuilder<'app, 'fonts> {
       texture_loader,
       color,
       aligner,
+      layer: PhantomData,
     }
   }
   /// Assemble the components for a text entity
-  pub fn make_text<C>(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle
-    where C: Component + Default + 'static
+  pub fn make_text<Meta>(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle
+    where Meta: Component + Default + 'static
   {
-    make_text::<C>(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
+    make_text::<Meta, Layer>(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
   }
 }
 

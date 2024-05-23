@@ -3,7 +3,7 @@ use hecs::{Component, Or};
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::Text;
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::rendering::camera::StickyLayer;
+use crate::engine::rendering::camera::{Sticky1, Sticky2};
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::{layer, Renderer};
 use crate::engine::system::{SysArgs, Systemize};
@@ -11,9 +11,6 @@ use crate::game::physics::position::Position;
 
 /// components marking entities as renderable
 type Renderable<'a> = Or<&'a Sprite, &'a mut Text>;
-
-/// Query for entities that should be rendered
-type QueryRenderable<'a> = (Renderable<'a>, &'a Position, );
 
 /// Query for entities of layer `L`
 type QueryRenderableOf<'a, L> = (Renderable<'a>, &'a Position, &'a L);
@@ -28,13 +25,15 @@ impl Systemize for Renderer {
     render_layer::<layer::Layer5>(args);
     render_layer::<layer::Layer6>(args);
     render_layer::<layer::Layer7>(args);
-    render_layer::<layer::Layer8>(args);
-    render_sticky(args);
+
+    render_sticky::<Sticky1>(args);
+    render_sticky::<Sticky2>(args);
+
     Ok(())
   }
 }
 
-/// render entities of layer T
+/// render entities of layer T using the world origin
 pub fn render_layer<T>(SysArgs { world, camera, render, asset, .. }: &mut SysArgs) where T: Component {
   for (_, (renderable, position, ..)) in world.query::<QueryRenderableOf<T>>() {
     let position = camera.translate(Vec2::from(position.0));
@@ -42,17 +41,9 @@ pub fn render_layer<T>(SysArgs { world, camera, render, asset, .. }: &mut SysArg
   }
 }
 
-/// render entities without a layer
-pub fn render_unlayered(SysArgs { world, camera, render, asset, .. }: &mut SysArgs) {
-  for (_, (renderable, position)) in world.query::<QueryRenderable>() {
-    let position = camera.translate(Vec2::from(position.0));
-    render_renderable(render, asset, renderable, position);
-  }
-}
-
-/// render entities with a sticky layer
-pub fn render_sticky(SysArgs { world, render, asset, .. }: &mut SysArgs) {
-  for (_, (renderable, position, ..)) in world.query::<QueryRenderableOf<StickyLayer>>() {
+/// render entities of layer T using the camera origin
+pub fn render_sticky<T>(SysArgs { world, render, asset, .. }: &mut SysArgs) where T: Component {
+  for (_, (renderable, position, ..)) in world.query::<QueryRenderableOf<T>>() {
     let position = Vec2::from(position.0);
     render_renderable(render, asset, renderable, position);
   }

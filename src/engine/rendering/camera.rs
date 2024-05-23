@@ -103,4 +103,5 @@ impl Systemize for CameraTether {
 }
 
 /// Entities with this component will be positioned relative to the camera
-pub type StickyLayer = layer::Layer9;
+pub type Sticky1 = layer::Layer9;
+pub type Sticky2 = layer::Layer8;

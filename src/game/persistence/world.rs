@@ -3,6 +3,7 @@ use hecs::Entity;
 use crate::engine::component::text::TextBuilder;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::Vec2;
+use crate::engine::rendering::camera::Sticky1;
 use crate::engine::rendering::color::color;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alignment::{Align, Alignment};
@@ -77,7 +78,7 @@ impl Systemize for SaveArea {
         let typeface = asset.typeface
           .use_store()
           .get("typeface")?;
-        let mut builder = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, &WINDOW);
+        let mut builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, &WINDOW);
         world.add(builder.make_text::<SaveText>("Press up to save", Alignment::new(Align::Center(0.0), Align::Center(0.0))));
       } else {
         let save_text = world.query::<&SaveText>().into_iter().next();

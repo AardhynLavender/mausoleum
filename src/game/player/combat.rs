@@ -89,7 +89,7 @@ impl Systemize for PlayerCombat {
 #[derive(PartialEq)]
 pub enum Weapon { Bullet, Rocket, IceBeam }
 
-pub type ProjectileLayer = layer::Layer8;
+pub type ProjectileLayer = layer::Layer7;
 
 /// Mark an entity as a bullet projectile
 pub struct Bullet;

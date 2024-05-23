@@ -7,6 +7,7 @@ use hecs::Entity;
  * UI Related components
  */
 
+
 /// Index of the current selection
 pub type SelectionIndex = usize;
 
@@ -27,15 +28,14 @@ impl Display for Selection {
 impl AddAssign<i32> for Selection {
   /// Increment the selection by the given value
   fn add_assign(&mut self, rhs: i32) {
-    self.index = self.set_index(self.index as i32 + rhs);
+    let next = self.index as i32 + rhs + self.items.len() as i32;
+    self.index = (next % self.items.len() as i32) as SelectionIndex;
   }
 }
 
 impl SubAssign<i32> for Selection {
-  /// Decrement the selection index by the given value
-  fn sub_assign(&mut self, rhs: i32) {
-    *self += -rhs
-  }
+  /// Decrement the selection by the given value
+  fn sub_assign(&mut self, rhs: i32) { *self += -rhs; }
 }
 
 impl Selection {
@@ -52,27 +52,17 @@ impl Selection {
     })
   }
 
-  /// Set the index of the selection
-  /// If the index is negative, it will be calculated from the end of the list
-  pub fn set_index(&mut self, index: i32) -> SelectionIndex {
-    return if index < 0 {
-      (self.items.len() as i32 + index) as SelectionIndex % self.items.len()
-    } else {
-      index as SelectionIndex % self.items.len()
-    };
-  }
-
   /// Set the default index of the selection
   /// If the index is negative, it will be calculated from the end of the list
-  pub fn with_default(mut self, index: i32) -> Self {
-    self.index = self.set_index(index);
+  pub fn with_default(mut self, index: SelectionIndex) -> Self {
+    self.index = index;
     self
   }
   /// Get the current selection index
   pub fn get_selection(&self) -> (SelectionIndex, Entity) {
     (
       self.index,
-      self.items.get(self.index).expect("Failed to get selection").clone()
+      *self.items.get(self.index).expect("Failed to get selection")
     )
   }
 }

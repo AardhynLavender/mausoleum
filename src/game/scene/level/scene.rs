@@ -136,7 +136,7 @@ impl Systemize for LevelScene {
     if dead {
       scene.queue_next(MenuScene)
       // todo: death stuff... write the obituary, engrave the tombstone, you know the drill...
-    } else if exit && !event.should_pause() {
+    } else if exit && !event.must_pause() {
       event.queue_pause();
       make_menu(world, asset, state);
     }

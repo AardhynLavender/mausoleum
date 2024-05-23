@@ -7,11 +7,6 @@ pub const TILE_SIZE: Vec2<u32> = Vec2::new(16, 16);
 
 // Menu //
 
-pub const TITLE_Y: f32 = 80.0;
-pub const COPYRIGHT_MARGIN: f32 = 10.0;
-pub const BUTTONS_BEGIN_Y: f32 = 160.0;
-pub const BUTTONS_Y_GAP: f32 = 16.0;
-
 // Typeface //
 
 pub const TYPEFACE_PATH: &str = "asset/typography/typeface.ttf";

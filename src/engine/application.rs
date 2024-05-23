@@ -66,7 +66,18 @@ impl<'a> Engine<'a> {
 
       // process events
       self.subsystem.events.update(&mut self.events);
-      if self.subsystem.events.is_quit { break; }
+      if self.subsystem.events.is_quit() { break; }
+
+      // check for pause
+      if !paused && self.events.is_paused() {
+        systems.suspend(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to suspend fame systems");
+        systems.suspend(Schedule::PostUpdate, SystemTag::Suspendable).expect("Failed to suspend post systems");
+        paused = true;
+      } else if paused && !self.events.is_paused() {
+        systems.resume(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to resume frame systems");
+        systems.resume(Schedule::PostUpdate, SystemTag::Suspendable).expect("Failed to resume post systems");
+        paused = false;
+      }
 
       // process physics
       self.last_frame.process_accumulated(|fixed_time| {
@@ -80,22 +91,18 @@ impl<'a> Engine<'a> {
       systems.update(Schedule::PostUpdate, &mut args)?;
       self.subsystem.renderer.present();
 
-      // check for pause
-      if !paused && self.events.should_pause() {
-        systems.suspend(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to suspend fixed systems");
-        paused = true;
-      } else if paused && !self.events.should_pause() {
-        systems.resume(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to resume fixed systems");
-        paused = false;
-      }
-
       // check for scene change
       if self.scenes.is_queue() {
         systems.remove(SystemTag::Scene);
         systems.remove(SystemTag::Suspendable);
         systems.remove_suspended();
+
+        // prevent events leaking into the next scene
+        self.events.clear_held_keys();
+
         self.events.queue_resume(); // Lol, this doesn't do much as we deleted the suspended systems
         paused = false;
+
         self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets))
       }
     }

@@ -1,5 +1,6 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::component::text::{make_text, Text};
+use crate::engine::rendering::camera::Sticky2;
 use crate::engine::rendering::color::color;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alignment::{Align, Alignment};
@@ -18,7 +19,7 @@ pub fn make_player_health_text(world: &mut World, asset: &mut AssetManager) {
     .get("typeface")
     .expect("Failed to get typeface");
   world.add(
-    make_text::<PlayerHealth>(text, Alignment::new(Align::End(8.0), Align::Start(8.0)), &WINDOW, color::TEXT, font, &mut asset.texture)
+    make_text::<PlayerHealth, Sticky2>(text, Alignment::new(Align::End(8.0), Align::Start(8.0)), &WINDOW, color::TEXT, font, &mut asset.texture)
   );
 }
 
