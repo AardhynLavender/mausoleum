@@ -10,7 +10,7 @@ use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::rendering::color::color;
 use crate::engine::scene::Scene;
 use crate::engine::state::State;
-use crate::engine::system::{Schedule, SysArgs};
+use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
 use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, DEV_SAVE_FILE, TITLE_Y, USER_SAVE_FILE, WINDOW};
@@ -58,52 +58,49 @@ pub struct MenuScene;
 
 impl Scene for MenuScene {
   /// Set up the main menu scene
-  fn setup(&self, LifecycleArgs { world, camera, asset, state, .. }: &mut LifecycleArgs) {
-    camera.release(Vec2::default());
+  fn setup(&mut self, LifecycleArgs { world, system, asset, state, .. }: &mut LifecycleArgs) {
     add_ui(world, asset, state);
-  }
-  /// Add systems to the main menu scene
-  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
-    system.add(Schedule::FrameUpdate, sys_menu_selection);
-    system.add(Schedule::PostUpdate, sys_render_selected);
+
+    system.add(Schedule::FrameUpdate, SystemTag::Scene, MenuScene::system).expect("Failed to add menu system");
+    system.add(Schedule::PostUpdate, SystemTag::Scene, sys_render_selected).expect("Failed to add render selected system");
   }
   /// Destroy the main menu scene
-  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
+  fn destroy(&mut self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
     state.remove::<MenuState>().expect("Failed to remove menu state")
   }
 }
 
-// Systems //
-
 /// Manage the selection of the main menu
-pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
-  let state = state.get_mut::<MenuState>()?;
-  if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
-  if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
-  if is_control(Control::Select, Behaviour::Pressed, event) {
-    let (index, ..) = state.interface.get_selection();
-    match index {
-      0 => {
-        let save_data = SaveData::from_file(USER_SAVE_FILE)
-          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
-            .unwrap_or(SaveData::default()));
-        scene.queue_next(LevelScene::new(save_data))
-      }
-      1 => {
-        // delete old save data and start from default
-        let save_data = SaveData::from_erased(USER_SAVE_FILE)
-          .unwrap_or(SaveData::default());
-        scene.queue_next(LevelScene::new(save_data))
-      }
-      2 => eprintln!("Not implemented yet"),
-      3 => event.queue_quit(),
-      _ => {
-        return Err(String::from("Invalid menu selection"));
+impl Systemize for MenuScene {
+  fn system(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
+    let state = state.get_mut::<MenuState>()?;
+    if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
+    if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
+    if is_control(Control::Select, Behaviour::Pressed, event) {
+      let (index, ..) = state.interface.get_selection();
+      match index {
+        0 => {
+          let save_data = SaveData::from_file(USER_SAVE_FILE)
+            .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+              .unwrap_or(SaveData::default()));
+          scene.queue_next(LevelScene::new(save_data))
+        }
+        1 => {
+          // delete old save data and start from default
+          let save_data = SaveData::from_erased(USER_SAVE_FILE)
+            .unwrap_or(SaveData::default());
+          scene.queue_next(LevelScene::new(save_data))
+        }
+        2 => eprintln!("Not implemented yet"),
+        3 => event.queue_quit(),
+        _ => {
+          return Err(String::from("Invalid menu selection"));
+        }
       }
     }
-  }
 
-  Ok(())
+    Ok(())
+  }
 }
 
 /// Render a box around the selected item

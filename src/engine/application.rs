@@ -1,13 +1,14 @@
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
 use crate::engine::geometry::shape::Vec2;
+use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::rendering::renderer::Properties;
 use crate::engine::scene::{Scene, SceneManager};
 use crate::engine::state::State;
 use crate::engine::subsystem::Subsystem;
-use crate::engine::system::{Schedule, SysArgs, SystemManager};
+use crate::engine::system::{Schedule, SysArgs, SystemManager, SystemTag};
 use crate::engine::time::Frame;
 use crate::engine::utility::alias::{DeltaMS, Size2};
 use crate::engine::world::World;
@@ -48,30 +49,39 @@ impl<'a> Engine<'a> {
 
   /// Load assets, setup state, and start the main loop
   pub fn start(&mut self, assets: &mut AssetManager) -> Result<(), String> {
-    let mut systems = SystemManager::new();
+    let mut systems = SystemManager::default();
 
-    (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets));
+    add_internal_systems(&mut systems);
+    add_internal_entities(&mut self.world);
+
+    let mut paused = self.events.is_paused();
+
+    (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets));
 
     loop {
-      // compute delta time
       let (delta, ..) = self.last_frame.next();
 
       // todo: is there a better way to do this? process the dynamic frames as fixed?
       if delta > MAX_FRAME_TIME { continue; }
 
-      // process fixed updates
       self.last_frame.process_accumulated(|fixed_time| {
         let mut args = SysArgs::new(fixed_time, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
         systems.update(Schedule::FixedUpdate, &mut args)
       })?;
 
       if self.scenes.is_queue() {
-        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.state, &mut self.camera, assets))
+        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets))
       }
 
       self.subsystem.events.update(&mut self.events);
-      if self.subsystem.events.is_quit {
-        break;
+      if self.subsystem.events.is_quit { break; }
+
+      if !paused && self.events.should_pause() {
+        systems.suspend(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to suspend fixed systems");
+        paused = true;
+      } else if paused && !self.events.should_pause() {
+        systems.resume(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to resume fixed systems");
+        paused = false;
       }
 
       let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);

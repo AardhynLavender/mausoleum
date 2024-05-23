@@ -5,7 +5,8 @@ use crate::engine::component::text::Text;
 use crate::engine::rendering::camera::{CameraTether, StickyLayer};
 use crate::engine::rendering::color::color;
 use crate::engine::rendering::renderer::Renderer;
-use crate::engine::system::{Schedule, SysArgs, Systemize, SystemManager};
+use crate::engine::system::{Schedule, SysArgs, Systemize, SystemManager, SystemTag};
+use crate::engine::time::SECOND_MS;
 use crate::engine::utility::alias::DeltaMS;
 use crate::engine::world::World;
 use crate::game::physics::position::Position;
@@ -22,17 +23,16 @@ static mut MAX_FPS: DeltaMS = DeltaMS::MIN;
 
 /// Add internal systems to the system manager
 pub fn add_internal_systems(systems: &mut SystemManager) {
-  systems.add(Schedule::FrameUpdate, sys_fullscreen_toggle);
+  systems.add(Schedule::PostUpdate, SystemTag::Internal, sys_fullscreen_toggle).expect("Failed to add fullscreen toggle system");
 
   //systems.add(Schedule::PostUpdate, sys_update_fps_text);
-  systems.add(Schedule::PostUpdate, CameraTether::system); // the camera must be in position *before* rendering
-  systems.add(Schedule::PostUpdate, Renderer::system);
+  systems.add(Schedule::PostUpdate, SystemTag::Internal, CameraTether::system).expect("Failed to add camera tether system");
+  systems.add(Schedule::PostUpdate, SystemTag::Internal, Renderer::system).expect("Failed to add renderer system");
 }
 
 /// Add internal entities to the world
 #[allow(unreachable_code, unused_variables)]
 pub fn add_internal_entities(world: &mut World) {
-  return;
   let fps_text = Text::new(color::TEXT);
   unsafe {
     FPS_TEXT = Some(world.add((FpsText, fps_text, Position::new(4.0, 4.0), StickyLayer::default())));
@@ -44,8 +44,6 @@ fn sys_fullscreen_toggle(SysArgs { render, event, .. }: &mut SysArgs) -> Result<
   if event.is_key_pressed(Keycode::F11) { render.set_fullscreen(!render.is_fullscreen()); }
   Ok(())
 }
-
-pub const SECOND_MS: DeltaMS = 10_000.0;
 
 #[allow(dead_code)]
 fn sys_update_fps_text(SysArgs { delta, world, .. }: &mut SysArgs) -> Result<(), String> {

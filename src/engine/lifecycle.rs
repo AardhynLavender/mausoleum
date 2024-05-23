@@ -9,8 +9,8 @@ pub struct LifecycleArgs<'app, 'fonts> {
   pub world: &'app mut World,
   pub system: &'app mut SystemManager,
   pub camera: &'app mut Camera,
-  pub asset: &'app mut AssetManager<'fonts>,
   pub state: &'app mut State,
+  pub asset: &'app mut AssetManager<'fonts>,
 }
 
 impl<'app, 'fonts> LifecycleArgs<'app, 'fonts> {
@@ -18,17 +18,11 @@ impl<'app, 'fonts> LifecycleArgs<'app, 'fonts> {
   pub fn new(
     world: &'app mut World,
     system: &'app mut SystemManager,
-    state: &'app mut State,
     camera: &'app mut Camera,
+    state: &'app mut State,
     asset: &'app mut AssetManager<'fonts>,
   ) -> Self {
-    Self {
-      world,
-      camera,
-      system,
-      asset,
-      state,
-    }
+    Self { world, camera, system, asset, state }
   }
 }
 

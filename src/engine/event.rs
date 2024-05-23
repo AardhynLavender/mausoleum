@@ -17,7 +17,8 @@ pub struct EventStore {
   held_keys: KeyStore,
   pressed_keys: KeyStore,
   mouse_position: Vec2<i32>,
-  quit: bool,
+  must_quit: bool,
+  must_pause: bool,
 }
 
 impl EventStore {
@@ -27,7 +28,9 @@ impl EventStore {
       pressed_keys: HashSet::new(),
       held_keys: HashSet::new(),
       mouse_position: Vec2::default(),
-      quit: false,
+
+      must_quit: false,
+      must_pause: false,
     }
   }
   /// Clear the pressed keys from the store
@@ -39,16 +42,27 @@ impl EventStore {
   }
   /// Mark a key as released
   pub fn raise_key(&mut self, keycode: Keycode) { self.held_keys.remove(&keycode); }
-  /// Mark the location of the mouse
-  pub fn set_mose_position(&mut self, position: Vec2<i32>) { self.mouse_position = position; }
+
   /// Query if the key was pressed this frame.
   pub fn is_key_pressed(&self, keycode: Keycode) -> bool { self.pressed_keys.contains(&keycode) }
   /// Query if the key is currently held down.
   pub fn is_key_held(&self, keycode: Keycode) -> bool { self.held_keys.contains(&keycode) }
+
+  /// Mark the location of the mouse
+  pub fn set_mose_position(&mut self, position: Vec2<i32>) { self.mouse_position = position; }
+
   /// Mark the application to quit
-  pub fn queue_quit(&mut self) { self.quit = true; }
+  pub fn queue_quit(&mut self) { self.must_quit = true; }
   /// Query if the event store should quit
-  pub fn should_quit(&self) -> bool { self.quit }
+  pub fn should_quit(&self) -> bool { self.must_quit }
+
+  /// Pause the game
+  pub fn queue_pause(&mut self) { self.must_pause = true; }
+  /// Query if the game is paused
+  pub fn should_pause(&self) -> bool { self.must_pause }
+  pub fn is_paused(&self) -> bool { self.must_pause }
+  /// Resume the game
+  pub(crate) fn queue_resume(&mut self) { self.must_pause = false; }
 }
 
 /// Manage events polled by SDL2

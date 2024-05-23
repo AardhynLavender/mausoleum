@@ -1,5 +1,5 @@
-use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::LifecycleArgs;
+use crate::engine::system::SystemTag;
 
 /**
  * Scenes define
@@ -7,9 +7,8 @@ use crate::engine::lifecycle::LifecycleArgs;
 
 /// A scene is a defined state of the game
 pub trait Scene {
-  fn setup(&self, args: &mut LifecycleArgs);
-  fn add_systems(&self, args: &mut LifecycleArgs);
-  fn destroy(&self, args: &mut LifecycleArgs);
+  fn setup(&mut self, args: &mut LifecycleArgs);
+  fn destroy(&mut self, args: &mut LifecycleArgs);
 }
 
 /// Scene manager is responsible for managing the current scene
@@ -31,6 +30,17 @@ impl SceneManager {
   pub fn queue_next(&mut self, scene: impl Scene + 'static) { self.next = Some(Box::new(scene)); }
   /// Check if there is a scene in the queue
   pub fn is_queue(&self) -> bool { self.next.is_some() }
+  /// Load the next scene
+  fn load(&mut self, args: &mut LifecycleArgs) {
+    // clear all tags between scenes except internal
+    args.system.remove(SystemTag::Scene);
+    args.system.remove(SystemTag::Suspendable);
+
+    if let Some(next) = self.next.as_mut() {
+      next.setup(args);
+      self.scene = self.next.take();
+    }
+  }
 
   /// Destroy the current scene
   fn destroy(&mut self, args: &mut LifecycleArgs) {
@@ -38,17 +48,6 @@ impl SceneManager {
       current.destroy(args);
     }
     args.world.free_all_now();
-    args.system.clear();
-  }
-  /// Load the next scene
-  fn load(&mut self, args: &mut LifecycleArgs) {
-    add_internal_systems(args.system);
-    add_internal_entities(&mut args.world);
-    if let Some(next) = self.next.as_mut() {
-      next.setup(args);
-      next.add_systems(args);
-      self.scene = self.next.take();
-    }
   }
   /// Destroy the current scene and set up the next
   pub fn next(&mut self, args: &mut LifecycleArgs) {

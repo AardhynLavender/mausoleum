@@ -7,8 +7,6 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::CameraTether;
 use crate::engine::rendering::component::Sprite;
 use crate::engine::rendering::renderer::layer;
-use crate::engine::system::{Schedule, SystemManager};
-use crate::engine::system::Systemize;
 use crate::engine::utility::alias::Size2;
 use crate::engine::world::World;
 use crate::game::collectable::collectable::Collection;
@@ -74,7 +72,7 @@ pub fn use_player(world: &mut World) -> PlayerQuery {
 }
 
 /// Set up the world for the player
-pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut AssetManager, inventory: impl Iterator<Item=Collectable>, position: Vec2<f32>) {
+pub fn make_player(world: &mut World, asset: &mut AssetManager, inventory: impl Iterator<Item=Collectable>, position: Vec2<f32>) {
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
@@ -98,11 +96,9 @@ pub fn make_player(world: &mut World, system: &mut SystemManager, asset: &mut As
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
     Collection::new(inventory),
     Velocity::default(),
-    RoomCollision,
+    RoomCollision::Player,
     Collider::new(PLAYER_COLLIDER),
     Health::build(PLAYER_BASE_HEALTH).expect("Failed to build player health"),
   ));
-
-  system.add(Schedule::PostUpdate, PlayerController::system);
 }
 

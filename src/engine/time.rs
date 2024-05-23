@@ -11,6 +11,8 @@ use crate::engine::utility::alias::DeltaMS;
 
 pub const SECOND_MICRO: f32 = 1_000_000.0;
 
+pub const SECOND_MS: DeltaMS = 10_000.0;
+
 // Types //
 
 /// Represents a frame of time

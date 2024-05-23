@@ -4,9 +4,10 @@
 
 use std::path::Path;
 
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs, Systemize};
+use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::tile::parse::TiledParser;
 use crate::game::collectable::collectable::Collection;
 use crate::game::combat::damage::Damage;
@@ -29,6 +30,7 @@ use crate::game::physics::frozen::Frozen;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerCombat;
+use crate::game::player::controller::PlayerController;
 use crate::game::player::world::{make_player, PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
@@ -48,12 +50,14 @@ pub struct LevelScene {
 
 impl LevelScene {
   /// Build the level scene from the save data
-  pub fn new(save_data: SaveData) -> Self { Self { save_data } }
+  pub fn new(save_data: SaveData) -> Self {
+    Self { save_data }
+  }
 }
 
 impl Scene for LevelScene {
   /// Set up the level scene
-  fn setup(&self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
+  fn setup(&mut self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
     let path = Path::new(WORLD_PATH);
     let parser = TiledParser::parse(path)
       .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
@@ -69,52 +73,52 @@ impl Scene for LevelScene {
 
     let save_position = use_save_area(world).collider.origin;
     let player_position = save_position + self.save_data.get_offset();
-    make_player(world, system, asset, inventory.into_iter(), player_position);
+    make_player(world, asset, inventory.into_iter(), player_position);
 
     make_player_health_text(world, asset);
 
-    state.add(room_registry).expect("Failed to add level state")
-  }
-  /// Add systems to the level scene
-  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
-    // Creatures //
+    state.add(room_registry).expect("Failed to add level state");
 
-    system.add(PHYSICS_SCHEDULE, AngryBuzz::system);
-    system.add(PHYSICS_SCHEDULE, Bubbly::system);
-    system.add(PHYSICS_SCHEDULE, Buzz::system);
-    system.add(PHYSICS_SCHEDULE, Grunt::system);
-    system.add(PHYSICS_SCHEDULE, Spiky::system);
-    system.add(PHYSICS_SCHEDULE, Spore::system);
-    system.add(PHYSICS_SCHEDULE, Ripper::system);
-    system.add(PHYSICS_SCHEDULE, Rotund::system);
-    system.add(PHYSICS_SCHEDULE, Zoomer::system);
+    // Add systems to the level scene
+    system.add_many(Schedule::FrameUpdate, SystemTag::Suspendable, vec![
+      // Creatures //
+      AngryBuzz::system,
+      Bubbly::system,
+      Buzz::system,
+      Grunt::system,
+      Spiky::system,
+      Spore::system,
+      Ripper::system,
+      Rotund::system,
+      Zoomer::system,
+      Gravity::system,
+      Velocity::system,
+      Damage::system,
+      Frozen::system,
+      Collection::system,
+      SaveArea::system,
+      RoomCollision::system,
+      RoomRegistry::system,
+      TimeToLive::system,
+    ].into_iter()).expect("Failed to add level systems");
 
-    // physics //
+    // Add player systems to the level scene
+    system.add_many(Schedule::PostUpdate, SystemTag::Suspendable, vec![
+      PlayerController::system,
+      PlayerHealth::system,
+      PlayerCombat::system,
+    ].into_iter()).expect("Failed to add player systems");
 
-    system.add(PHYSICS_SCHEDULE, Gravity::system);
-    system.add(PHYSICS_SCHEDULE, Velocity::system);
-    system.add(PHYSICS_SCHEDULE, Damage::system);
-    system.add(PHYSICS_SCHEDULE, Frozen::system);
-    system.add(PHYSICS_SCHEDULE, Collection::system);
-    system.add(PHYSICS_SCHEDULE, SaveArea::system);
-    system.add(PHYSICS_SCHEDULE, RoomCollision::system);
-    system.add(PHYSICS_SCHEDULE, RoomRegistry::system);
-
-    // rendering //
-
-    system.add(Schedule::PostUpdate, PlayerHealth::system);
-    system.add(Schedule::PostUpdate, PlayerCombat::system);
-    system.add(Schedule::PostUpdate, sys_render_tile_colliders);
-    system.add(Schedule::PostUpdate, sys_render_colliders);
-    system.add(Schedule::PostUpdate, sys_render_room_colliders);
-
-    // misc //
-
-    system.add(PHYSICS_SCHEDULE, TimeToLive::system);
-    system.add(Schedule::PostUpdate, LevelScene::system);
+    system.add_many(Schedule::PostUpdate, SystemTag::Suspendable, vec![
+      LevelScene::system,
+      sys_render_colliders,
+      sys_render_room_colliders,
+      sys_render_tile_colliders,
+    ].into_iter()).expect("Failed to add level systems");
   }
   /// Clean up the level scene
-  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
+  fn destroy(&mut self, LifecycleArgs { state, camera, .. }: &mut LifecycleArgs) {
+    camera.release(Vec2::default());
     state.remove::<RoomRegistry>().expect("Failed to remove level state");
   }
 }
@@ -123,9 +127,23 @@ impl Scene for LevelScene {
 impl Systemize for LevelScene {
   fn system(SysArgs { event, scene, world, state, .. }: &mut SysArgs) -> Result<(), String> {
     let PlayerQuery { health, .. } = use_player(world);
+
     let dead = health.get_state() == LiveState::Dead;
     let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
-    if dead || exit { scene.queue_next(MenuScene) }
+
+    if dead {
+      scene.queue_next(MenuScene)
+
+      // todo: death stuff... write the obituary, engrave the tombstone, you know the drill...
+    } else if exit && !event.should_pause() {
+      event.queue_pause()
+
+      // add pause entities
+    } else if exit && event.should_pause() {
+      event.queue_resume()
+
+      // remove pause entities
+    }
 
     let preferences = use_preferences(state);
     if is_control(Control::Debug, Behaviour::Pressed, event) {
