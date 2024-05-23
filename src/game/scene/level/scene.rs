@@ -23,6 +23,7 @@ use crate::game::creature::spiky::Spiky;
 use crate::game::creature::spore::Spore;
 use crate::game::creature::zoomer::Zoomer;
 use crate::game::interface::hud::{make_player_health_text, PlayerHealth};
+use crate::game::interface::menu::{make_menu, MenuPane};
 use crate::game::persistence::data::SaveData;
 use crate::game::persistence::world::{SaveArea, use_save_area};
 use crate::game::physics::collision::sys_render_colliders;
@@ -109,8 +110,9 @@ impl Scene for LevelScene {
       PlayerCombat::system,
     ].into_iter()).expect("Failed to add player systems");
 
-    system.add_many(Schedule::PostUpdate, SystemTag::Suspendable, vec![
+    system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
       LevelScene::system,
+      MenuPane::system,
       sys_render_colliders,
       sys_render_room_colliders,
       sys_render_tile_colliders,
@@ -125,7 +127,7 @@ impl Scene for LevelScene {
 
 /// Listen for level events
 impl Systemize for LevelScene {
-  fn system(SysArgs { event, scene, world, state, .. }: &mut SysArgs) -> Result<(), String> {
+  fn system(SysArgs { event, scene, asset, world, state, .. }: &mut SysArgs) -> Result<(), String> {
     let PlayerQuery { health, .. } = use_player(world);
 
     let dead = health.get_state() == LiveState::Dead;
@@ -133,16 +135,10 @@ impl Systemize for LevelScene {
 
     if dead {
       scene.queue_next(MenuScene)
-
       // todo: death stuff... write the obituary, engrave the tombstone, you know the drill...
     } else if exit && !event.should_pause() {
-      event.queue_pause()
-
-      // add pause entities
-    } else if exit && event.should_pause() {
-      event.queue_resume()
-
-      // remove pause entities
+      event.queue_pause();
+      make_menu(world, asset, state);
     }
 
     let preferences = use_preferences(state);

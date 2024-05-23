@@ -1,5 +1,4 @@
 use crate::engine::lifecycle::LifecycleArgs;
-use crate::engine::system::SystemTag;
 
 /**
  * Scenes define
@@ -32,10 +31,6 @@ impl SceneManager {
   pub fn is_queue(&self) -> bool { self.next.is_some() }
   /// Load the next scene
   fn load(&mut self, args: &mut LifecycleArgs) {
-    // clear all tags between scenes except internal
-    args.system.remove(SystemTag::Scene);
-    args.system.remove(SystemTag::Suspendable);
-
     if let Some(next) = self.next.as_mut() {
       next.setup(args);
       self.scene = self.next.take();

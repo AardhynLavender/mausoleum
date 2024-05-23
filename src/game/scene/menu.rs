@@ -21,7 +21,7 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 // State //
 
-struct MenuState {
+struct MainMenuState {
   pub interface: Selection,
 }
 
@@ -41,7 +41,7 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   world.add(builder.make_text::<()>("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
   // add buttons
-  state.add(MenuState {
+  state.add(MainMenuState {
     interface: Selection::build([
       world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
       world.add(builder.make_text::<()>("new game", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
@@ -66,14 +66,16 @@ impl Scene for MenuScene {
   }
   /// Destroy the main menu scene
   fn destroy(&mut self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
-    state.remove::<MenuState>().expect("Failed to remove menu state")
+    state.remove::<MainMenuState>().expect("Failed to remove menu state");
   }
 }
 
 /// Manage the selection of the main menu
 impl Systemize for MenuScene {
   fn system(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
-    let state = state.get_mut::<MenuState>()?;
+    println!("Menu Scene!");
+
+    let state = state.get_mut::<MainMenuState>()?;
     if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
     if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
     if is_control(Control::Select, Behaviour::Pressed, event) {
@@ -91,11 +93,9 @@ impl Systemize for MenuScene {
             .unwrap_or(SaveData::default());
           scene.queue_next(LevelScene::new(save_data))
         }
-        2 => eprintln!("Not implemented yet"),
-        3 => event.queue_quit(),
-        _ => {
-          return Err(String::from("Invalid menu selection"));
-        }
+        2 => { eprintln!("Not implemented yet") }
+        3 => { event.queue_quit() }
+        _ => { unreachable!("Invalid menu selection index"); }
       }
     }
 
@@ -105,7 +105,7 @@ impl Systemize for MenuScene {
 
 /// Render a box around the selected item
 pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) -> Result<(), String> {
-  let state = state.get::<MenuState>()?;
+  let state = state.get::<MainMenuState>()?;
   let (.., entity) = state.interface.get_selection();
   let (position, text) = world
     .query_entity::<(&Position, &Text)>(entity)

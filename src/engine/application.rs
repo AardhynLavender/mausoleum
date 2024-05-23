@@ -59,23 +59,28 @@ impl<'a> Engine<'a> {
     (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets));
 
     loop {
+      // start frame
       let (delta, ..) = self.last_frame.next();
-
       // todo: is there a better way to do this? process the dynamic frames as fixed?
       if delta > MAX_FRAME_TIME { continue; }
 
+      // process events
+      self.subsystem.events.update(&mut self.events);
+      if self.subsystem.events.is_quit { break; }
+
+      // process physics
       self.last_frame.process_accumulated(|fixed_time| {
         let mut args = SysArgs::new(fixed_time, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
         systems.update(Schedule::FixedUpdate, &mut args)
       })?;
+      let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
+      systems.update(Schedule::FrameUpdate, &mut args)?;
 
-      if self.scenes.is_queue() {
-        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets))
-      }
+      // process rendering
+      systems.update(Schedule::PostUpdate, &mut args)?;
+      self.subsystem.renderer.present();
 
-      self.subsystem.events.update(&mut self.events);
-      if self.subsystem.events.is_quit { break; }
-
+      // check for pause
       if !paused && self.events.should_pause() {
         systems.suspend(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to suspend fixed systems");
         paused = true;
@@ -84,11 +89,15 @@ impl<'a> Engine<'a> {
         paused = false;
       }
 
-      let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
-      systems.update(Schedule::FrameUpdate, &mut args)?;
-      systems.update(Schedule::PostUpdate, &mut args)?;
-
-      self.subsystem.renderer.present();
+      // check for scene change
+      if self.scenes.is_queue() {
+        systems.remove(SystemTag::Scene);
+        systems.remove(SystemTag::Suspendable);
+        systems.remove_suspended();
+        self.events.queue_resume(); // Lol, this doesn't do much as we deleted the suspended systems
+        paused = false;
+        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets))
+      }
     }
 
     (self.lifecycle.destroy)();

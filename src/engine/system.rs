@@ -205,4 +205,7 @@ impl SystemManager {
         group.remove(&tag);
       });
   }
+
+  /// Remove any suspended systems
+  pub fn remove_suspended(&mut self) { self.suspended_systems.clear(); }
 }
