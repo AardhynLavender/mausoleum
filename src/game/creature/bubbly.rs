@@ -59,7 +59,7 @@ pub fn make_bubbly(asset_manager: &mut AssetManager, position: Vec2<f32>, direct
     CreatureLayer::default(),
     Damage::new(DAMAGE),
     Health::build(HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }
 

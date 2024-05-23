@@ -121,7 +121,7 @@ pub fn make_angry_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) ->
     CreatureLayer::default(),
     Damage::new(DAMAGE),
     Health::build(HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }
 
@@ -138,6 +138,6 @@ pub fn make_spit(position: Vec2<f32>, spit_texture: TextureKey, angle: f32) -> i
     Gravity::new(SPIT_GRAVITY),
     Fragile,
     TimeToLive::new(SPIT_DURATION_MS),
-    RoomCollision,
+    RoomCollision::All,
   )
 }

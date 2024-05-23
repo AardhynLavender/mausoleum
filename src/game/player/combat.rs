@@ -137,7 +137,7 @@ pub fn fire_weapon(world: &mut World, aim: Direction, weapon: Weapon) {
     Velocity(velocity),
     Damage::new(damage),
     Collider::new(collision_box),
-    RoomCollision,
+    RoomCollision::All,
     TimeToLive::new(PROJECTILE_TTL),
     Fragile,
   ));

@@ -9,6 +9,7 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::tile::parse::{TiledObject, TiledProperties, TiledProperty};
 use crate::engine::utility::alias::{Size, Size2};
 use crate::engine::utility::direction::{CompassDirectionType, Direction};
+use crate::game::scene::level::collision::RoomCollision;
 
 /// The type of collectable item
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -46,6 +47,7 @@ pub const TILED_TILE_CLASS: &str = "Tile";
 pub struct TileMeta {
   pub breakability: TileBreakability,
   pub collectable: Option<Collectable>,
+  pub collision_layer: RoomCollision,
   pub damage: u32,
 }
 
@@ -144,6 +146,19 @@ pub fn parse_collectable(properties: &Option<TiledProperties>) -> Result<Option<
     return Ok(Some(collectable));
   }
   Ok(None)
+}
+
+pub fn parse_collision_layer(properties: &Option<TiledProperties>) -> Result<RoomCollision, String> {
+  if let Some(prop) = get_property("collision_layer", properties) {
+    let layer_type = prop.trim().to_lowercase();
+    return match layer_type.as_str() {
+      "all" => Ok(RoomCollision::All),
+      "creature" => Ok(RoomCollision::Creature),
+      "player" => Ok(RoomCollision::Player),
+      other => Err(format!("Invalid collision layer: {}", other)),
+    };
+  }
+  Ok(RoomCollision::default())
 }
 
 /// Extract the breakability property from a collection of properties

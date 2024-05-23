@@ -85,6 +85,18 @@
             "valuesAsFlags": false
         },
         {
+            "id": 27,
+            "name": "CollisionLayer",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "All",
+                "Creature",
+                "Player"
+            ],
+            "valuesAsFlags": false
+        },
+        {
             "id": 25,
             "name": "CompassDirectionType",
             "storageType": "string",
@@ -295,6 +307,12 @@
                     "propertyType": "Collectable",
                     "type": "string",
                     "value": "none"
+                },
+                {
+                    "name": "collision_layer",
+                    "propertyType": "CollisionLayer",
+                    "type": "string",
+                    "value": "All"
                 },
                 {
                     "name": "damage",

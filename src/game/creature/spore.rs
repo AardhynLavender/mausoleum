@@ -122,7 +122,7 @@ pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> 
     Velocity::from(Vec2::from_degrees(angle) * CELL_SPEED),
     Gravity::new(CELL_GRAVITY),
     Damage::new(CELL_DAMAGE),
-    RoomCollision,
+    RoomCollision::All,
     Fragile,
     CreatureLayer::default(),
   )

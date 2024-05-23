@@ -76,7 +76,7 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
     CreatureLayer::default(),
     Damage::new(BUZZ_DAMAGE),
     Health::build(BUZZ_HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }
 

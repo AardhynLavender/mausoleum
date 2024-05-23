@@ -166,6 +166,6 @@ pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resu
     Gravity::new(GRUNT_GRAVITY),
     Damage::new(GRUNT_DAMAGE_IDLE),
     Health::build(GRUNT_HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }

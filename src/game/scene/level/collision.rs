@@ -26,30 +26,38 @@ use crate::game::scene::level::room::use_room;
 /// Maximum number of collision resolution attempts before ~~panicking~~
 pub const MAX_COLLISION_PHASES: u32 = 10;
 
-/// Entities with this component will collide with room tiles and be resolved
-pub struct RoomCollision;
+/// Collision layers for entities
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum RoomCollision {
+  #[default]
+  /// collides with tiles
+  All,
+  /// Collides with only creatures
+  Creature,
+  /// Only collides with the player
+  Player,
+}
 
 /// Resolve tile collisions for entities collideable with rooms tiles
 impl Systemize for RoomCollision {
   fn system(SysArgs { world, state, .. }: &mut SysArgs) -> Result<(), String> {
     let colliders = world
-      .query::<(&Position, &Collider)>()
-      .with::<&RoomCollision>()
+      .query::<(&Position, &Collider, &RoomCollision)>()
       .without::<&Frozen>()
       .into_iter()
-      .map(|(entity, (position, collider))| {
-        (entity, (*position, *collider))
+      .map(|(entity, (position, collider, layer))| {
+        (entity, (*position, *collider, *layer))
       })
       .collect::<HashMap<_, _>>();
 
     let room = use_room(state);
 
-    for (entity, (position, collider)) in &colliders {
+    for (entity, (position, collider, layer)) in &colliders {
       let mut collision_box = make_collision_box(position, collider);
       let mut phase = 0;
       'resolving: loop {
         phase += 1;
-        let collisions = get_tile_collisions(world, &collision_box);
+        let collisions = get_tile_collisions(world, &collision_box, layer);
         let collision = get_closest_collision(collisions);
         if let Some((tile, collision, _, position)) = collision {
           if phase > MAX_COLLISION_PHASES {
@@ -112,13 +120,20 @@ impl Systemize for RoomCollision {
 pub type TileCollisionBundle = (Entity, Collision, CollisionBox, Position);
 
 /// Get all tile collisions for a given collision box
-fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox) -> impl Iterator<Item=(Entity, Collision, CollisionBox, Position)> + 'a {
-  world.query::<(&Position, &TileCollider)>()
+fn get_tile_collisions<'a>(world: &'a mut World, collider_box: &'a CollisionBox, layer: &'a RoomCollision) -> impl Iterator<Item=(Entity, Collision, CollisionBox, Position)> + 'a {
+  world.query::<(&Position, &TileCollider, &RoomCollision)>()
     .into_iter()
-    .filter_map(|(entity, (tile_position, tile_collider, ..))| {
+    .filter_map(|(entity, (tile_position, tile_collider, tile_collision_layer))| {
       let tile_box = &CollisionBox::new(tile_position.0 + tile_collider.collision_box.origin, tile_collider.collision_box.size);
       let collision = rec2_collision(collider_box, tile_box, tile_collider.mask);
-      if let Some(collision) = collision { Some((entity, collision, *tile_box, *tile_position)) } else { None }
+
+      if let Some(collision) = collision {
+        if *tile_collision_layer == RoomCollision::All || *layer == *tile_collision_layer {
+          return Some((entity, collision, *tile_box, *tile_position));
+        }
+      }
+
+      None
     })
 }
 

@@ -36,6 +36,7 @@ use crate::game::physics::collision::Fragile;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::preferences::use_preferences;
+use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
 use crate::game::scene::level::registry::RoomRegistry;
 
@@ -85,11 +86,20 @@ impl Room {
     let tilemap_position = self.position;
     self.tilemap.add_tiles(|layer, tile, _, position| {
       let position = position + tilemap_position;
+
+      let collision_layer = tile.data.meta.collision_layer;
       let entity = world.add((
         Tile::new(tile.data.tile_key),
         Position::from(position),
-        Sprite::new(tile.data.texture_key, tile.data.src),
+        collision_layer
       ));
+
+      // todo: add sprites if `meta.hidden` is true instead...
+      if collision_layer == RoomCollision::All {
+        world.add_components(entity, (
+          Sprite::new(tile.data.texture_key, tile.data.src),
+        )).expect("Failed to add active room component");
+      }
 
       // add render layer
       match layer {

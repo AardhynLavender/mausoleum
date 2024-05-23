@@ -37,7 +37,11 @@
     <tile id="24" type="Tile"/>
     <tile id="25" type="Tile"/>
     <tile id="26" type="Tile"/>
-    <tile id="27" type="Tile"/>
+    <tile id="27" type="Tile">
+        <properties>
+            <property name="collision_layer" propertytype="CollisionLayer" value="Creature"/>
+        </properties>
+    </tile>
     <tile id="28" type="Tile">
         <properties>
             <property name="collectable" propertytype="Collectable" value="health"/>

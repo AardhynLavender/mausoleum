@@ -27,7 +27,7 @@ use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
-use crate::game::scene::level::collision::RoomCollision;
+use crate::game::scene::level::collision::CollisionInteraction::Room;
 
 const SPEED: f32 = 96.0;
 const ASSET: &str = "asset/sprite/asset.png";
@@ -67,7 +67,7 @@ pub fn make_creature(asset_manager: &mut AssetManager, position: Vec2<f32>) -> R
     CreatureLayer::default(),
     Damage::new(DAMAGE),
     Health::build(HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    CollisionInteraction::Room,
   ))
 }
 
