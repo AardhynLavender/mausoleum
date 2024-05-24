@@ -128,13 +128,13 @@ pub struct TextBuilder<'fonts, 'app, Layer = Sticky1> {
   typeface: &'app Font<'fonts, 'app>,
   texture_loader: &'app mut TextureLoader,
   color: RGBA,
-  aligner: &'app Aligner,
+  aligner: Aligner,
   layer: PhantomData<Layer>,
 }
 
 impl<'app, 'fonts, Layer> TextBuilder<'app, 'fonts, Layer> where Layer: Default + Component {
   /// Instantiate a new text builder
-  pub fn new(typeface: &'app Font<'fonts, 'app>, texture_loader: &'app mut TextureLoader, color: RGBA, aligner: &'app Aligner) -> Self {
+  pub fn new(typeface: &'app Font<'fonts, 'app>, texture_loader: &'app mut TextureLoader, color: RGBA, aligner: Aligner) -> Self {
     Self {
       typeface,
       texture_loader,
@@ -147,7 +147,7 @@ impl<'app, 'fonts, Layer> TextBuilder<'app, 'fonts, Layer> where Layer: Default 
   pub fn make_text<Meta>(&mut self, content: impl Into<String>, position: Alignment) -> impl DynamicBundle
     where Meta: Component + Default + 'static
   {
-    make_text::<Meta, Layer>(content, position, self.aligner, self.color, self.typeface, self.texture_loader)
+    make_text::<Meta, Layer>(content, position, &self.aligner, self.color, self.typeface, self.texture_loader)
   }
 }
 

@@ -78,7 +78,7 @@ impl Systemize for SaveArea {
         let typeface = asset.typeface
           .use_store()
           .get("typeface")?;
-        let mut builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, &WINDOW);
+        let mut builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, WINDOW);
         world.add(builder.make_text::<SaveText>("Press up to save", Alignment::new(Align::Center(0.0), Align::Center(0.0))));
       } else {
         let save_text = world.query::<&SaveText>().into_iter().next();

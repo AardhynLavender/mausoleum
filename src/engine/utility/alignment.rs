@@ -28,6 +28,7 @@ impl Alignment {
 }
 
 /// Alignment utilities for positioning within bounds
+#[derive(Clone, Copy)]
 pub struct Aligner {
   bounds: Rec2<i32, Size>,
 }

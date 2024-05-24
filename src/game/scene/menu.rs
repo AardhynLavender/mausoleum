@@ -48,13 +48,13 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
   let cursor_texture = textures.load("asset/hud/cursor.png").expect("Failed to load cursor texture");
 
   // Static tex
-  let mut static_builder: TextBuilder::<Sticky2> = TextBuilder::<Sticky2>::new(typeface, textures, color::TEXT, &WINDOW);
+  let mut static_builder: TextBuilder::<Sticky2> = TextBuilder::<Sticky2>::new(typeface, textures, color::TEXT, WINDOW);
   world.add(static_builder.make_text::<()>("Aardhyn Lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
   // buttons
   let buttons_position = WINDOW.center(OPTIONS_BOUNDS);
   let buttons_aligner = Aligner::new(Rec2::new(Vec2::<i32>::from(buttons_position), OPTIONS_BOUNDS));
-  let mut button_builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(typeface, textures, color::TEXT, &buttons_aligner);
+  let mut button_builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(typeface, textures, color::TEXT, buttons_aligner);
   let interface = Selection::build([
     world.add(button_builder.make_text::<()>("start", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(0.0)))),
     world.add(button_builder.make_text::<()>("new game", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP)))),
