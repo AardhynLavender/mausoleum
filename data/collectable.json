@@ -3,7 +3,12 @@
     "name": "Plasma Burst",
     "description": "Fast controlled bursts of plasma. Should cut though most creatures and obstacles.",
     "key": "J",
-    "tile": -1
+    "tile": 99999
+  },
+  "health": {
+    "name": "Health",
+    "description": "Augments to your protective energy shield to last longer",
+    "tile": 28
   },
   "missile_tank": {
     "name": "Desolation Pulse",
@@ -13,7 +18,7 @@
   },
   "high_jump": {
     "name": "Gravity Constrictor",
-    "description": "This trinket lowers the gravity around you, allowing you to jump higher.",
+    "description": "Lowers the gravity around you, allowing you to jump higher.",
     "key": "Space",
     "tile": 30
   },
