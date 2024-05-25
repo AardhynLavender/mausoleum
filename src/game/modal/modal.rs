@@ -11,6 +11,7 @@ use crate::engine::utility::alignment::{Align, Aligner, Alignment};
 use crate::engine::world::World;
 use crate::game::constant::WINDOW;
 use crate::game::physics::position::Position;
+use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const MODAL_MARGIN: f32 = 8.0;
 
@@ -49,6 +50,7 @@ pub fn make_modal<'m, 'a>(
   (aligner, builder)
 }
 
+/// Remove all components tagged as part of a modal and resume the game
 pub fn close_modal(world: &mut World, event: &mut EventStore) -> Result<(), String> {
   // remove all components with a Modal component
   let queued_free = world.query::<(&Modal, )>()
@@ -65,3 +67,11 @@ pub fn close_modal(world: &mut World, event: &mut EventStore) -> Result<(), Stri
 
   Ok(())
 }
+
+/// Close a modal when the escape key is pressed, returning true if the modal was closed
+pub fn use_escape_modal(world: &mut World, event: &mut EventStore) -> bool {
+  let exit = is_control(Control::Escape, Behaviour::Pressed, event);
+  if exit { close_modal(world, event).expect("Failed to close modal"); }
+  exit
+}
+
