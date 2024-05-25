@@ -5,6 +5,7 @@ use crate::engine::component::ui::Selection;
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::rendering::camera::Sticky2;
 use crate::engine::rendering::component::Sprite;
+use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::utility::alias::Size2;
 use crate::engine::world::World;
 use crate::game::physics::position::Position;
@@ -29,10 +30,28 @@ pub fn make_cursor<C>(world: &mut World, texture: TextureKey) -> Entity where C:
   ))
 }
 
-/// Place a cursor beside an interfaces selected entity
-pub fn place_cursor(world: &mut World, cursor: Entity, interface: &Selection) {
-  let (.., selected_entity) = interface.get_selection();
-  let position = world.get_component::<Position>(selected_entity).expect("Selected button in interface has no Position!");
-  let mut cursor = world.get_component_mut::<Position>(cursor).expect("Cursor has no Position!");
+impl Systemize for Cursor {
+  // Place a cursor beside the selected entity
+  fn system(SysArgs { world, .. }: &mut SysArgs) -> Result<(), String> {
+    if let Some((cursor, selected)) = get_selection(world) {
+      place_cursor(world, cursor, selected)?;
+    }
+    Ok(())
+  }
+}
+
+fn get_selection(world: &mut World) -> Option<(Entity, Entity)> {
+  if let Some((.., selection)) = world.query_one::<&Selection>() {
+    let cursor = selection.get_cursor();
+    let (.., selected) = selection.get_selection();
+    return Some((cursor, selected));
+  }
+  None
+}
+
+fn place_cursor(world: &mut World, cursor: Entity, selected: Entity) -> Result<(), String> {
+  let position = world.get_component::<Position>(selected)?;
+  let mut cursor = world.get_component_mut::<Position>(cursor)?;
   cursor.0 = position.0 + CURSOR_OFFSET;
+  Ok(())
 }

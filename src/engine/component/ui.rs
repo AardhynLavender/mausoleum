@@ -16,6 +16,7 @@ pub type SelectionIndex = usize;
 pub struct Selection {
   index: SelectionIndex,
   items: Vec<Entity>,
+  cursor: Entity,
 }
 
 impl Display for Selection {
@@ -40,16 +41,13 @@ impl SubAssign<i32> for Selection {
 
 impl Selection {
   /// Instantiate a new selection
-  pub fn build(items: impl Into<Vec<Entity>>) -> Result<Self, String> {
+  pub fn build(items: impl Into<Vec<Entity>>, cursor: Entity) -> Result<Self, String> {
     let items = items.into();
     if items.len() == 0 {
       return Err("Items cannot be empty".to_string());
     }
 
-    Ok(Self {
-      index: 0,
-      items,
-    })
+    Ok(Self { index: 0, items, cursor })
   }
 
   /// Set the default index of the selection
@@ -65,4 +63,5 @@ impl Selection {
       *self.items.get(self.index).expect("Failed to get selection")
     )
   }
+  pub fn get_cursor(&self) -> Entity { self.cursor }
 }
