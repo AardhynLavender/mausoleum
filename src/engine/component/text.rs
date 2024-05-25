@@ -108,6 +108,26 @@ impl Text {
 
 // Helpers //
 
+/// Split a string into lines of `line_length` characters
+pub fn split_text(text: &String, line_length: usize) -> Vec<String> {
+  text
+    .split_whitespace()
+    .enumerate()
+    .fold(vec![String::new()], |mut lines, (index, word)| {
+      let last_line = lines.last_mut().expect("Failed to get last line");
+      let space = if index == 0 || index == text.len() - 1 { "" } else { " " };
+      if word.len() > line_length { panic!("'{}' is too long to fit in a line", word) }
+      let new_line_length = last_line.len() + word.len() + space.len();
+      if new_line_length > line_length {
+        lines.push(word.to_string());
+      } else {
+        last_line.push_str(space);
+        last_line.push_str(word);
+      }
+      lines
+    })
+}
+
 /// Helper function to assemble the components for a text entity
 pub fn make_text<'font, 'app, Meta, Layer>(
   content: impl Into<String>,
@@ -151,3 +171,34 @@ impl<'app, 'fonts, Layer> TextBuilder<'app, 'fonts, Layer> where Layer: Default 
   }
 }
 
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_split_text() {
+    let text = "The quick brown fox jumps over the lazy dog".to_string();
+    let lines = split_text(&text, 10);
+    assert_eq!(lines, vec![
+      "The quick".to_string(),
+      "brown fox".to_string(),
+      "jumps over".to_string(),
+      "the lazy".to_string(),
+      "dog".to_string(),
+    ]);
+  }
+
+  #[test]
+  #[should_panic]
+  fn text_split_long_word() {
+    let text = "Disestablishmentarianism".to_string();
+    split_text(&text, 10);
+  }
+
+  #[test]
+  fn text_split_empty_text() {
+    let text = "".to_string();
+    let lines = split_text(&text, 10);
+    assert_eq!(lines, vec!["".to_string()]);
+  }
+}
