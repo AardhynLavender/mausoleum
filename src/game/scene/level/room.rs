@@ -18,6 +18,7 @@ use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
 use crate::engine::tile::tile::{Tile, TileCollider};
 use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
+use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::direction::{HALF_DIRECTION_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
@@ -38,7 +39,7 @@ use crate::game::player::combat::PlayerHostile;
 use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
-use crate::game::scene::level::registry::RoomRegistry;
+use crate::game::scene::level::scene::LevelState;
 
 pub const ROOM_ENTER_MARGIN: i32 = TILE_SIZE.x as i32 / 2;
 
@@ -261,9 +262,22 @@ pub fn sys_render_room_colliders(SysArgs { world, render, camera, state, .. }: &
 /// ## Panics
 /// if the `RoomRegistry` not in state or the current room is `None`
 pub fn use_room(state: &mut State) -> &mut Room {
-  state.get_mut::<RoomRegistry>()
+  state.get_mut::<LevelState>()
     .expect("Failed to get RoomRegistry")
+    .room_registry
     .get_current_mut()
-    .ok_or("Failed to get current room")
-    .unwrap()
+    .expect("Failed to get current room")
+}
+
+/// Use the Room registries tileset
+/// ## Panics
+/// if the `RoomRegistry` not in state
+pub fn use_tileset(state: &mut State) -> &Tileset<TileMeta> {
+  let registry = &mut state
+    .get_mut::<LevelState>()
+    .expect("Failed to get RoomRegistry")
+    .room_registry;
+  registry
+    .get_tileset(String::from("tileset"))
+    .expect("Failed to get tileset")
 }

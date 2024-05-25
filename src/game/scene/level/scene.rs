@@ -10,6 +10,7 @@ use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::tile::parse::TiledParser;
 use crate::game::collectable::collectable::Collection;
+use crate::game::collectable::data::{CollectableData, deserialize_weapon_data};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::TimeToLive;
@@ -22,8 +23,7 @@ use crate::game::creature::rotund::Rotund;
 use crate::game::creature::spiky::Spiky;
 use crate::game::creature::spore::Spore;
 use crate::game::creature::zoomer::Zoomer;
-use crate::game::interface::hud::{make_player_health_text, PlayerHealth};
-use crate::game::interface::menu::{make_menu, MenuPane};
+use crate::game::interface::cursor::Cursor;
 use crate::game::persistence::data::SaveData;
 use crate::game::persistence::world::{SaveArea, use_save_area};
 use crate::game::physics::collision::sys_render_colliders;
@@ -35,6 +35,8 @@ use crate::game::player::controller::PlayerController;
 use crate::game::player::world::{make_player, PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
+use crate::game::scene::level::hud::{make_player_health_text, PlayerHealth};
+use crate::game::scene::level::menu::{make_menu, MenuPane};
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
@@ -45,15 +47,18 @@ const WORLD_PATH: &str = "asset/area_1/area_1.world";
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
 
+pub struct LevelState {
+  pub room_registry: RoomRegistry,
+  pub weapon_data: CollectableData,
+}
+
 pub struct LevelScene {
   save_data: SaveData,
 }
 
 impl LevelScene {
   /// Build the level scene from the save data
-  pub fn new(save_data: SaveData) -> Self {
-    Self { save_data }
-  }
+  pub fn new(save_data: SaveData) -> Self { Self { save_data } }
 }
 
 impl Scene for LevelScene {
@@ -77,8 +82,6 @@ impl Scene for LevelScene {
     make_player(world, asset, inventory.into_iter(), player_position);
 
     make_player_health_text(world, asset);
-
-    state.add(room_registry).expect("Failed to add level state");
 
     // Add systems to the level scene
     system.add_many(Schedule::FrameUpdate, SystemTag::Suspendable, vec![
@@ -113,15 +116,23 @@ impl Scene for LevelScene {
     system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
       LevelScene::system,
       MenuPane::system,
+      Cursor::system,
       sys_render_colliders,
       sys_render_room_colliders,
       sys_render_tile_colliders,
     ].into_iter()).expect("Failed to add level systems");
+
+    let weapon_data = deserialize_weapon_data().expect("Failed to load weapon data");
+
+    state.add(LevelState {
+      room_registry,
+      weapon_data,
+    }).expect("Failed to add level state");
   }
   /// Clean up the level scene
   fn destroy(&mut self, LifecycleArgs { state, camera, .. }: &mut LifecycleArgs) {
     camera.release(Vec2::default());
-    state.remove::<RoomRegistry>().expect("Failed to remove level state");
+    state.remove::<LevelState>().expect("Failed to remove level state");
   }
 }
 
@@ -136,9 +147,10 @@ impl Systemize for LevelScene {
     if dead {
       scene.queue_next(MenuScene)
       // todo: death stuff... write the obituary, engrave the tombstone, you know the drill...
-    } else if exit && !event.must_pause() {
-      event.queue_pause();
-      make_menu(world, asset, state);
+    }
+
+    if exit && !event.is_paused() {
+      make_menu(world, event, asset);
     }
 
     let preferences = use_preferences(state);

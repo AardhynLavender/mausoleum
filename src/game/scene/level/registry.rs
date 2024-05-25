@@ -12,16 +12,20 @@ use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::parse::{TiledParser, TiledTilemapChildren};
+use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size;
 use crate::engine::world::World;
 use crate::game::player::world::{PlayerQuery, use_player};
+use crate::game::scene::level::meta::TileMeta;
 use crate::game::scene::level::parse::{tilemap_from_tiled, tileset_from_tiled};
 use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider};
+use crate::game::scene::level::scene::LevelState;
 use crate::game::utility::path::{get_basename, get_filename};
 
 /// Consume a Tiled parser, and build its tilesets and tilemaps
 pub struct RoomRegistry {
   current: Option<String>,
+  tilesets: HashMap<String, Tileset<TileMeta>>,
   rooms: HashMap<String, Room>,
   colliders: HashMap<String, Entity>,
 }
@@ -77,8 +81,13 @@ impl RoomRegistry {
       rooms.insert(tilemap_name, room);
     }
 
+    if tilesets.len() > 1 {
+      return Err(String::from("Multiple tilesets found; can't store a single tileset in the register"));
+    }
+
     Ok(Self {
       current: None,
+      tilesets,
       rooms,
       colliders,
     })
@@ -140,6 +149,9 @@ impl RoomRegistry {
       .as_mut()
       .and_then(|name| self.rooms.get_mut(name))
   }
+  pub fn get_tileset(&self, name: String) -> Option<&Tileset<TileMeta>> {
+    self.tilesets.get(&name)
+  }
   /// clamp the camera to the bounds of the current room
   pub fn clamp_camera(&self, camera: &mut Camera) {
     if let Some(room) = self.get_current() {
@@ -178,7 +190,7 @@ impl Systemize for RoomRegistry {
 
     let room = room_collisions.first().ok_or(String::from("No room collision"))?;
 
-    let room_registry = state.get_mut::<RoomRegistry>()?;
+    let room_registry = &mut state.get_mut::<LevelState>()?.room_registry;
     room_registry.transition_to_room(world, asset, &room.room)?;
     room_registry.clamp_camera(camera);
 
