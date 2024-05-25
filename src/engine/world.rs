@@ -108,6 +108,17 @@ impl World {
   pub fn query<Q: Query>(&mut self) -> QueryMut<'_, Q> {
     self.world.query_mut::<Q>()
   }
+
+  // Mutably query the world for a single instance of a certain component set
+  pub fn query_one<'a, Q: Query + 'a>(&'a mut self) -> Option<(Entity, Q::Item<'a>)> {
+    self.world.query_mut::<Q>().into_iter().next()
+  }
+
+  /// Mutably query the world for a single instance of a certain component set with another component set
+  pub fn query_one_with<'a, Q: Query, With: Query + 'a>(&'a mut self) -> Option<(Entity, Q::Item<'a>)> {
+    self.world.query_mut::<Q>().with::<With>().into_iter().next()
+  }
+
   /// Mutably query the world for a single entity of a certain component set
   pub fn query_entity<Q: Query>(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryOneError> {
     self.world.query_one_mut::<Q>(entity)
