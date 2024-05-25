@@ -41,11 +41,11 @@ impl Aligner {
 
   /// Center something of `width` on the horizontal axis
   fn center_horizontal(&self, width: Size) -> f32 {
-    (self.bounds.size.x - width) as f32 / 2.0
+    (self.bounds.size.x as f32 - width as f32) / 2.0
   }
   /// Center something of `height` on the vertical axis
   fn center_vertical(&self, height: Size) -> f32 {
-    (self.bounds.size.y - height) as f32 / 2.0
+    (self.bounds.size.y as f32 - height as f32) / 2.0
   }
 
   /// Center something of `size` within the bounds
