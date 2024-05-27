@@ -40,6 +40,7 @@ use crate::game::scene::level::menu::{make_menu, MenuPane};
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::scene::level::room::sys_render_room_colliders;
 use crate::game::scene::menu::MenuScene;
+use crate::game::ui::iterative_text::IterativeText;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const WORLD_PATH: &str = "asset/world/world.world";
@@ -117,6 +118,7 @@ impl Scene for LevelScene {
       LevelScene::system,
       MenuPane::system,
       Cursor::system,
+      IterativeText::system,
       sys_render_colliders,
       sys_render_room_colliders,
       sys_render_tile_colliders,

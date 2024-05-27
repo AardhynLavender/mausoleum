@@ -43,7 +43,8 @@ pub fn make_modal<'m, 'a>(
 
   let aligner = Aligner::new(Rec2::new(Vec2::<i32>::from(position), size));
   let mut builder: TextBuilder<'a, 'a, Sticky2> = TextBuilder::new(typeface, loader, color::TEXT, aligner);
-  world.add(builder.make_text::<Modal>(title, Alignment::new(Align::Center(0.0), Align::Start(MODAL_MARGIN))));
+
+  world.add(builder.make_text::<Modal>(title.clone(), Alignment::new(Align::Center(0.0), Align::Start(MODAL_MARGIN))));
 
   events.queue_pause();
 

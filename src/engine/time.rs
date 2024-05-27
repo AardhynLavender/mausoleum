@@ -68,7 +68,7 @@ pub struct Timer {
 }
 
 impl Default for Timer {
-  /// Instantiate a new timer of 0 duration
+  /// Instantiate a new timer of duration 0
   fn default() -> Self {
     Self {
       enabled: false,
@@ -119,5 +119,11 @@ impl Timer {
     let done = self.consume(action);
     if done { (callback)(); }
     done
+  }
+  /// Interpolate the start and end time into a unit interval
+  pub fn interpolate(&self) -> f32 {
+    let elapsed = self.start.elapsed();
+    let duration = self.duration.as_nanos();
+    elapsed.as_nanos() as f32 / duration as f32
   }
 }

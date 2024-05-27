@@ -36,12 +36,14 @@ impl Text {
   /// Will panic if the texture cannot be built
   pub fn with_content<'fonts, 'app>(mut self, content: impl Into<String>, font: &Font<'fonts, 'app>, texture_loader: &mut TextureLoader) -> Self {
     self.set_content(content.into());
-    self.build_texture(font, texture_loader).expect("Failed to rebuild texture"); // panic is fine, as failing to rebuild a texture is unexpected
+    self.build_texture(font, texture_loader).expect("Failed to rebuild texture");
     self
   }
 
   /// Builds the texture to render for content in the font and color
   fn build_texture<'fonts, 'app>(&mut self, font: &Font<'fonts, 'app>, texture_loader: &mut TextureLoader) -> Result<(), String> {
+    if self.content.is_empty() { return Ok(()); } // no need to build a texture for empty content
+
     // create texture of the content in the font and color
     let surface = font
       .render(&self.content)
@@ -77,10 +79,11 @@ impl Text {
   pub fn set_content(&mut self, content: impl Into<String>) {
     let content = content.into();
     if self.content == content { return; } // no need to update if the content is the same
-
     self.dirty = true;
     self.content = content;
   }
+  /// Get the raw, potentially dirty, text content
+  pub fn get_text(&self) -> &String { &self.content }
   /// Updates the content of a text and rebuilds the texture recalculating dimensions
   /// ## Panics
   /// Will panic if the texture cannot be built
