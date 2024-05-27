@@ -94,7 +94,11 @@ pub fn creature_damage(world: &mut World, state: &mut State) -> Result<(), Strin
         world.free_now(entity).expect("Failed to free projectile");
 
         if frosty_projectile {
-          freeze_entity(*creature, creature_collider.0, world, THAW_DURATION).expect("Failed to freeze entity")
+          if freeze_entity(*creature, creature_collider.0, world, THAW_DURATION).expect("Failed to freeze entity") {
+            // freeze sfx
+          } else {
+            // invalid sfx
+          }
         } else if !creature_frozen {
           let mut health = world
             .get_component_mut::<Health>(*creature)

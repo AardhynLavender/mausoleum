@@ -138,6 +138,6 @@ pub fn make_spit(position: Vec2<f32>, spit_texture: TextureKey, angle: f32) -> i
     Gravity::new(SPIT_GRAVITY),
     Fragile,
     TimeToLive::new(SPIT_DURATION_MS),
-    RoomCollision::All,
+    RoomCollision::Creature,
   )
 }
