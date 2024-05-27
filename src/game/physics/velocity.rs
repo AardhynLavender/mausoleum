@@ -16,6 +16,8 @@ impl Velocity {
   pub fn new(x: f32, y: f32) -> Self {
     Self(Vec2::new(x, y))
   }
+  /// Check if there is no velocity
+  pub fn is_none(&self) -> bool { self.0 == Vec2::default() }
 
   /// Check if the velocity moves horizontally in the positive direction
   pub fn is_going_left(&self) -> bool { self.0.x < 0.0 }
