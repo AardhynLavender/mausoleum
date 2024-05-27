@@ -6,8 +6,8 @@ use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Align, Alignment};
 use crate::engine::world::World;
 use crate::game::interface::cursor::make_cursor;
-use crate::game::modal::modal::{close_modal, make_modal, Modal, use_escape_modal};
 use crate::game::scene::menu::MenuScene;
+use crate::game::ui::modal::{close_modal, make_modal, Modal, use_escape_modal};
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 #[derive(Default)]
@@ -29,7 +29,6 @@ pub fn make_menu(world: &mut World, event: &mut EventStore, asset: &mut AssetMan
 
   let (.., mut builder) = make_modal(world, event, asset, String::from("Menu"), PANE_DIMENSIONS, background);
 
-  world.add(builder.make_text::<Modal>("Menu", Alignment::new(Align::Center(0.0), Align::Start(PANE_TOP_MARGIN))));
   let buttons = [
     world.add(builder.make_text::<Modal>("resume", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y)))),
     world.add(builder.make_text::<Modal>("help", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y)))),
