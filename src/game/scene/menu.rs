@@ -3,12 +3,15 @@
  */
 
 use crate::engine::asset::AssetManager;
+use crate::engine::asset::texture::SrcRect;
 use crate::engine::component::text::TextBuilder;
 use crate::engine::component::ui::Selection;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::rendering::camera::{Sticky1, Sticky2};
 use crate::engine::rendering::color::color;
+use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer::Layer9;
 use crate::engine::scene::Scene;
 use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::utility::alias::{Size, Size2};
@@ -17,11 +20,14 @@ use crate::engine::world::World;
 use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE, WINDOW};
 use crate::game::interface::cursor::{Cursor, CURSOR_MARGIN, make_cursor};
 use crate::game::persistence::data::SaveData;
+use crate::game::physics::position::Position;
 use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-pub const TITLE_Y: f32 = 80.0;
+pub const TITLE_Y: f32 = 70.0;
 pub const COPYRIGHT_MARGIN: f32 = 10.0;
+
+pub const TITLE_SIZE: Size2 = Size2::new(78, 20);
 
 pub const BUTTON_GAP: f32 = 16.0;
 pub const BUTTON_COUNT: f32 = 4.0;
@@ -35,6 +41,14 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
 
   let mut static_builder: TextBuilder::<Sticky2> = TextBuilder::<Sticky2>::new(typeface, textures, color::TEXT, WINDOW);
   world.add(static_builder.make_text::<()>("Aardhyn Lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
+
+  let title = textures.load("asset/typography/title.png").expect("Failed to load title texture");
+  let title_alignment = Alignment::new(Align::Center(0.0), Align::Start(TITLE_Y));
+  world.add((
+    Sprite::new(title, SrcRect::new(Vec2::default(), TITLE_SIZE)),
+    Position::from(WINDOW.align(title_alignment, TITLE_SIZE)),
+    Layer9,
+  ));
 
   let buttons_position = WINDOW.center(OPTIONS_BOUNDS);
   let buttons_aligner = Aligner::new(Rec2::new(Vec2::<i32>::from(buttons_position), OPTIONS_BOUNDS));
