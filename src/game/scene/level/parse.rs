@@ -52,8 +52,8 @@ pub fn tilemap_layer_from_tiled(tileset: &Tileset<TileMeta>, tiled_tilelayer: &T
   let meta = parse_tilelayer(&tiled_tilelayer.properties)?;
   let keys = make_tile_keys(&tiled_tilelayer.data.tiles, &DELIMITER);
   let dimensions = Size2::new(tiled_tilelayer.width_tiles, tiled_tilelayer.height_tiles);
-  let tiles = tileset.tiledata_from(&keys, dimensions)?.collect();
-  Ok(TileLayer { meta, tiles })
+  let tiles: Vec<_> = tileset.tiledata_from(&keys, dimensions)?.collect();
+  Ok(TileLayer { meta, entities: HashMap::with_capacity(tiles.len()), tiles })
 }
 
 /// Build an engine tileset from a Tiled tileset.

@@ -39,6 +39,9 @@ fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2
   Ok(tiles)
 }
 
+const PLAYER_BARRIER_TILE: TileKey = 26;
+const CREATURE_BARRIER_TILE: TileKey = 27;
+
 /// Wrapper for a texture that contains tiles
 pub struct Tileset<Meta> {
   pub texture: TextureKey,
@@ -98,5 +101,9 @@ fn has_tile_at(data: &Vec<Option<TileKey>>, coordinate: &Coordinate, dimensions:
   let index = coordinate_to_index(coordinate, *dimensions);
   data
     .get(index)
-    .map_or(false, |tile| tile.is_none())
+    .map_or(false, |tile| {
+      tile.is_none()
+        || *tile == Some(PLAYER_BARRIER_TILE)
+        || *tile == Some(CREATURE_BARRIER_TILE)
+    })
 }

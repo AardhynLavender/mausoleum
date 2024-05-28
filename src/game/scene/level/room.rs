@@ -104,9 +104,9 @@ impl Room {
 
       // add render layer
       match layer {
-        TileLayerType::Background => world.add_components(entity, (layer::Layer4, ))?,
         TileLayerType::Foreground => world.add_components(entity, (layer::Layer7, ))?,
         TileLayerType::Collision => world.add_components(entity, (layer::Layer6, ))?,
+        TileLayerType::Background => world.add_components(entity, (layer::Layer4, ))?,
       }
 
       // add a collider if the tile has a mask
@@ -124,10 +124,10 @@ impl Room {
         }
 
         match tile.data.meta.breakability {
+          TileBreakability::Solid => (),
           TileBreakability::Soft => world.add_components(entity, (Soft, ))?,
           TileBreakability::Strong => world.add_components(entity, (Strong, ))?,
           TileBreakability::Brittle => world.add_components(entity, (Fragile, ))?,
-          _ => (),
         }
 
         let damage = tile.data.meta.damage;
