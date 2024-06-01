@@ -95,7 +95,9 @@ impl Systemize for MenuScene {
         0 => {
           let save_data = SaveData::from_file(USER_SAVE_FILE)
             .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
-              .unwrap_or(SaveData::default()));
+              .map_err(|error| eprintln!("Failed to load dev save file: {}", error))
+              .unwrap_or(SaveData::default())
+            );
           scene.queue_next(LevelScene::new(save_data))
         }
         1 => {

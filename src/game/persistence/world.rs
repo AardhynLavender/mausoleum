@@ -90,7 +90,7 @@ impl Systemize for SaveArea {
       let collection = use_player(world)
         .inventory
         .iter()
-        .copied()
+        .cloned()
         .collect::<Vec<_>>();
       let save_room = use_room(state).get_name();
       let player_position = use_player(world).position.0;

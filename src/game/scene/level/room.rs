@@ -16,9 +16,10 @@ use crate::engine::rendering::renderer::layer;
 use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
-use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
+use crate::engine::tile::tile::{Tile, TileCollider, TileKey};
+use crate::engine::tile::tilemap::{MapIndex, Tilemap, TilemapMutation};
 use crate::engine::tile::tileset::Tileset;
+use crate::engine::utility::conversion::coordinate_to_index;
 use crate::engine::utility::direction::{HALF_DIRECTION_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
@@ -65,19 +66,34 @@ impl RoomCollider {
 #[derive(Debug, Clone, Default)]
 pub struct ActiveRoom;
 
-// Structures //
+/// An exception to the tilemap that must be overridden
+#[derive(Default, Debug, Clone)]
+pub struct RoomTileException {
+  layer: TileLayerType,
+  index: MapIndex,
+  key: Option<TileKey>,
+}
 
+impl RoomTileException {
+  /// Instantiate a new tile exception
+  pub fn new(index: MapIndex, layer: TileLayerType, key: Option<TileKey>) -> Self {
+    Self { index, key, layer }
+  }
+}
+
+/// A room in the game, with a tilemap and entities that interact with it
 pub struct Room {
   name: String,
   position: Vec2<f32>,
   tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>,
+  exceptions: Vec<RoomTileException>,
   entities: HashSet<Entity>,
 }
 
 impl Room {
   /// Instantiate a new room
-  pub fn build(name: String, tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>) -> Self {
-    Self { name, tilemap, position, entities: HashSet::new() }
+  pub fn build(name: String, tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>, exceptions: Vec<RoomTileException>) -> Self {
+    Self { name, tilemap, position, exceptions, entities: HashSet::new() }
   }
 
   // Tilemap //
@@ -85,7 +101,17 @@ impl Room {
   /// Create and add tiles associated with the tilemap to the world
   fn add_tilemap_to_world(&mut self, world: &mut World) -> Result<(), String> {
     let tilemap_position = self.position;
+    let dimensions = self.tilemap.get_size();
     self.tilemap.add_tiles(|layer, tile, _, position| {
+      let index = coordinate_to_index(&tile.coordinate, dimensions);
+      if let Some(exception) = self.exceptions.iter().find(|exception| exception.layer == layer && exception.index == index) {
+        if exception.key.is_none() {
+          return Ok(None);
+        } else {
+          unimplemented!("Tile exceptions with Some tile keys are not yet implemented");
+        }
+      }
+
       let position = position + tilemap_position;
 
       let collision_layer = tile.data.meta.collision_layer;
@@ -119,7 +145,7 @@ impl Room {
           world.add_components(entity, (collider, ))?;
         }
 
-        if let Some(collectable) = tile.data.meta.collectable {
+        if let Some(collectable) = tile.data.meta.collectable.clone() {
           world.add_components(entity, (collectable, ))?;
         }
 
@@ -136,7 +162,7 @@ impl Room {
         }
       }
 
-      Ok(entity)
+      Ok(Some(entity))
     })
   }
   /// Remove the tiles from the world

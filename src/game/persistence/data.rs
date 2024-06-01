@@ -9,10 +9,10 @@ use crate::engine::utility::io::{delete_file, write_file};
 use crate::game::persistence::assertion::{assert_inventory, assert_save_room};
 use crate::game::persistence::constant::DEFAULT_SAVE_ROOM;
 use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data};
-use crate::game::scene::level::meta::Collectable;
+use crate::game::scene::level::meta::Item;
 
 /// Inventory type
-type Inventory = Vec<Collectable>;
+type Inventory = Vec<Item>;
 
 /// Save data without validation
 #[derive(Debug, PartialEq, Deserialize)]

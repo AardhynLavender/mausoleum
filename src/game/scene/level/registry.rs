@@ -18,16 +18,20 @@ use crate::engine::world::World;
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::meta::TileMeta;
 use crate::game::scene::level::parse::{tilemap_from_tiled, tileset_from_tiled};
-use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider};
+use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider, RoomTileException};
 use crate::game::scene::level::scene::LevelState;
 use crate::game::utility::path::{get_basename, get_filename};
 
+pub type RoomKey = String;
+
+type RoomRegistryTileExceptions = HashMap<RoomKey, Vec<RoomTileException>>;
+
 /// Consume a Tiled parser, and build its tilesets and tilemaps
 pub struct RoomRegistry {
-  current: Option<String>,
-  tilesets: HashMap<String, Tileset<TileMeta>>,
-  rooms: HashMap<String, Room>,
-  colliders: HashMap<String, Entity>,
+  current: Option<RoomKey>,
+  tilesets: HashMap<RoomKey, Tileset<TileMeta>>,
+  rooms: HashMap<RoomKey, Room>,
+  colliders: HashMap<RoomKey, Entity>,
 }
 
 impl RoomRegistry {
@@ -35,7 +39,7 @@ impl RoomRegistry {
   /// - Builds engine `Tileset`s and `Tilemap`s from the `TiledParser`.
   /// - Loads referenced assets into the `AssetManager`
   /// - Adds `RoomCollider`s into the world for each `Room`
-  pub fn build(parser: TiledParser, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
+  pub fn build(parser: TiledParser, mut exceptions: RoomRegistryTileExceptions, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
     // Build the engine tilesets from Tiled tilesets
     let mut tilesets = HashMap::new();
     for (path, tiled_tileset) in parser.tilesets {
@@ -77,7 +81,7 @@ impl RoomRegistry {
       let collider_entity = world.add((collider, ));
       colliders.insert(tilemap_name.clone(), collider_entity);
 
-      let room = Room::build(tilemap_name.clone(), tilemap, position);
+      let room = Room::build(tilemap_name.clone(), tilemap, position, exceptions.remove(&tilemap_name).unwrap_or(Vec::new()));
       rooms.insert(tilemap_name, room);
     }
 

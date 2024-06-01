@@ -29,13 +29,10 @@ pub enum TilemapMutation {
   Local,
   /// Remove the tile entity and concept
   Session,
-  /// Remove the tile entity, concept, and persist the change into save data
-  #[allow(unused)]
-  Persistent,
 }
 
 /// Manages a grid of entities
-pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
+pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
   // store the data to build the tilemap
   layers: HashMap<LayerMeta, TileLayer<LayerMeta, TileMeta>>,
   tile_size: Size2,
@@ -44,7 +41,7 @@ pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone, L
   dimensions: Size2,
 }
 
-impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Copy + Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone + std::fmt::Debug {
+impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone + std::fmt::Debug {
   /// Instantiate a new tilemap from with `dimensions`
   pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, layers: Vec<TileLayer<LayerMeta, TileMeta>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
     let object_count = objects.len();
@@ -68,15 +65,16 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
   }
 
   /// Add tiles to the world by invoking an injected add function on each concept
-  pub fn add_tiles(&mut self, mut add: impl FnMut(LayerMeta, &TileConcept<TileMeta>, Coordinate, Vec2<f32>) -> Result<Entity, String>) -> Result<(), String> {
+  pub fn add_tiles(&mut self, mut add: impl FnMut(LayerMeta, &TileConcept<TileMeta>, Coordinate, Vec2<f32>) -> Result<Option<Entity>, String>) -> Result<(), String> {
     let dimensions = self.dimensions;
     for (meta, layer, ) in &mut self.layers {
       for (index, tile) in layer.tiles.iter().enumerate() {
         if let Some(tile) = tile {
           let coordinate = index_to_coordinate(index, dimensions);
           let position = Vec2::<f32>::from(coordinate) * Vec2::from(tile.data.src.size);
-          let entity = add(*meta, tile, coordinate, position)?;
-          layer.entities.insert(index, entity);
+          if let Some(entity) = add(*meta, tile, coordinate, position)? {
+            layer.entities.insert(index, entity);
+          }
         }
       }
     }
@@ -124,7 +122,7 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
       if let Ok(mut handle) = TileHandle::try_from(check_result) {
         repair(&mut handle, check);
         if mutation == TilemapMutation::Session {
-          self.mutate_tile_concept(&handle, handle.concept);
+          self.mutate_tile_concept(&handle, handle.concept.clone());
         }
       }
       check = check.rotate(Rotation::Left, QUARTER_DIRECTION_ROTATION);
@@ -138,6 +136,8 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
   }
   /// get the dimensions of the tilemap in worldspace
   pub fn get_dimensions(&self) -> Size2 { self.dimensions * self.tile_size }
+  /// get the size of the tilemap in tiles
+  pub fn get_size(&self) -> Size2 { self.dimensions }
   /// Get a tile at a coordinate
   fn get_concept(&self, layer: LayerMeta, index: MapIndex) -> Option<&TileConcept<TileMeta>> {
     self

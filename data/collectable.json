@@ -7,24 +7,24 @@
   },
   "health": {
     "name": "Health",
-    "description": "Augments to your protective energy shield to last longer",
+    "description": "Augments your protective energy shield to last longer.",
     "tile": 28
   },
   "missile_tank": {
     "name": "Desolation Pulse",
-    "description": "Larger plasma bust module. Takes longer to change, but is more effective against obstacles and creatures.",
+    "description": "Larger plasma bust module. Takes longer to change but is more effective against obstacles and creatures.",
     "key": "K",
     "tile": 29
   },
   "high_jump": {
     "name": "Gravity Constrictor",
-    "description": "Lowers the gravity around you, allowing you to jump higher.",
+    "description": "Lowers the gravity around you, allowing you to jump higher. Should get you up into some of those hard-to-reach places",
     "key": "Space",
     "tile": 30
   },
   "ice_beam": {
     "name": "Temporal Disruptor",
-    "description": "Slows time around animated targets, rendering them disabled for a time. You could probably walk on them",
+    "description": "Slows time around some animated targets, rendering them disabled for a time. You could probably walk on them.",
     "key": "L",
     "tile": 31
   }

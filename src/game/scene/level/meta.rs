@@ -7,18 +7,33 @@ use serde::{Deserialize, Serialize};
 use crate::engine::geometry::collision::CollisionBox;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::tile::parse::{TiledObject, TiledProperties, TiledProperty};
+use crate::engine::tile::tilemap::MapIndex;
 use crate::engine::utility::alias::{Size, Size2};
 use crate::engine::utility::direction::{CompassDirectionType, Direction};
 use crate::game::scene::level::collision::RoomCollision;
 
-/// The type of collectable item
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+/// An item collectable by Collections
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Collectable {
   Health,
   MissileTank,
   IceBeam,
   HighJump,
+}
+
+// reduce an Item into a Collectable
+impl From<Item> for Collectable {
+  fn from(item: Item) -> Self { item.collectable }
+}
+
+/// A Collectable that has been collected by the player
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Item {
+  pub collectable: Collectable,
+  pub map_index: MapIndex,
+  pub room_name: String,
 }
 
 /// Defines the level of breakability for a tile
@@ -43,7 +58,7 @@ pub struct Soft;
 pub const TILED_TILE_CLASS: &str = "Tile";
 
 /// Metadata for a tileset tile
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct TileMeta {
   pub breakability: TileBreakability,
   pub collectable: Option<Collectable>,

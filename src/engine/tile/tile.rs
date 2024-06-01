@@ -11,7 +11,7 @@ use crate::engine::utility::alias::Coordinate;
 pub type TileKey = Key;
 
 /// Data to create a tile entity (Sprite + Tile)
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct TileData<Meta> {
   pub texture_key: TextureKey,
   pub src: SrcRect,
@@ -32,14 +32,14 @@ impl<Meta> TileData<Meta> {
 }
 
 /// Data used to add a tile to the tilemap
-#[derive(Copy, Clone, Debug)]
-pub struct TileConcept<Meta> where Meta: Copy + Clone {
+#[derive(Clone, Debug)]
+pub struct TileConcept<Meta> where Meta: Clone {
   pub data: TileData<Meta>,
   pub coordinate: Coordinate,
   pub mask: CollisionMask,
 }
 
-impl<Meta> TileConcept<Meta> where Meta: Copy + Clone {
+impl<Meta> TileConcept<Meta> where Meta: Clone {
   /// Instantiate a new tile concept with `tile_data` and `collision_mask`
   pub fn new(data: TileData<Meta>, coordinate: Coordinate, mask: CollisionMask) -> Self {
     Self {

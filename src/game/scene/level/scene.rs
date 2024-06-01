@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 /**
  * The level scene
  */
@@ -37,8 +38,9 @@ use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
 use crate::game::scene::level::hud::{make_player_health_text, PlayerHealth};
 use crate::game::scene::level::menu::{make_menu, MenuPane};
+use crate::game::scene::level::meta::TileLayerType;
 use crate::game::scene::level::registry::RoomRegistry;
-use crate::game::scene::level::room::sys_render_room_colliders;
+use crate::game::scene::level::room::{RoomTileException, sys_render_room_colliders};
 use crate::game::scene::menu::MenuScene;
 use crate::game::ui::iterative_text::IterativeText;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
@@ -73,7 +75,16 @@ impl Scene for LevelScene {
     let save_room = self.save_data.get_save_room();
     let inventory = self.save_data.get_inventory();
 
-    let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
+    let exceptions = inventory
+      .iter()
+      .fold(HashMap::new(), |mut exceptions, item| {
+        let name = item.room_name.clone();
+        let exception = RoomTileException::new(item.map_index, TileLayerType::Collision, None);
+        exceptions.entry(name).or_insert_with(Vec::new).push(exception);
+        exceptions
+      });
+
+    let mut room_registry = RoomRegistry::build(parser, exceptions, asset, world).expect("Failed to build room registry");
     room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
