@@ -32,7 +32,7 @@ const DAMAGE: u32 = 20;
 const DIMENSIONS: Size2 = Size2::new(24, 24);
 
 const SPIT_ASSET: &str = "asset/sprite/angry_buzz_spit.png";
-const SPIT_DAMAGE: u32 = 20;
+const SPIT_DAMAGE: u32 = 13;
 const SPIT_COOLDOWN_MS: u64 = 3_000;
 const SPIT_SPEED: f32 = 200.0;
 const SPIT_GRAVITY: Vec2<f32> = Vec2::new(0.0, 64.0);
