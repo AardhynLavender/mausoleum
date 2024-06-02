@@ -206,6 +206,46 @@
             ]
         },
         {
+            "color": "#ffa0a0a4",
+            "drawFill": true,
+            "id": 28,
+            "members": [
+                {
+                    "name": "Music",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax1",
+                    "type": "file",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax2",
+                    "type": "file",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax3",
+                    "type": "file",
+                    "value": ""
+                }
+            ],
+            "name": "Room",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
             "color": "#ffffff00",
             "drawFill": true,
             "id": 24,

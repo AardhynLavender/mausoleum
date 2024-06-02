@@ -112,8 +112,16 @@
     <tile id="75" type="Tile"/>
     <tile id="76" type="Tile"/>
     <tile id="77" type="Tile"/>
-    <tile id="78" type="Tile"/>
-    <tile id="79" type="Tile"/>
+    <tile id="78" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Strong"/>
+        </properties>
+    </tile>
+    <tile id="79" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Strong"/>
+        </properties>
+    </tile>
     <tile id="80" type="Tile"/>
     <tile id="81" type="Tile"/>
     <tile id="82" type="Tile"/>
@@ -471,8 +479,16 @@
     <tile id="418" type="Tile"/>
     <tile id="419" type="Tile"/>
     <tile id="420" type="Tile"/>
-    <tile id="421" type="Tile"/>
-    <tile id="422" type="Tile"/>
+    <tile id="421" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="brittle"/>
+        </properties>
+    </tile>
+    <tile id="422" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="brittle"/>
+        </properties>
+    </tile>
     <tile id="423" type="Tile"/>
     <tile id="424" type="Tile"/>
     <tile id="425" type="Tile"/>
@@ -535,8 +551,16 @@
     <tile id="482" type="Tile"/>
     <tile id="483" type="Tile"/>
     <tile id="484" type="Tile"/>
-    <tile id="485" type="Tile"/>
-    <tile id="486" type="Tile"/>
+    <tile id="485" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="486" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Strong"/>
+        </properties>
+    </tile>
     <tile id="487" type="Tile"/>
     <tile id="488" type="Tile"/>
     <tile id="489" type="Tile"/>
@@ -567,8 +591,16 @@
     <tile id="514" type="Tile"/>
     <tile id="515" type="Tile"/>
     <tile id="516" type="Tile"/>
-    <tile id="517" type="Tile"/>
-    <tile id="518" type="Tile"/>
+    <tile id="517" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="518" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Strong"/>
+        </properties>
+    </tile>
     <tile id="519" type="Tile"/>
     <tile id="520" type="Tile"/>
     <tile id="521" type="Tile"/>
@@ -722,12 +754,36 @@
     <tile id="669" type="Tile"/>
     <tile id="670" type="Tile"/>
     <tile id="671" type="Tile"/>
-    <tile id="672" type="Tile"/>
-    <tile id="673" type="Tile"/>
-    <tile id="674" type="Tile"/>
-    <tile id="675" type="Tile"/>
-    <tile id="676" type="Tile"/>
-    <tile id="677" type="Tile"/>
+    <tile id="672" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="673" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="674" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="675" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="676" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="677" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
     <tile id="678" type="Tile"/>
     <tile id="679" type="Tile"/>
     <tile id="680" type="Tile"/>
@@ -754,12 +810,36 @@
     <tile id="701" type="Tile"/>
     <tile id="702" type="Tile"/>
     <tile id="703" type="Tile"/>
-    <tile id="704" type="Tile"/>
-    <tile id="705" type="Tile"/>
-    <tile id="706" type="Tile"/>
-    <tile id="707" type="Tile"/>
-    <tile id="708" type="Tile"/>
-    <tile id="709" type="Tile"/>
+    <tile id="704" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="705" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="706" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="707" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="708" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
+    <tile id="709" type="Tile">
+        <properties>
+            <property name="breakability" propertytype="Breakability" value="Soft"/>
+        </properties>
+    </tile>
     <tile id="710" type="Tile"/>
     <tile id="711" type="Tile"/>
     <tile id="712" type="Tile"/>

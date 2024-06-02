@@ -1,34 +1,56 @@
 {
   "prologue": {
-    "type": "printout",
+    "type": "computer",
     "data": [
-      "Temperature: 20deg C",
-      "Humidity: 47%",
-      "Wind: 5km/h",
-      "\n",
-      "Surface area scan [complete]: Primitive hostile life forms; Proceed with caution.",
-      "Depth scan [inconclusive]: Potentially unstable ground; subterranean structures probable.",
-      "\n",
-      "# High temple complex located eastward. proceed with caution. Retrieve the artifact and return shuttle."
+      "scanning...",
+      "",
+      "*******************",
+      "",
+      "Surface area scan [complete]: 
+      "Primitive hostile life forms.,
+      "",
+      "Depth scan        [inconclusive]:"
+      "Potentially unstable ground; subterranean structures probable.",
+      "",
+      "target located eastward."
+      "Retrieve the artifact and return shuttle.",
+      "                            ",
+      "proceed with caution."
+    ]
+  },
+  "save": {
+    "type": "computer",
+    "data": [
+      "scanning...",
+      "",
+      "*****************",
+      "",
+      "Strange temporal energy surrounds these crystals.",
+      "Potential timeline divergance."
     ]
   },
   "transit": {
-    "type": "printout",
+    "title": "computer"
     "data": [
-      "# Structure entrance ahead... Suspect Plasma rifle incapable of penetrating bast door.",
-      "# Assessment required"
+      "Structure entrance ahead",
+      "",
+      "******",
+      "",
+      "Suspect Plasma rifle incapable of penetrating bast door.",
+      "",
+      "Assessment required..."
     ]
   },
   "fallen": {
-    "type": "printout",
+    "title": "computer",
     "data": [
-      "# Depth scans [complete]: Unstable ground; subterranean structures highly probable."
+      "Depth scans [complete]: Unstable ground; subterranean structures highly probable."
     ]
   },
   "epilogue": {
-    "type": "printout",
+    "title": "computer",
     "data": [
-      "# Artifact retrieved. Return to shuttle."
+      "Artifact retrieved. Return to shuttle."
     ]
   }
 }
