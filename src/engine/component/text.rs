@@ -180,28 +180,28 @@ mod tests {
 
   #[test]
   fn test_split_text() {
-    let text = "The quick brown fox jumps over the lazy dog".to_string();
+    let text = String::from("The quick brown fox jumps over the lazy dog");
     let lines = split_text(&text, 10);
     assert_eq!(lines, vec![
-      "The quick".to_string(),
-      "brown fox".to_string(),
-      "jumps over".to_string(),
-      "the lazy".to_string(),
-      "dog".to_string(),
+      String::from("The quick"),
+      String::from("brown fox"),
+      String::from("jumps over"),
+      String::from("the lazy"),
+      String::from("dog"),
     ]);
   }
 
   #[test]
-  #[should_panic]
+  #[should_panic(expected = "'Disestablishmentarianism' is too long to fit in a line")]
   fn text_split_long_word() {
-    let text = "Disestablishmentarianism".to_string();
+    let text = String::from("Disestablishmentarianism");
     split_text(&text, 10);
   }
 
   #[test]
   fn text_split_empty_text() {
-    let text = "".to_string();
+    let text = String::default();
     let lines = split_text(&text, 10);
-    assert_eq!(lines, vec!["".to_string()]);
+    assert_eq!(lines, vec![String::default()]);
   }
 }
