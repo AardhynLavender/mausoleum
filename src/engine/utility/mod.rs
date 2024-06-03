@@ -7,3 +7,4 @@ pub mod direction;
 pub mod container;
 pub mod invariant;
 pub mod io;
+pub mod interpolation;
