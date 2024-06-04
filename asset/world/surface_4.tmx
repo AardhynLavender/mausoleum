@@ -152,6 +152,6 @@
 </data>
  </layer>
  <objectgroup id="3" name="Story">
-  <object id="10" name="Temple Transit" type="Event" x="1024" y="528" width="96" height="64"/>
+  <object id="10" name="transit" type="Story" x="1024" y="528" width="96" height="64"/>
  </objectgroup>
 </map>

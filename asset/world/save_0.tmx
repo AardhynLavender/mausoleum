@@ -85,10 +85,11 @@
 0,0,0,0,0,0,0,0,0,0,0,353,353,356,353,355,354,355,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="3" name="Story" visible="0">
-  <object id="3" name="Intro" type="Event" x="112" y="240" width="160" height="80"/>
+ <objectgroup id="3" name="Story">
+  <object id="3" name="prologue" type="Story" x="112" y="240" width="160" height="80"/>
  </objectgroup>
  <objectgroup id="2" name="Save">
   <object id="1" name="Spaceship Save" type="Save" x="112" y="240" width="160" height="80"/>
  </objectgroup>
 </map>
+d

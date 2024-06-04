@@ -70,6 +70,7 @@ pub fn make_collectable_modal(world: &mut World, events: &mut EventStore, asset:
 
 impl Systemize for CollectableModal {
   fn system(SysArgs { world, event, .. }: &mut SysArgs) -> Result<(), String> {
+    if !event.is_paused() { return Ok(()); };
     use_escape_modal(world, event);
     Ok(())
   }

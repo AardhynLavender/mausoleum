@@ -1,3 +1,8 @@
+/**
+ * Useful queries for the player entity
+ */
+
+use std::collections::HashSet;
 use std::path::Path;
 
 use crate::engine::asset::AssetManager;
@@ -20,10 +25,8 @@ use crate::game::player::controller::PlayerController;
 use crate::game::player::physics::{calculate_gravity, INITIAL_JUMP_HEIGHT, INITIAL_JUMP_WIDTH, INITIAL_WALK_SPEED};
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::Item;
-
-/**
- * Useful queries for the player entity
- */
+use crate::game::story::data::StoryKey;
+use crate::game::story::world::{StoryAdvancements, StoryAdvancer};
 
 pub const PLAYER_SIZE: Size2 = Size2::new(12, 28);
 
@@ -35,7 +38,7 @@ const PLAYER_COLLIDER: CollisionBox = Rec2::new(Vec2::new(0.0, 0.0), PLAYER_SIZE
 pub type LayerPlayer = layer::Layer5;
 
 /// Components of the player entity
-pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Gravity, &'p mut Collider, &'p mut Health, &'p mut Collection);
+pub type PlayerComponents<'p> = (&'p mut PlayerCombat, &'p mut Position, &'p mut Velocity, &'p mut PlayerController, &'p mut Gravity, &'p mut Collider, &'p mut Health, &'p mut Collection, &'p mut StoryAdvancements);
 
 /// Query structure for the player entity
 pub struct PlayerQuery<'p> {
@@ -47,6 +50,7 @@ pub struct PlayerQuery<'p> {
   pub collider: &'p mut Collider,
   pub health: &'p mut Health,
   pub inventory: &'p mut Collection,
+  pub advancement: &'p mut StoryAdvancements,
 }
 
 /// Query the world for the player return its components
@@ -68,11 +72,12 @@ pub fn use_player(world: &mut World) -> PlayerQuery {
     collider: components.5,
     health: components.6,
     inventory: components.7,
+    advancement: components.8,
   }
 }
 
 /// Set up the world for the player
-pub fn make_player(world: &mut World, asset: &mut AssetManager, inventory: impl Iterator<Item=Item>, position: Vec2<f32>) {
+pub fn make_player(world: &mut World, asset: &mut AssetManager, inventory: impl Iterator<Item=Item>, story: HashSet<StoryKey>, position: Vec2<f32>) {
   let player_texture = asset.texture
     .load(Path::new(PLAYER_ASSET))
     .expect("Failed to load player texture");
@@ -91,14 +96,16 @@ pub fn make_player(world: &mut World, asset: &mut AssetManager, inventory: impl 
     PlayerController::default(),
     Sprite::new(player_texture, PLAYER_SPRITE.into()),
     Position::from(position),
-    CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     LayerPlayer::default(),
+    CameraTether::new(Vec2::<i32>::from(PLAYER_SPRITE.size / 2)), // player center
     Gravity::new(calculate_gravity(INITIAL_JUMP_HEIGHT, INITIAL_WALK_SPEED, INITIAL_JUMP_WIDTH)),
-    Collection::new(inventory),
     Velocity::default(),
+    Collection::new(inventory),
     RoomCollision::Player,
     Collider::new(PLAYER_COLLIDER),
     Health::build(PLAYER_BASE_HEALTH).expect("Failed to build player health"),
+    StoryAdvancer,
+    StoryAdvancements::new(story),
   ));
 }
 

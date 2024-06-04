@@ -350,6 +350,6 @@
 </data>
  </layer>
  <objectgroup id="2" name="Story">
-  <object id="1" name="Fallen Down" type="Event" x="0" y="1648" width="640" height="64"/>
+  <object id="1" name="fallen" type="Story" x="0" y="1661" width="640" height="51"/>
  </objectgroup>
 </map>

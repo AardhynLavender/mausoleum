@@ -4,7 +4,7 @@
 
 Aardhyn Lavender
 
-## Toolset
+## Using
 
 - Rust
 - Simple DirectMedia Layer (SDL2)
@@ -36,14 +36,6 @@ Aardhyn Lavender
 ## Soundtrack and SFX
 
 Aardhyn Lavender
-
-## Testing
-
-...
-
-## Reviewers
-
-...
 
 ## Typography
 

@@ -12,7 +12,6 @@ pub fn deserialize_weapon_data() -> Result<CollectableData, String> {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-#[allow(unused)]
 pub struct CollectableItemData {
   pub name: String,
   pub description: String,

@@ -16,12 +16,17 @@ use crate::game::physics::position::Position;
 use crate::game::player::world::{PlayerQuery, use_player};
 use crate::game::scene::level::room::use_room;
 use crate::game::scene::level::scene::LevelScene;
+use crate::game::story::data::StoryItem;
+use crate::game::story::modal::make_story_modal;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
+
+const INITIAL_SAVE_ROOM: &str = "save_0";
 
 /// Marks a region within a room where the player can save their progress
 #[derive(Clone)]
 pub struct SaveArea {
   room: String,
+  story: Option<StoryItem>,
   active: bool,
   used: bool,
 }
@@ -31,9 +36,9 @@ pub struct SaveText;
 
 impl SaveArea {
   /// Instantiate a new valid save area
-  pub fn build(room: String) -> Result<Self, String> {
+  pub fn build(room: String, story: Option<StoryItem>) -> Result<Self, String> {
     assert_save_room(&room)?;
-    Ok(Self { room, active: false, used: false })
+    Ok(Self { room, active: false, story, used: false })
   }
   /// Get the save room associated with the area
   pub fn get_area(&self) -> &String { &self.room }
@@ -80,6 +85,15 @@ impl Systemize for SaveArea {
           .get("typeface")?;
         let mut builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(&typeface, &mut asset.texture, color::TEXT, WINDOW);
         world.add(builder.make_text::<SaveText>("Press up to save", Alignment::new(Align::Center(0.0), Align::Center(0.0))));
+
+        if area.room != INITIAL_SAVE_ROOM {
+          if let Some(story) = &area.story {
+            let PlayerQuery { advancement, .. } = use_player(world);
+            if advancement.advance(&story.key) {
+              make_story_modal(world, event, asset, &story);
+            }
+          }
+        }
       } else {
         let save_text = world.query::<&SaveText>().into_iter().next();
         if let Some((entity, _)) = save_text { world.free_now(entity)?; }
@@ -93,11 +107,11 @@ impl Systemize for SaveArea {
         .cloned()
         .collect::<Vec<_>>();
       let save_room = use_room(state).get_name();
-      let player_position = use_player(world).position.0;
       let save_area_position = use_save_area(world).collider.origin;
-      let saved_position = player_position - save_area_position;
+      let PlayerQuery { position: player_position, advancement, .. } = use_player(world);
+      let saved_position = player_position.0 - save_area_position;
 
-      let save_data = SaveData::build(save_room, collection, saved_position)?;
+      let save_data = SaveData::build(save_room, collection, advancement.clone().into(), saved_position)?;
       save_data.to_file(USER_SAVE_FILE)?;
 
       scene.queue_next(LevelScene::new(save_data));
@@ -111,9 +125,9 @@ impl Systemize for SaveArea {
 type SaveAreaBundle = (SaveArea, Position, Collider);
 
 /// Compose save area components from a save room and collision box
-pub fn make_save_area(save_room: String, area: CollisionBox) -> Result<SaveAreaBundle, String> {
+pub fn make_save_area(save_room: String, area: CollisionBox, story: Option<StoryItem>) -> Result<SaveAreaBundle, String> {
   Ok((
-    SaveArea::build(save_room)?,
+    SaveArea::build(save_room, story)?,
     Position::from(area.origin),
     Collider(CollisionBox::new(Vec2::default(), area.size))
   ))

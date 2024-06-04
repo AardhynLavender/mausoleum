@@ -12,6 +12,7 @@ use crate::game::persistence::assertion::{assert_inventory, assert_save_room};
 use crate::game::persistence::constant::DEFAULT_SAVE_ROOM;
 use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data};
 use crate::game::scene::level::meta::Item;
+use crate::game::story::data::StoryKey;
 
 /// Inventory type
 type Inventory = Vec<Item>;
@@ -51,7 +52,7 @@ impl Default for SaveData {
 
 impl SaveData {
   /// Validate and build save data
-  pub fn build(save_room: String, inventory: Inventory, story: HashSet<String>, position: Vec2<f32>) -> Result<Self, String> {
+  pub fn build(save_room: String, inventory: Inventory, story: HashSet<StoryKey>, position: Vec2<f32>) -> Result<Self, String> {
     assert_inventory(&inventory)?;
     assert_save_room(&save_room)?;
     Ok(Self { save_room, inventory, story, x: position.x, y: position.y })
@@ -73,6 +74,8 @@ impl SaveData {
   pub fn get_save_room(&self) -> String { self.save_room.clone() }
   /// Get the inventory
   pub fn get_inventory(&self) -> Inventory { self.inventory.clone() }
+  /// Get the story advancements
+  pub fn get_story(&self) -> HashSet<String> { self.story.clone() }
   /// Get the player offset
   pub fn get_offset(&self) -> Vec2<f32> { Vec2::new(self.x, self.y) }
 }

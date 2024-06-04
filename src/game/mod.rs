@@ -9,4 +9,5 @@ pub mod player;
 pub mod preferences;
 pub mod collectable;
 pub mod persistence;
-mod ui;
+pub mod ui;
+pub mod story;

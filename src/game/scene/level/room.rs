@@ -41,6 +41,8 @@ use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
 use crate::game::scene::level::scene::LevelState;
+use crate::game::story::data::Story;
+use crate::game::story::world::make_story_area;
 
 pub const ROOM_ENTER_MARGIN: i32 = TILE_SIZE.x as i32 / 2;
 
@@ -197,23 +199,32 @@ impl Room {
 
   // Entities //
 
-  pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+  pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager, state: &Story) -> Result<(), String> {
     self.tilemap.add_objects(|object| {
       let entity = match object {
         ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
         ObjMeta::BubblyConcept { position, direction, .. } => world.add(make_bubbly(assets, self.position + *position, *direction)?),
         ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
-        ObjMeta::EventConcept { position } => world.add((Position::from(self.position + *position), )),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
-        ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),
+        ObjMeta::SaveAreaConcept { position, collision_box } => {
+          let story = state.get_entry("save");
+          world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size), story)?)
+        }
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
         ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
         ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
         ObjMeta::RotundConcept { direction, position, spit_axis } => world.add(make_rotund(assets, self.position + *position, *direction, *spit_axis)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
+        ObjMeta::StoryConcept { position, collision_box, key } => {
+          if let Some(entry) = state.get_entry(key) {
+            let collision_box = CollisionBox::new(self.position + *position, collision_box.size);
+            return Ok(Some(world.add(make_story_area(entry.clone(), collision_box))));
+          }
+          return Ok(None);
+        }
       };
       self.entities.insert(entity);
-      Ok(entity)
+      Ok(Some(entity))
     })
   }
   // Add a new entity associated with the room
@@ -241,9 +252,9 @@ impl Room {
   // Room //
 
   /// Add the entities and tilemap associated with the room to the world
-  pub fn add_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+  pub fn add_to_world(&mut self, world: &mut World, assets: &mut AssetManager, state: &Story) -> Result<(), String> {
     self.add_tilemap_to_world(world)?;
-    self.add_entities_to_world(world, assets)
+    self.add_entities_to_world(world, assets, state)
   }
   // Remove the entities associated with the room from the world
   pub fn remove_from_world(&mut self, world: &mut World) {

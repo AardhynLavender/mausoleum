@@ -32,7 +32,7 @@ pub enum TilemapMutation {
 }
 
 /// Manages a grid of entities
-pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone {
+pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Clone {
   // store the data to build the tilemap
   layers: HashMap<LayerMeta, TileLayer<LayerMeta, TileMeta>>,
   tile_size: Size2,
@@ -41,7 +41,7 @@ pub struct Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone, LayerMet
   dimensions: Size2,
 }
 
-impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Copy + Clone + std::fmt::Debug {
+impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where TileMeta: Clone + Default, LayerMeta: Copy + Clone + Hash + Eq + Default, ObjMeta: Clone + std::fmt::Debug {
   /// Instantiate a new tilemap from with `dimensions`
   pub fn build(tileset: &Tileset<TileMeta>, dimensions: Size2, layers: Vec<TileLayer<LayerMeta, TileMeta>>, objects: Vec<ObjMeta>) -> Result<Self, String> {
     let object_count = objects.len();
@@ -152,13 +152,17 @@ impl<TileMeta, LayerMeta, ObjMeta> Tilemap<TileMeta, LayerMeta, ObjMeta> where T
   }
 
   /// Add objects to the world by invoking an injected add function on each object
-  pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Entity, String>) -> Result<(), String> {
+  pub fn add_objects(&mut self, mut add: impl FnMut(&ObjMeta) -> Result<Option<Entity>, String>) -> Result<(), String> {
     for (index, object) in self
       .objects
       .iter()
       .enumerate()
     {
-      if let Some(object) = object { self.object_entities.insert(index, add(object)?); }
+      if let Some(object) = object {
+        if let Some(entity) = add(object)? {
+          self.object_entities.insert(index, entity);
+        }
+      }
     }
     Ok(())
   }

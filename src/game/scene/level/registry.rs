@@ -20,6 +20,7 @@ use crate::game::scene::level::meta::TileMeta;
 use crate::game::scene::level::parse::{tilemap_from_tiled, tileset_from_tiled};
 use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider, RoomTileException};
 use crate::game::scene::level::scene::LevelState;
+use crate::game::story::data::Story;
 use crate::game::utility::path::{get_basename, get_filename};
 
 pub type RoomKey = String;
@@ -30,6 +31,7 @@ type RoomRegistryTileExceptions = HashMap<RoomKey, Vec<RoomTileException>>;
 pub struct RoomRegistry {
   current: Option<RoomKey>,
   tilesets: HashMap<RoomKey, Tileset<TileMeta>>,
+  story_data: Story,
   rooms: HashMap<RoomKey, Room>,
   colliders: HashMap<RoomKey, Entity>,
 }
@@ -39,7 +41,7 @@ impl RoomRegistry {
   /// - Builds engine `Tileset`s and `Tilemap`s from the `TiledParser`.
   /// - Loads referenced assets into the `AssetManager`
   /// - Adds `RoomCollider`s into the world for each `Room`
-  pub fn build(parser: TiledParser, mut exceptions: RoomRegistryTileExceptions, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
+  pub fn build(parser: TiledParser, mut exceptions: RoomRegistryTileExceptions, story_data: Story, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
     // Build the engine tilesets from Tiled tilesets
     let mut tilesets = HashMap::new();
     for (path, tiled_tileset) in parser.tilesets {
@@ -91,6 +93,7 @@ impl RoomRegistry {
 
     Ok(Self {
       current: None,
+      story_data,
       tilesets,
       rooms,
       colliders,
@@ -125,7 +128,7 @@ impl RoomRegistry {
     self.rooms
       .get_mut(&name.into())
       .ok_or("Room not found")?
-      .add_to_world(world, assets)
+      .add_to_world(world, assets, &self.story_data)
   }
   /// Transition to a new room
   pub fn transition_to_room(&mut self, world: &mut World, assets: &mut AssetManager, name: impl Into<String>) -> Result<(), String> {

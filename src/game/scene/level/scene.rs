@@ -42,6 +42,9 @@ use crate::game::scene::level::meta::TileLayerType;
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::scene::level::room::{RoomTileException, sys_render_room_colliders};
 use crate::game::scene::menu::MenuScene;
+use crate::game::story::data::deserialize_story_data;
+use crate::game::story::modal::sys_story_modal;
+use crate::game::story::world::StoryArea;
 use crate::game::ui::iterative_text::IterativeText;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
@@ -67,14 +70,7 @@ impl LevelScene {
 impl Scene for LevelScene {
   /// Set up the level scene
   fn setup(&mut self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
-    let path = Path::new(WORLD_PATH);
-    let parser = TiledParser::parse(path)
-      .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
-      .expect("Failed to parse Tiled data");
-
-    let save_room = self.save_data.get_save_room();
     let inventory = self.save_data.get_inventory();
-
     let exceptions = inventory
       .iter()
       .fold(HashMap::new(), |mut exceptions, item| {
@@ -84,15 +80,24 @@ impl Scene for LevelScene {
         exceptions
       });
 
-    let mut room_registry = RoomRegistry::build(parser, exceptions, asset, world).expect("Failed to build room registry");
+    let story_advancements = self.save_data.get_story();
+    let story_data = deserialize_story_data()
+      .expect("Failed to load story data")
+      .omit(&story_advancements);
+
+    let path = Path::new(WORLD_PATH);
+    let parser = TiledParser::parse(path)
+      .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
+      .expect("Failed to parse Tiled data");
+    let save_room = self.save_data.get_save_room();
+    let mut room_registry = RoomRegistry::build(parser, exceptions, story_data, asset, world).expect("Failed to build room registry");
     room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
     room_registry.clamp_camera(camera);
     camera.tether();
 
     let save_position = use_save_area(world).collider.origin;
     let player_position = save_position + self.save_data.get_offset();
-    make_player(world, asset, inventory.into_iter(), player_position);
-
+    make_player(world, asset, inventory.into_iter(), story_advancements, player_position);
     make_player_health_text(world, asset);
 
     // Add systems to the level scene
@@ -113,6 +118,7 @@ impl Scene for LevelScene {
       Frozen::system,
       Collection::system,
       SaveArea::system,
+      StoryArea::system,
       RoomCollision::system,
       RoomRegistry::system,
       TimeToLive::system,
@@ -128,6 +134,7 @@ impl Scene for LevelScene {
     system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
       LevelScene::system,
       MenuPane::system,
+      sys_story_modal,
       Cursor::system,
       IterativeText::system,
       sys_render_colliders,
@@ -163,6 +170,7 @@ impl Systemize for LevelScene {
     }
 
     if exit && !event.is_paused() {
+      println!("Exiting level scene");
       make_menu(world, event, asset);
     }
 

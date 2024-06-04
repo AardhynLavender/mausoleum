@@ -101,6 +101,6 @@
 </data>
  </layer>
  <objectgroup id="3" name="Story">
-  <object id="1" name="Endgame" type="Event" x="560" y="288" width="160" height="80"/>
+  <object id="1" name="epilouge" type="Story" x="560" y="288" width="160" height="80"/>
  </objectgroup>
 </map>

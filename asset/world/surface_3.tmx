@@ -199,6 +199,6 @@
   </object>
  </objectgroup>
  <objectgroup id="6" name="Story">
-  <object id="18" name="WTF" type="Event" x="784.333" y="64.3333" width="46" height="114"/>
+  <object id="18" name="wtf" type="Story" x="784.333" y="64.3333" width="46" height="114"/>
  </objectgroup>
 </map>

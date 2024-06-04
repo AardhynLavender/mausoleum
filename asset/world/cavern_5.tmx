@@ -86,7 +86,7 @@
 </data>
  </layer>
  <objectgroup id="5" name="Story">
-  <object id="14" name="WTF" type="Event" x="1424" y="-1696" width="48" height="112.667"/>
+  <object id="14" name="WTF" type="story" x="1424" y="-1696" width="48" height="112.667"/>
  </objectgroup>
  <objectgroup id="2" name="Creature">
   <object id="1" type="Zoomer" x="281.333" y="89">

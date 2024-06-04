@@ -1,5 +1,5 @@
 /*
- * Manage metadata for layers, tiles, and objects
+ * Manage and parse metadata for layers, tiles, and objects
  */
 
 use serde::{Deserialize, Serialize};
@@ -67,12 +67,12 @@ pub struct TileMeta {
 }
 
 /// Metadata for a tilemap object
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum ObjMeta {
   AngryBuzzConcept { position: Vec2<f32> },
   BubblyConcept { position: Vec2<f32>, direction: Direction },
   BuzzConcept { position: Vec2<f32> },
-  EventConcept { position: Vec2<f32> },
+  StoryConcept { position: Vec2<f32>, collision_box: CollisionBox, key: String },
   GruntConcept { position: Vec2<f32> },
   SaveAreaConcept { position: Vec2<f32>, collision_box: CollisionBox },
   SpikyConcept { direction: Direction, position: Vec2<f32> },
@@ -102,7 +102,7 @@ pub fn get_property(name: impl Into<String>, properties: &Option<TiledProperties
   None
 }
 
-pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, .. }: &TiledObject) -> Result<ObjMeta, String> {
+pub fn parse_object(TiledObject { name, object_type, properties, x, y, width, height, .. }: &TiledObject) -> Result<ObjMeta, String> {
   let position = Vec2::new(*x, *y);
   let object_type = object_type.trim().to_lowercase();
   let meta = match object_type.as_str() {
@@ -141,7 +141,16 @@ pub fn parse_object(TiledObject { object_type, properties, x, y, width, height, 
       let direction = parse_direction("direction", properties).unwrap_or(Direction::Right);
       ObjMeta::ZoomerConcept { direction, position }
     }
-    "event" => ObjMeta::EventConcept { position },
+    "story" => {
+      if let Some(key) = name {
+        if let (Some(width), Some(height)) = (*width, *height) {
+          let bounds = Rec2::new(position, Size2::new(width as Size, height as Size));
+          return Ok(ObjMeta::StoryConcept { position, collision_box: CollisionBox::from(bounds), key: key.clone() });
+        }
+        return Err(String::from("Save area must have a width and height"));
+      }
+      return Err(String::from("Story object must have a name"));
+    }
     _ => return Err(String::from(format!("Unknown object type: {}", object_type))),
   };
   Ok(meta)

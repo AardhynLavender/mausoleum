@@ -82,6 +82,8 @@ pub struct TiledObject {
   pub id: u32,
   #[serde(rename = "@gid")]
   pub gid: Option<u32>,
+  #[serde(rename = "@name")]
+  pub name: Option<String>,
   #[serde(rename = "@type")]
   pub object_type: String,
   #[serde(rename = "@x")]
