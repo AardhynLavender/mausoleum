@@ -137,28 +137,25 @@ pub struct SystemManager {
 impl SystemManager {
   /// Suspend a group of systems from a schedule
   pub fn suspend(&mut self, schedule: Schedule, tag: SystemTag) -> Result<(), String> {
-    self.schedules
-      .get_mut(&schedule)
-      .ok_or(String::from("Schedule not found"))?
-      .remove(&tag)
-      .map(|system| {
-        self.suspended_systems.insert((schedule, tag), system);
-      });
+    if let Some(group) = self.schedules.get_mut(&schedule) {
+      group
+        .remove(&tag)
+        .map(|system| {
+          self.suspended_systems.insert((schedule, tag), system);
+        });
+    }
     Ok(())
   }
 
   /// Resume processing a system group in a schedule
   pub fn resume(&mut self, schedule: Schedule, tag: SystemTag) -> Result<(), String> {
     let key = (schedule, tag);
-
-    let resumable = self.suspended_systems
-      .remove(&key)
-      .ok_or(format!("Did not find suspended system for ({}, {})", key.0, key.1))?;
-
-    self.schedules
-      .get_mut(&schedule)
-      .ok_or(String::from("Schedule not found"))?
-      .insert(tag, resumable);
+    if let Some(resumable) = self.suspended_systems.remove(&key) {
+      self.schedules
+        .get_mut(&schedule)
+        .ok_or(String::from("Schedule not found"))?
+        .insert(tag, resumable);
+    }
 
     Ok(())
   }
