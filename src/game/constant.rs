@@ -1,11 +1,10 @@
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::utility::alignment::Aligner;
+use crate::engine::utility::interpolation::CubicBezierCurve;
 
 // Tile //
 
 pub const TILE_SIZE: Vec2<u32> = Vec2::new(16, 16);
-
-// Menu //
 
 // Typeface //
 
@@ -30,3 +29,16 @@ pub const WINDOW: Aligner = Aligner::new(Rec2::new(Vec2::const_default(), LOGICA
 pub const DEV_SAVE_FILE: &str = "data/dev_save.json";
 pub const USER_SAVE_FILE: &str = "user_save.json";
 
+// curves //
+
+/// A cubic Bézier curve that eases in and out
+///
+/// This can't be a constant because its generic type depends on traits without const variants
+pub fn ease_in_out() -> CubicBezierCurve<f32> {
+  CubicBezierCurve::new(
+    Vec2::new(0.0, 0.0),
+    Vec2::new(0.42, 0.0),
+    Vec2::new(0.58, 1.0),
+    Vec2::new(1.0, 1.0),
+  )
+}
