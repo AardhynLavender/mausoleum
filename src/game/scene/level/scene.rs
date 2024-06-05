@@ -15,6 +15,7 @@ use crate::game::collectable::data::{CollectableData, deserialize_weapon_data};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::TimeToLive;
+use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE};
 use crate::game::creature::angry_buzz::AngryBuzz;
 use crate::game::creature::bubbly::Bubbly;
 use crate::game::creature::buzz::Buzz;
@@ -41,7 +42,6 @@ use crate::game::scene::level::menu::{make_menu, MenuPane};
 use crate::game::scene::level::meta::TileLayerType;
 use crate::game::scene::level::registry::RoomRegistry;
 use crate::game::scene::level::room::{RoomTileException, sys_render_room_colliders};
-use crate::game::scene::menu::MenuScene;
 use crate::game::story::data::deserialize_story_data;
 use crate::game::story::modal::sys_story_modal;
 use crate::game::story::world::StoryArea;
@@ -162,11 +162,15 @@ impl Systemize for LevelScene {
     let PlayerQuery { health, .. } = use_player(world);
 
     let dead = health.get_state() == LiveState::Dead;
-    let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
+    let exit = is_control(Control::Escape, Behaviour::Pressed, event);
 
     if dead {
-      scene.queue_next(MenuScene)
-      // todo: death stuff... write the obituary, engrave the tombstone, you know the drill...
+      let save_data = SaveData::from_file(USER_SAVE_FILE)
+        .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+          .map_err(|error| eprintln!("Failed to load dev save file: {}", error))
+          .unwrap_or(SaveData::default())
+        );
+      scene.queue_next(LevelScene::new(save_data));
     }
 
     if exit && !event.is_paused() {
