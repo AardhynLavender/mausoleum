@@ -6,6 +6,9 @@ use sdl2::pixels::Color;
 
 // Color //
 
+/// Convert a unit value to an alpha value
+pub fn unit_to_alpha(unit: f32) -> u8 { (unit * 255.0) as u8 }
+
 /// RGBA color
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct RGBA {
