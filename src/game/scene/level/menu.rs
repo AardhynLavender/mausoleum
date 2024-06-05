@@ -64,11 +64,11 @@ impl Systemize for MenuPane {
         let (index, ..) = menu.get_selection();
         match index {
           0 => {
-            close_modal(world, event).expect("Failed to close modal");
+            close_modal(world, event, true).expect("Failed to close modal");
           }
           1 | 2 => { eprintln!("Not implemented yet"); }
           3 => {
-            close_modal(world, event).expect("Failed to close modal");
+            close_modal(world, event, false).expect("Failed to close modal");
             scene.queue_next(MenuScene);
           }
           4 => { event.queue_quit(); }

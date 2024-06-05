@@ -17,9 +17,12 @@ pub struct EventStore {
   held_keys: KeyStore,
   pressed_keys: KeyStore,
   mouse_position: Vec2<i32>,
+
   must_quit: bool,
   must_pause: bool,
-  did_pause: bool,
+  must_resume: bool,
+
+  paused: bool,
 }
 
 impl EventStore {
@@ -32,7 +35,9 @@ impl EventStore {
 
       must_quit: false,
       must_pause: false,
-      did_pause: false,
+      must_resume: false,
+
+      paused: false,
     }
   }
   /// Clear the pressed keys from the store
@@ -40,7 +45,7 @@ impl EventStore {
 
   /// Clear any keys currently held
   pub fn clear_held_keys(&mut self) { self.held_keys.clear(); }
- 
+
   /// Mark a key as pressed
   pub fn press_key(&mut self, keycode: Keycode) {
     self.pressed_keys.insert(keycode);
@@ -60,16 +65,20 @@ impl EventStore {
   /// Mark the application to quit
   pub fn queue_quit(&mut self) { self.must_quit = true; }
   /// Query if the event store should quit
-  pub fn should_quit(&self) -> bool { self.must_quit }
+  pub fn must_quit(&self) -> bool { self.must_quit }
 
-  /// Pause the game
+  /// Queue the game to pause
   pub fn queue_pause(&mut self) { self.must_pause = true; }
-  /// Query if the game should be paused
+  /// Query if the game is queued to pause
   pub fn must_pause(&self) -> bool { self.must_pause }
-  /// Query if the game has paused
-  pub fn is_paused(&self) -> bool { self.did_pause }
+
   /// Resume the game
-  pub fn queue_resume(&mut self) { self.must_pause = false; }
+  pub fn queue_resume(&mut self) { self.must_resume = true; }
+  /// Query if the game is queued to resume
+  pub fn must_resume(&self) -> bool { self.must_resume }
+
+  /// Query if the game is currently paused
+  pub fn is_paused(&self) -> bool { self.paused }
 }
 
 /// Manage events polled by SDL2
@@ -96,17 +105,28 @@ impl Events {
   /// Query if the game is quit
   pub fn is_quit(&self) -> bool { self.is_quit }
 
+  /// Pause the game
+  pub fn pause(&mut self, event_store: &mut EventStore) {
+    self.is_paused = true;
+    event_store.must_pause = false;
+    event_store.paused = true;
+  }
+
+  /// Resume the game
+  pub fn resume(&mut self, event_store: &mut EventStore) {
+    self.is_paused = false;
+    event_store.must_resume = false;
+    event_store.paused = false;
+  }
+
   /// Poll for events and update `event_store`
   pub fn update(&mut self, event_store: &mut EventStore) {
     event_store.clear_pressed_keys();
 
-    if event_store.should_quit() {
+    if event_store.must_quit() {
       self.is_quit = true;
       return;
     }
-
-    self.is_paused = event_store.must_pause();
-    event_store.did_pause = self.is_paused;
 
     let events = self.event_pump.poll_iter();
     for event in events {

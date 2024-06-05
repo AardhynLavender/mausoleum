@@ -52,7 +52,7 @@ pub fn make_modal<'m, 'a>(
 }
 
 /// Remove all components tagged as part of a modal and resume the game
-pub fn close_modal(world: &mut World, event: &mut EventStore) -> Result<(), String> {
+pub fn close_modal(world: &mut World, event: &mut EventStore, resume_on_close: bool) -> Result<(), String> {
   // remove all components with a Modal component
   let queued_free = world.query::<(&Modal, )>()
     .into_iter()
@@ -61,7 +61,7 @@ pub fn close_modal(world: &mut World, event: &mut EventStore) -> Result<(), Stri
 
   if !queued_free.is_empty() {
     for entity in queued_free { world.free_now(entity)? }
-    event.queue_resume();
+    if resume_on_close { event.queue_resume(); }
   } else {
     eprintln!("No modals found to close!");
   }
@@ -72,7 +72,7 @@ pub fn close_modal(world: &mut World, event: &mut EventStore) -> Result<(), Stri
 /// Close a modal when the escape key is pressed, returning true if the modal was closed
 pub fn use_escape_modal(world: &mut World, event: &mut EventStore) -> bool {
   let exit = is_control(Control::Escape, Behaviour::Pressed, event);
-  if exit { close_modal(world, event).expect("Failed to close modal"); }
+  if exit { close_modal(world, event, true).expect("Failed to close modal"); }
   exit
 }
 

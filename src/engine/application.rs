@@ -1,11 +1,14 @@
+use std::time::Duration;
+
 use crate::engine::asset::AssetManager;
 use crate::engine::event::EventStore;
 use crate::engine::geometry::shape::Vec2;
 use crate::engine::internal::{add_internal_entities, add_internal_systems};
 use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
 use crate::engine::rendering::camera::{Camera, CameraBounds};
+use crate::engine::rendering::color::{RGBA, unit_to_alpha};
 use crate::engine::rendering::renderer::Properties;
-use crate::engine::scene::{Scene, SceneManager};
+use crate::engine::scene::{Scene, SceneManager, SceneTransition, TransitionState};
 use crate::engine::state::State;
 use crate::engine::subsystem::Subsystem;
 use crate::engine::system::{Schedule, SysArgs, SystemManager, SystemTag};
@@ -19,6 +22,8 @@ use crate::engine::world::World;
 
 pub const SIMULATION_FPS: DeltaMS = 1.0 / 60.0;
 pub const MAX_FRAME_TIME: DeltaMS = 1.0 / 30.0;
+
+pub const TRANSITION_TIME_MS: u64 = 1_500;
 
 /// Bundles a subsystem with actions
 struct Engine<'a> {
@@ -54,29 +59,31 @@ impl<'a> Engine<'a> {
     add_internal_systems(&mut systems);
     add_internal_entities(&mut self.world);
 
-    let mut paused = self.events.is_paused();
+    let mut transition = SceneTransition::new(Duration::from_millis(TRANSITION_TIME_MS / 2));
 
     (self.lifecycle.setup)(LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets));
 
     loop {
       // start frame
       let (delta, ..) = self.last_frame.next();
-      // todo: is there a better way to do this? process the dynamic frames as fixed?
-      if delta > MAX_FRAME_TIME { continue; }
+      if delta > MAX_FRAME_TIME {
+        eprintln!("Frame took too long: {:.2}ms", delta * 1000.0);
+        continue;
+      }
 
       // process events
       self.subsystem.events.update(&mut self.events);
       if self.subsystem.events.is_quit() { break; }
 
       // check for pause
-      if !paused && self.events.is_paused() {
+      if self.events.must_pause() {
         systems.suspend(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to suspend fame systems");
         systems.suspend(Schedule::PostUpdate, SystemTag::Suspendable).expect("Failed to suspend post systems");
-        paused = true;
-      } else if paused && !self.events.is_paused() {
+        self.subsystem.events.pause(&mut self.events);
+      } else if self.events.must_resume() {
         systems.resume(Schedule::FrameUpdate, SystemTag::Suspendable).expect("Failed to resume frame systems");
         systems.resume(Schedule::PostUpdate, SystemTag::Suspendable).expect("Failed to resume post systems");
-        paused = false;
+        self.subsystem.events.resume(&mut self.events);
       }
 
       // process physics
@@ -86,25 +93,47 @@ impl<'a> Engine<'a> {
       })?;
       let mut args = SysArgs::new(delta, &mut self.world, &mut self.subsystem.renderer, &mut self.events, &mut self.camera, &mut self.scenes, &mut self.state, assets);
       systems.update(Schedule::FrameUpdate, &mut args)?;
-
-      // process rendering
       systems.update(Schedule::PostUpdate, &mut args)?;
-      self.subsystem.renderer.present();
 
-      // check for scene change
-      if self.scenes.is_queue() {
-        systems.remove(SystemTag::Scene);
-        systems.remove(SystemTag::Suspendable);
-        systems.remove_suspended();
-
-        // prevent events leaking into the next scene
-        self.events.clear_held_keys();
-
-        self.events.queue_resume(); // Lol, this doesn't do much as we deleted the suspended systems
-        paused = false;
-
-        self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets))
+      if self.scenes.is_queue() && !transition.active() {
+        self.events.queue_pause();
+        transition.start();
       }
+
+      if transition.active() {
+        transition.integrate(|state, interpolation| {
+          match (state, interpolation) {
+            (TransitionState::Idle, ..) => {
+              unreachable!("Transition state is never idle during interpolation");
+            }
+            (TransitionState::Out | TransitionState::Intermediate, t) => {
+              let alpha = unit_to_alpha(t);
+              let scrim = CameraBounds::new(Vec2::default(), self.camera.get_viewport().size);
+              self.subsystem.renderer.fill_rect(scrim, RGBA::new(0, 0, 0, alpha));
+
+              if state == TransitionState::Intermediate {
+                systems.remove(SystemTag::Scene);
+                systems.remove(SystemTag::Suspendable);
+                systems.remove_suspended();
+                self.events.clear_held_keys();
+
+                self.scenes.next(&mut LifecycleArgs::new(&mut self.world, &mut systems, &mut self.camera, &mut self.state, assets));
+                self.events.queue_pause();
+              }
+            }
+            (TransitionState::In, t) => {
+              let alpha = unit_to_alpha(1.0 - t);
+              let scrim = CameraBounds::new(Vec2::default(), self.camera.get_viewport().size);
+              self.subsystem.renderer.fill_rect(scrim, RGBA::new(0, 0, 0, alpha));
+            }
+            (TransitionState::Complete, ..) => {
+              self.events.queue_resume();
+            }
+          }
+        });
+      }
+
+      self.subsystem.renderer.present();
     }
 
     (self.lifecycle.destroy)();

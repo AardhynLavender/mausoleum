@@ -82,6 +82,7 @@ impl Renderer {
     // apply post-construction properties
     subsystem.set_integer_scale(true).map_err(|e| e.to_string())?;
     subsystem.set_draw_color(properties.screen_color);
+    subsystem.set_blend_mode(sdl2::render::BlendMode::Blend);
     if let Some(size) = properties.logical {
       subsystem.set_logical_size(size.x, size.y).map_err(|e| e.to_string())?;
     }
@@ -161,6 +162,18 @@ impl Renderer {
     self.set_color(color);
     self.subsystem
       .draw_rect(Rect::from(rect))
+      .map_err(|error| eprintln!("{error}"))
+      .ok();
+  }
+  /// Fill `rect` of `color` to the screen
+  pub fn fill_rect<T: IntConvertable, U: SizePrimitive>(
+    &mut self,
+    rect: Rec2<T, U>,
+    color: RGBA,
+  ) {
+    self.set_color(color);
+    self.subsystem
+      .fill_rect(Rect::from(rect))
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }

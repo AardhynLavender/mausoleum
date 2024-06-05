@@ -72,8 +72,8 @@ impl Scene for MenuScene {
   /// Set up the main menu scene
   fn setup(&mut self, LifecycleArgs { world, system, asset, .. }: &mut LifecycleArgs) {
     add_ui(world, asset);
-    system.add(Schedule::PostUpdate, SystemTag::Scene, MenuScene::system).expect("Failed to add menu system");
-    system.add(Schedule::PostUpdate, SystemTag::Scene, Cursor::system).expect("Failed to add menu system");
+    system.add(Schedule::PostUpdate, SystemTag::Suspendable, MenuScene::system).expect("Failed to add menu system");
+    system.add(Schedule::PostUpdate, SystemTag::Suspendable, Cursor::system).expect("Failed to add menu system");
   }
   /// Destroy the main menu scene
   fn destroy(&mut self, LifecycleArgs { .. }: &mut LifecycleArgs) {}
