@@ -12,5 +12,6 @@ fi;
 
 rm -f "$save_file" "$target/$save_file"
 cp -r asset "$target";
+cp -r data "$target";
 
 exit 0;
