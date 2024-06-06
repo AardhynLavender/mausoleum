@@ -11,6 +11,8 @@ use crate::engine::utility::alias::DeltaMS;
 
 pub const SECOND_MICRO: f32 = 1_000_000.0;
 
+pub const SECOND_MS: DeltaMS = 10_000.0;
+
 // Types //
 
 /// Represents a frame of time
@@ -66,7 +68,7 @@ pub struct Timer {
 }
 
 impl Default for Timer {
-  /// Instantiate a new timer of 0 duration
+  /// Instantiate a new timer of duration 0
   fn default() -> Self {
     Self {
       enabled: false,
@@ -85,6 +87,12 @@ impl Timer {
       duration,
     }
   }
+  /// Check if the timer is enabled
+  pub fn is_enabled(&self) -> bool { self.enabled }
+  /// disable the timer
+  pub fn disable(&mut self) { self.enabled = false; }
+  /// enable the timer
+  pub fn enable(&mut self) { self.enabled = true; }
   /// Start the timer
   pub fn start(&mut self) {
     self.reset();
@@ -92,7 +100,7 @@ impl Timer {
   }
   /// Reset the timer to the start
   pub fn reset(&mut self) { self.start = Instant::now(); }
-  /// drop the timer
+  /// Expire the timer
   pub fn expire(&mut self) { self.start = Instant::now() - self.duration; }
   /// Check if the timer has expired regardless of enabled state
   pub fn done(&self) -> bool { self.start.elapsed() >= self.duration }
@@ -117,5 +125,11 @@ impl Timer {
     let done = self.consume(action);
     if done { (callback)(); }
     done
+  }
+  /// Interpolate the start and end time into a unit interval
+  pub fn interpolate(&self) -> f32 {
+    let elapsed = self.start.elapsed();
+    let duration = self.duration.as_nanos();
+    elapsed.as_nanos() as f32 / duration as f32
   }
 }

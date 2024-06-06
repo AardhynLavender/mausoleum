@@ -13,7 +13,7 @@ use crate::engine::utility::direction::Direction;
  */
 
 /// builds up the tile data for `dimensions` using `tile_size`
-fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2, meta: HashMap<TileKey, Meta>) -> Result<Vec<TileData<Meta>>, &'static str> where Meta: Copy + Clone {
+fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2, meta: HashMap<TileKey, Meta>) -> Result<Vec<TileData<Meta>>, &'static str> where Meta: Clone {
   let (width, height) = dimensions.destructure();
   if width % tile_size.x != 0 {
     return Err("Tileset width must be divisible by tile size");
@@ -30,7 +30,7 @@ fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2
       let src = Rec2::new(tile_position, tile_size);
       let meta = meta
         .get(&tile_key)
-        .copied()
+        .cloned()
         .ok_or("Failed to get tile meta")?;
       tiles.push(TileData::new(texture_key, src, tile_key, meta));
     }
@@ -39,6 +39,9 @@ fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2
   Ok(tiles)
 }
 
+const PLAYER_BARRIER_TILE: TileKey = 26;
+const CREATURE_BARRIER_TILE: TileKey = 27;
+
 /// Wrapper for a texture that contains tiles
 pub struct Tileset<Meta> {
   pub texture: TextureKey,
@@ -46,7 +49,7 @@ pub struct Tileset<Meta> {
   pub tiles: Vec<TileData<Meta>>,
 }
 
-impl<Meta> Tileset<Meta> where Meta: Clone + Copy {
+impl<Meta> Tileset<Meta> where Meta: Clone {
   /// Instantiate a new tileset from a `texture` with `tile_size`
   pub fn build(texture: TextureKey, dimensions: Size2, tile_size: Size2, meta: HashMap<TileKey, Meta>) -> Result<Self, String> {
     let tiles = make_tiles(texture, dimensions, tile_size, meta)?;
@@ -98,5 +101,9 @@ fn has_tile_at(data: &Vec<Option<TileKey>>, coordinate: &Coordinate, dimensions:
   let index = coordinate_to_index(coordinate, *dimensions);
   data
     .get(index)
-    .map_or(false, |tile| tile.is_none())
+    .map_or(false, |tile| {
+      tile.is_none()
+        || *tile == Some(PLAYER_BARRIER_TILE)
+        || *tile == Some(CREATURE_BARRIER_TILE)
+    })
 }

@@ -1,6 +1,28 @@
 {
-  "save_room": "save_2",
-  "inventory": [],
-  "x": 1592.0,
-  "y": -447.0
+  "save_room": "save_7",
+  "inventory": [
+    {
+      "collectable": "ice_beam",
+      "map_index": 698,
+      "room_name": "save_0"
+    },
+    {
+      "collectable": "high_jump",
+      "map_index": 699,
+      "room_name": "save_0"
+    },
+    {
+      "collectable": "missile_tank",
+      "map_index": 701,
+      "room_name": "save_0"
+    },
+    {
+      "collectable": "health",
+      "map_index": 700,
+      "room_name": "save_0"
+    }
+  ],
+  "story": [],
+  "x": 0.0,
+  "y": 0.0
 }

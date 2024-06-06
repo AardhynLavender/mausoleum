@@ -1,123 +1,117 @@
 /**
- * The game menu
+ * The game menu scene
  */
 
 use crate::engine::asset::AssetManager;
-use crate::engine::component::text::{Text, TextBuilder};
+use crate::engine::asset::texture::SrcRect;
+use crate::engine::component::text::TextBuilder;
 use crate::engine::component::ui::Selection;
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::lifecycle::LifecycleArgs;
+use crate::engine::rendering::camera::{Sticky1, Sticky2};
 use crate::engine::rendering::color::color;
+use crate::engine::rendering::component::Sprite;
+use crate::engine::rendering::renderer::layer::Layer9;
 use crate::engine::scene::Scene;
-use crate::engine::state::State;
-use crate::engine::system::{Schedule, SysArgs};
-use crate::engine::utility::alignment::{Align, Alignment};
+use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
+use crate::engine::utility::alias::{Size, Size2};
+use crate::engine::utility::alignment::{Align, Aligner, Alignment};
 use crate::engine::world::World;
-use crate::game::constant::{BUTTONS_BEGIN_Y, BUTTONS_Y_GAP, COPYRIGHT_MARGIN, DEV_SAVE_FILE, TITLE_Y, USER_SAVE_FILE, WINDOW};
+use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE, WINDOW};
+use crate::game::interface::cursor::{Cursor, CURSOR_MARGIN, make_cursor};
 use crate::game::persistence::data::SaveData;
 use crate::game::physics::position::Position;
 use crate::game::scene::level::scene::LevelScene;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-// State //
+pub const TITLE_Y: f32 = 70.0;
+pub const COPYRIGHT_MARGIN: f32 = 10.0;
 
-struct MenuState {
-  pub interface: Selection,
-}
+pub const TITLE_SIZE: Size2 = Size2::new(78, 20);
 
-// World //
+pub const BUTTON_GAP: f32 = 16.0;
+pub const BUTTON_COUNT: f32 = 4.0;
+pub const OPTIONS_BOUNDS: Size2 = Size2::new(48, (BUTTON_GAP * BUTTON_COUNT) as Size);
 
 /// Add the main menu UI to the world
-pub fn add_ui(world: &mut World, asset: &mut AssetManager, state: &mut State) {
+pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
   let textures = &mut asset.texture;
-  let typeface = asset.typeface
-    .use_store()
-    .get("typeface")
-    .expect("Failed to get typeface");
-  let mut builder = TextBuilder::new(typeface, textures, color::TEXT, &WINDOW);
+  let typeface = asset.typeface.use_store().get("typeface").expect("Failed to get typeface");
+  let cursor_texture = textures.load("asset/hud/cursor.png").expect("Failed to load cursor texture");
 
-  // static text
-  world.add(builder.make_text::<()>("Metroidvania", Alignment::new(Align::Center(0.0), Align::At(TITLE_Y))));
-  world.add(builder.make_text::<()>("copyright aardhyn lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
+  let mut static_builder: TextBuilder::<Sticky2> = TextBuilder::<Sticky2>::new(typeface, textures, color::TEXT, WINDOW);
+  world.add(static_builder.make_text::<()>("Aardhyn Lavender 2024", Alignment::new(Align::Center(0.0), Align::End(COPYRIGHT_MARGIN))));
 
-  // add buttons
-  state.add(MenuState {
-    interface: Selection::build([
-      world.add(builder.make_text::<()>("start", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y)))),
-      world.add(builder.make_text::<()>("new game", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP)))),
-      world.add(builder.make_text::<()>("options", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 2.0)))),
-      world.add(builder.make_text::<()>("quit", Alignment::new(Align::Center(0.0), Align::At(BUTTONS_BEGIN_Y + BUTTONS_Y_GAP * 3.0)))),
-    ]).expect("Failed to build selection")
-  }).expect("Failed to add menu state");
+  let title = textures.load("asset/typography/title.png").expect("Failed to load title texture");
+  let title_alignment = Alignment::new(Align::Center(0.0), Align::Start(TITLE_Y));
+  world.add((
+    Sprite::new(title, SrcRect::new(Vec2::default(), TITLE_SIZE)),
+    Position::from(WINDOW.align(title_alignment, TITLE_SIZE)),
+    Layer9,
+  ));
+
+  let buttons_position = WINDOW.center(OPTIONS_BOUNDS);
+  let buttons_aligner = Aligner::new(Rec2::new(Vec2::<i32>::from(buttons_position), OPTIONS_BOUNDS));
+  let mut button_builder: TextBuilder<'_, '_, Sticky1> = TextBuilder::new(typeface, textures, color::TEXT, buttons_aligner);
+  let buttons = [
+    world.add(button_builder.make_text::<()>("start", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(0.0)))),
+    world.add(button_builder.make_text::<()>("new game", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP)))),
+    world.add(button_builder.make_text::<()>("options", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 2.0)))),
+    world.add(button_builder.make_text::<()>("quit", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 3.0)))),
+  ];
+
+  let cursor = make_cursor::<()>(world, cursor_texture);
+
+  world.add((Selection::build(buttons, cursor).expect("Failed to build selection"), ));
 }
 
-// Scene //
-
-/// The main menu scene that will be displayed when the game starts.
+// The main menu displayed when the application starts
 pub struct MenuScene;
 
 impl Scene for MenuScene {
   /// Set up the main menu scene
-  fn setup(&self, LifecycleArgs { world, camera, asset, state, .. }: &mut LifecycleArgs) {
-    camera.release(Vec2::default());
-    add_ui(world, asset, state);
-  }
-  /// Add systems to the main menu scene
-  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
-    system.add(Schedule::FrameUpdate, sys_menu_selection);
-    system.add(Schedule::PostUpdate, sys_render_selected);
+  fn setup(&mut self, LifecycleArgs { world, system, asset, .. }: &mut LifecycleArgs) {
+    add_ui(world, asset);
+    system.add(Schedule::PostUpdate, SystemTag::Suspendable, MenuScene::system).expect("Failed to add menu system");
+    system.add(Schedule::PostUpdate, SystemTag::Suspendable, Cursor::system).expect("Failed to add menu system");
   }
   /// Destroy the main menu scene
-  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
-    state.remove::<MenuState>().expect("Failed to remove menu state")
-  }
+  fn destroy(&mut self, LifecycleArgs { .. }: &mut LifecycleArgs) {}
 }
 
-// Systems //
+impl Systemize for MenuScene {
+  /// Manage the selection of the main menu
+  fn system(SysArgs { scene, event, world, .. }: &mut SysArgs) -> Result<(), String> {
+    let (.., menu) = world.query_one::<&mut Selection>().ok_or("Failed to get menu selection")?;
 
-/// Manage the selection of the main menu
-pub fn sys_menu_selection(SysArgs { scene, event, state, .. }: &mut SysArgs) -> Result<(), String> {
-  let state = state.get_mut::<MenuState>()?;
-  if is_control(Control::Down, Behaviour::Pressed, event) { state.interface += 1; }
-  if is_control(Control::Up, Behaviour::Pressed, event) { state.interface -= 1; }
-  if is_control(Control::Select, Behaviour::Pressed, event) {
-    let (index, ..) = state.interface.get_selection();
-    match index {
-      0 => {
-        let save_data = SaveData::from_file(USER_SAVE_FILE)
-          .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
-            .unwrap_or(SaveData::default()));
-        scene.queue_next(LevelScene::new(save_data))
-      }
-      1 => {
-        // delete old save data and start from default
-        let save_data = SaveData::from_erased(USER_SAVE_FILE)
-          .unwrap_or(SaveData::default());
-        scene.queue_next(LevelScene::new(save_data))
-      }
-      2 => println!("Not implemented yet"),
-      3 => event.queue_quit(),
-      _ => {
-        return Err(String::from("Invalid menu selection"));
+    let up = is_control(Control::Up, Behaviour::Pressed, event);
+    let down = is_control(Control::Down, Behaviour::Pressed, event);
+    let delta = if up { -1 } else if down { 1 } else { 0 };
+    *menu += delta;
+
+    if is_control(Control::Select, Behaviour::Pressed, event) {
+      let (index, ..) = menu.get_selection();
+      match index {
+        0 => {
+          let save_data = SaveData::from_file(USER_SAVE_FILE)
+            .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+              .map_err(|error| eprintln!("Failed to load dev save file: {}", error))
+              .unwrap_or(SaveData::default())
+            );
+          scene.queue_next(LevelScene::new(save_data))
+        }
+        1 => {
+          // delete old save data and start from default
+          let save_data = SaveData::from_erased(USER_SAVE_FILE)
+            .unwrap_or(SaveData::default());
+          scene.queue_next(LevelScene::new(save_data))
+        }
+        2 => { eprintln!("Not implemented yet") }
+        3 => { event.queue_quit() }
+        _ => { unreachable!("Invalid menu selection index"); }
       }
     }
+
+    Ok(())
   }
-
-  Ok(())
-}
-
-/// Render a box around the selected item
-pub fn sys_render_selected(SysArgs { world, render, state, .. }: &mut SysArgs) -> Result<(), String> {
-  let state = state.get::<MenuState>()?;
-  let (.., entity) = state.interface.get_selection();
-  let (position, text) = world
-    .query_entity::<(&Position, &Text)>(entity)
-    .map_err(|_| String::from("Failed to get selected text"))?;
-  let rect = Rec2::new(
-    Vec2::<i32>::from(position.0.clone()) - Vec2::new(2, 1),
-    text.get_dimensions().clone() + Vec2::new(3, 3),
-  );
-  render.draw_rect(rect, color::PRIMARY);
-
-  Ok(())
 }

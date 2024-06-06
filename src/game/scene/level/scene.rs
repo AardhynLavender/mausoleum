@@ -1,44 +1,63 @@
+use std::collections::HashMap;
 /**
  * The level scene
  */
 
 use std::path::Path;
 
+use crate::engine::geometry::shape::Vec2;
 use crate::engine::lifecycle::LifecycleArgs;
 use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs, Systemize};
+use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::tile::parse::TiledParser;
 use crate::game::collectable::collectable::Collection;
+use crate::game::collectable::data::{CollectableData, deserialize_weapon_data};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::LiveState;
 use crate::game::combat::ttl::TimeToLive;
+use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE};
 use crate::game::creature::angry_buzz::AngryBuzz;
+use crate::game::creature::bubbly::Bubbly;
 use crate::game::creature::buzz::Buzz;
 use crate::game::creature::grunt::Grunt;
 use crate::game::creature::ripper::Ripper;
+use crate::game::creature::rotund::Rotund;
 use crate::game::creature::spiky::Spiky;
 use crate::game::creature::spore::Spore;
 use crate::game::creature::zoomer::Zoomer;
-use crate::game::interface::hud::{make_player_health_text, PlayerHealth};
+use crate::game::interface::cursor::Cursor;
 use crate::game::persistence::data::SaveData;
-use crate::game::persistence::world::SaveArea;
+use crate::game::persistence::world::{SaveArea, use_save_area};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::gravity::Gravity;
+use crate::game::physics::transform::Transform;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerCombat;
+use crate::game::player::controller::PlayerController;
 use crate::game::player::world::{make_player, PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
+use crate::game::scene::level::hud::{make_player_health_text, PlayerHealth};
+use crate::game::scene::level::menu::{make_menu, MenuPane};
+use crate::game::scene::level::meta::TileLayerType;
 use crate::game::scene::level::registry::RoomRegistry;
-use crate::game::scene::level::room::sys_render_room_colliders;
-use crate::game::scene::menu::MenuScene;
+use crate::game::scene::level::room::{RoomTileException, sys_render_room_colliders};
+use crate::game::story::data::deserialize_story_data;
+use crate::game::story::modal::sys_story_modal;
+use crate::game::story::world::StoryArea;
+use crate::game::ui::iterative_text::IterativeText;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
-const WORLD_PATH: &str = "asset/world.world";
+const WORLD_PATH: &str = "asset/world/world.world";
 
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
+
+pub struct LevelState {
+  pub room_registry: RoomRegistry,
+  pub weapon_data: CollectableData,
+}
 
 pub struct LevelScene {
   save_data: SaveData,
@@ -51,75 +70,118 @@ impl LevelScene {
 
 impl Scene for LevelScene {
   /// Set up the level scene
-  fn setup(&self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
+  fn setup(&mut self, LifecycleArgs { world, camera, system, state, asset, .. }: &mut LifecycleArgs) {
+    let inventory = self.save_data.get_inventory();
+    let exceptions = inventory
+      .iter()
+      .fold(HashMap::new(), |mut exceptions, item| {
+        let name = item.room_name.clone();
+        let exception = RoomTileException::new(item.map_index, TileLayerType::Collision, None);
+        exceptions.entry(name).or_insert_with(Vec::new).push(exception);
+        exceptions
+      });
+
+    let story_advancements = self.save_data.get_story();
+    let story_data = deserialize_story_data()
+      .expect("Failed to load story data")
+      .omit(&story_advancements);
+
     let path = Path::new(WORLD_PATH);
     let parser = TiledParser::parse(path)
-      .map_err(|e| println!("Failed to parse Tiled data: {}", e))
+      .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
+    let mut room_registry = RoomRegistry::build(parser, exceptions, story_data, asset, world).expect("Failed to build room registry");
 
-    let save_room = self.save_data.save_room();
-    let inventory = self.save_data.inventory();
+    // load initial room
+    let save_room = self.save_data.get_save_room();
+    room_registry.load_room(save_room, world, asset).expect("Failed to load save room");
 
-    let mut room_registry = RoomRegistry::build(parser, asset, world).expect("Failed to build room registry");
-    room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
-    room_registry.clamp_camera(camera);
-    camera.tether();
-
-    let player_position = self.save_data.position();
-    make_player(world, system, asset, inventory.into_iter(), player_position);
+    let save_position = use_save_area(world).collider.origin;
+    let player_position = save_position + self.save_data.get_offset();
+    make_player(world, asset, inventory.into_iter(), story_advancements, player_position);
     make_player_health_text(world, asset);
 
-    state.add(room_registry).expect("Failed to add level state")
-  }
-  /// Add systems to the level scene
-  fn add_systems(&self, LifecycleArgs { system, .. }: &mut LifecycleArgs) {
-    // Creatures //
+    let bounds = room_registry.get_current().expect("Failed to get entry bounds").get_bounds();
+    camera.set_bounds(bounds);
+    camera.tether();
 
-    system.add(PHYSICS_SCHEDULE, AngryBuzz::system);
-    system.add(PHYSICS_SCHEDULE, Buzz::system);
-    system.add(PHYSICS_SCHEDULE, Grunt::system);
-    system.add(PHYSICS_SCHEDULE, Ripper::system);
-    system.add(PHYSICS_SCHEDULE, Spiky::system);
-    system.add(PHYSICS_SCHEDULE, Spore::system);
-    system.add(PHYSICS_SCHEDULE, Zoomer::system);
+    // Add systems to the level scene
+    system.add_many(Schedule::FrameUpdate, SystemTag::Suspendable, vec![
+      // Creatures //
+      AngryBuzz::system,
+      Bubbly::system,
+      Buzz::system,
+      Grunt::system,
+      Spiky::system,
+      Spore::system,
+      Ripper::system,
+      Rotund::system,
+      Zoomer::system,
+      Gravity::system,
+      Transform::system,
+      Velocity::system,
+      Damage::system,
+      Frozen::system,
+      Collection::system,
+      SaveArea::system,
+      StoryArea::system,
+      RoomCollision::system,
+      TimeToLive::system,
+    ].into_iter()).expect("Failed to add level systems");
 
-    // physics //
+    // Add player systems to the level scene
+    system.add_many(Schedule::PostUpdate, SystemTag::Suspendable, vec![
+      PlayerController::system,
+      PlayerHealth::system,
+      PlayerCombat::system,
+    ].into_iter()).expect("Failed to add player systems");
 
-    system.add(PHYSICS_SCHEDULE, Gravity::system);
-    system.add(PHYSICS_SCHEDULE, Velocity::system);
-    system.add(PHYSICS_SCHEDULE, Damage::system);
-    system.add(PHYSICS_SCHEDULE, Frozen::system);
-    system.add(PHYSICS_SCHEDULE, Collection::system);
-    system.add(PHYSICS_SCHEDULE, SaveArea::system);
-    system.add(PHYSICS_SCHEDULE, RoomCollision::system);
-    system.add(PHYSICS_SCHEDULE, RoomRegistry::system);
+    system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
+      RoomRegistry::system,
+      LevelScene::system,
+      MenuPane::system,
+      sys_story_modal,
+      Cursor::system,
+      IterativeText::system,
+      sys_render_colliders,
+      sys_render_room_colliders,
+      sys_render_tile_colliders,
+    ].into_iter()).expect("Failed to add level systems");
 
-    // rendering //
+    let weapon_data = deserialize_weapon_data().expect("Failed to load weapon data");
 
-    system.add(Schedule::PostUpdate, PlayerHealth::system);
-    system.add(Schedule::PostUpdate, PlayerCombat::system);
-    system.add(Schedule::PostUpdate, sys_render_tile_colliders);
-    system.add(Schedule::PostUpdate, sys_render_colliders);
-    system.add(Schedule::PostUpdate, sys_render_room_colliders);
-
-    // misc //
-
-    system.add(PHYSICS_SCHEDULE, TimeToLive::system);
-    system.add(Schedule::PostUpdate, LevelScene::system);
+    state.add(LevelState {
+      room_registry,
+      weapon_data,
+    }).expect("Failed to add level state");
   }
   /// Clean up the level scene
-  fn destroy(&self, LifecycleArgs { state, .. }: &mut LifecycleArgs) {
-    state.remove::<RoomRegistry>().expect("Failed to remove level state");
+  fn destroy(&mut self, LifecycleArgs { state, camera, .. }: &mut LifecycleArgs) {
+    camera.release(Vec2::default());
+    state.remove::<LevelState>().expect("Failed to remove level state");
   }
 }
 
 /// Listen for level events
 impl Systemize for LevelScene {
-  fn system(SysArgs { event, scene, world, state, .. }: &mut SysArgs) -> Result<(), String> {
+  fn system(SysArgs { event, scene, asset, world, state, .. }: &mut SysArgs) -> Result<(), String> {
     let PlayerQuery { health, .. } = use_player(world);
+
     let dead = health.get_state() == LiveState::Dead;
-    let exit = is_control(Control::Escape, Behaviour::Pressed, event) || dead;
-    if dead || exit { scene.queue_next(MenuScene) }
+    let exit = is_control(Control::Escape, Behaviour::Pressed, event);
+
+    if dead {
+      let save_data = SaveData::from_file(USER_SAVE_FILE)
+        .unwrap_or(SaveData::from_file(DEV_SAVE_FILE)
+          .map_err(|error| eprintln!("Failed to load dev save file: {}", error))
+          .unwrap_or(SaveData::default())
+        );
+      scene.queue_next(LevelScene::new(save_data));
+    }
+
+    if exit && !event.is_paused() {
+      make_menu(world, event, asset);
+    }
 
     let preferences = use_preferences(state);
     if is_control(Control::Debug, Behaviour::Pressed, event) {

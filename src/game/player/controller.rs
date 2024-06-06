@@ -46,13 +46,14 @@ impl PlayerController {
 impl Systemize for PlayerController {
   /// Process user controls each frame
   fn system(SysArgs { delta, event, world, .. }: &mut SysArgs) -> Result<(), String> {
-    let PlayerQuery { health, velocity, inventory, controller, gravity, .. } = use_player(world);
+    let PlayerQuery { health, velocity, inventory, advancement, controller, gravity, .. } = use_player(world);
     let aim = get_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
 
     // Data //
 
     if is_control(Control::Inventory, Behaviour::Pressed, event) {
       println!("{:?}", inventory);
+      println!("{:?}", advancement);
     }
 
     /*

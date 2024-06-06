@@ -26,7 +26,7 @@ use crate::game::preferences::use_preferences;
 use crate::game::scene::level::collision::RoomCollision;
 
 const BUZZ_SPEED: f32 = 96.0;
-const BUZZ_ASSET: &str = "asset/buzz.png";
+const BUZZ_ASSET: &str = "asset/sprite/buzz.png";
 const BUZZ_HEALTH: u32 = 20;
 const BUZZ_DAMAGE: u32 = 8;
 const DIMENSIONS: Size2 = Size2::new(8, 8);
@@ -76,7 +76,7 @@ pub fn make_buzz(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resul
     CreatureLayer::default(),
     Damage::new(BUZZ_DAMAGE),
     Health::build(BUZZ_HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }
 

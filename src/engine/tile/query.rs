@@ -16,7 +16,7 @@ pub enum TileQuery {
 /// The result of a tile query
 #[derive(Default)]
 pub struct TileQueryResult<'r, TileMeta, LayerMeta>
-  where TileMeta: Copy + Clone, LayerMeta: Copy + Clone + Default
+  where TileMeta: Clone, LayerMeta: Copy + Clone + Default
 {
   pub concept: Option<&'r TileConcept<TileMeta>>,
   pub layer: LayerMeta,
@@ -27,7 +27,7 @@ pub struct TileQueryResult<'r, TileMeta, LayerMeta>
 }
 
 /// A non-owning handle of a queried tile
-pub struct TileHandle<TileMeta, LayerMeta> where TileMeta: Copy, LayerMeta: Copy + Clone {
+pub struct TileHandle<TileMeta, LayerMeta> where TileMeta: Clone, LayerMeta: Copy + Clone {
   /// Convert a tile query result into a non-owning handle of the tile queried
   pub concept: TileConcept<TileMeta>,
   pub layer: LayerMeta,
@@ -38,12 +38,12 @@ pub struct TileHandle<TileMeta, LayerMeta> where TileMeta: Copy, LayerMeta: Copy
 }
 
 impl<TileMeta, LayerMeta> TryFrom<TileQueryResult<'_, TileMeta, LayerMeta>> for TileHandle<TileMeta, LayerMeta>
-  where TileMeta: Copy, LayerMeta: Copy + Clone + Default
+  where TileMeta: Clone, LayerMeta: Copy + Clone + Default
 {
   type Error = String;
   fn try_from(result: TileQueryResult<'_, TileMeta, LayerMeta>) -> Result<Self, Self::Error> {
     Ok(TileHandle::<TileMeta, LayerMeta> {
-      concept: result.concept.copied().ok_or(String::from("Tile has no concept"))?,
+      concept: result.concept.cloned().ok_or(String::from("Tile has no concept"))?,
       layer: result.layer,
       position: result.position,
       coordinate: result.coordinate,

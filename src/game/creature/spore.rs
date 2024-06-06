@@ -31,18 +31,18 @@ use crate::game::utility::math::floor_to_tile;
 
 const QUARTER_ROTATION_DEG: f32 = 90.0;
 
-const ASSET: &str = "asset/spore.png";
+const ASSET: &str = "asset/sprite/spore.png";
 const HEALTH: u32 = 70;
 const DAMAGE: u32 = 5;
 const CELL_DAMAGE: u32 = 15;
 const DIMENSIONS: Size2 = Size2::new(16, 16);
 
-const CELL_ASSET: &str = "asset/spore_cell.png";
+const CELL_ASSET: &str = "asset/sprite/spore_cell.png";
 const CELL_DIMENSIONS: Size2 = Size2::new(6, 6);
 const CELL_GRAVITY: Vec2<f32> = Vec2::new(0.0, 256.0);
 const CELL_SPEED: f32 = 180.0;
 const CELL_SPAWN_COUNT: Size = 6;
-const CELL_SPAWN_INTERVAL_MS: u64 = 1_500;
+const CELL_SPAWN_INTERVAL_MS: u64 = 2_500;
 const CELL_SPAWN_SPREAD_DEG: f32 = 60.0;
 const CELL_SPAWN_STEP_DEG: f32 = CELL_SPAWN_SPREAD_DEG / CELL_SPAWN_COUNT as f32;
 
@@ -122,7 +122,7 @@ pub fn make_spore_cell(texture: TextureKey, position: Vec2<f32>, angle: f32) -> 
     Velocity::from(Vec2::from_degrees(angle) * CELL_SPEED),
     Gravity::new(CELL_GRAVITY),
     Damage::new(CELL_DAMAGE),
-    RoomCollision,
+    RoomCollision::All,
     Fragile,
     CreatureLayer::default(),
   )

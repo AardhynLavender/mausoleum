@@ -9,21 +9,38 @@ use hecs::{Entity, Without};
 use crate::engine::asset::AssetManager;
 use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::rendering::camera::{Camera, CameraBounds};
+use crate::engine::rendering::camera::CameraBounds;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::parse::{TiledParser, TiledTilemapChildren};
+use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size;
+use crate::engine::utility::interpolation::lerp;
 use crate::engine::world::World;
+use crate::game::constant::ease_in_out;
 use crate::game::player::world::{PlayerQuery, use_player};
+use crate::game::scene::level::meta::TileMeta;
 use crate::game::scene::level::parse::{tilemap_from_tiled, tileset_from_tiled};
-use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider};
+use crate::game::scene::level::room::{ActiveRoom, Room, ROOM_ENTER_MARGIN, RoomCollider, RoomTileException};
+use crate::game::scene::level::scene::LevelState;
+use crate::game::scene::level::transition::{RoomTransition, RoomTransitionData, RoomTransitionState};
+use crate::game::story::data::Story;
 use crate::game::utility::path::{get_basename, get_filename};
+
+pub const ROOM_TRANSITION_TIME_MS: u64 = 800;
+
+pub type RoomKey = String;
+
+type RoomRegistryTileExceptions = HashMap<RoomKey, Vec<RoomTileException>>;
 
 /// Consume a Tiled parser, and build its tilesets and tilemaps
 pub struct RoomRegistry {
-  current: Option<String>,
-  rooms: HashMap<String, Room>,
-  colliders: HashMap<String, Entity>,
+  current: Option<RoomKey>,
+  transition: RoomTransition,
+
+  tilesets: HashMap<RoomKey, Tileset<TileMeta>>,
+  story_data: Story,
+  rooms: HashMap<RoomKey, Room>,
+  colliders: HashMap<RoomKey, Entity>,
 }
 
 impl RoomRegistry {
@@ -31,7 +48,7 @@ impl RoomRegistry {
   /// - Builds engine `Tileset`s and `Tilemap`s from the `TiledParser`.
   /// - Loads referenced assets into the `AssetManager`
   /// - Adds `RoomCollider`s into the world for each `Room`
-  pub fn build(parser: TiledParser, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
+  pub fn build(parser: TiledParser, mut exceptions: RoomRegistryTileExceptions, story_data: Story, assets: &mut AssetManager, world: &mut World) -> Result<Self, String> {
     // Build the engine tilesets from Tiled tilesets
     let mut tilesets = HashMap::new();
     for (path, tiled_tileset) in parser.tilesets {
@@ -73,16 +90,34 @@ impl RoomRegistry {
       let collider_entity = world.add((collider, ));
       colliders.insert(tilemap_name.clone(), collider_entity);
 
-      let room = Room::build(tilemap_name.clone(), tilemap, position);
+      let room = Room::build(tilemap_name.clone(), tilemap, position, exceptions.remove(&tilemap_name).unwrap_or(Vec::new()));
       rooms.insert(tilemap_name, room);
+    }
+
+    if tilesets.len() > 1 {
+      return Err(String::from("Multiple tilesets found; can't store a single tileset in the register"));
     }
 
     Ok(Self {
       current: None,
+      transition: RoomTransition::default(),
+
+      story_data,
+      tilesets,
       rooms,
       colliders,
     })
   }
+  /// Load a starting room and bypass room transitions
+  pub fn load_room(&mut self, room: impl Into<RoomKey>, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+    let next = room.into();
+    self.add_room_to_world(&next, world, assets).expect("Failed to load starting room");
+    self.activate_room(&next, world).expect("Failed to activate starting room");
+    self.current = Some(next);
+
+    Ok(())
+  }
+
   /// clear the `ActiveRoom` entity from the current room
   fn deactivate_room(&self, name: impl Into<String>, world: &mut World) -> Result<(), String> {
     let name = name.into();
@@ -100,33 +135,29 @@ impl RoomRegistry {
     let entity = self.colliders.get(&name).ok_or("Room collider not found")?;
     world.add_components(*entity, (ActiveRoom::default(), ))
   }
+
   /// Remove a room and it's entities from the world
   fn remove_room_from_world(&mut self, name: &String, world: &mut World) -> Result<(), String> {
-    let room = self.rooms.get_mut(name).ok_or("Current room not found")?;
+    let room = self
+      .rooms
+      .get_mut(name)
+      .ok_or("Room not found")?;
+
     room.remove_from_world(world);
 
     Ok(())
   }
   /// Add the entities associated with a room to the world
   fn add_room_to_world(&mut self, name: impl Into<String>, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
-    self.rooms
+    self
+      .rooms
       .get_mut(&name.into())
       .ok_or("Room not found")?
-      .add_to_world(world, assets)
+      .add_to_world(world, assets, &self.story_data)
   }
-  /// Transition to a new room
-  pub fn transition_to_room(&mut self, world: &mut World, assets: &mut AssetManager, name: impl Into<String>) -> Result<(), String> {
-    let name = name.into();
-    if let Some(current) = self.current.clone() {
-      if current == name { return Err(String::from("Room is already active")); }
-      self.remove_room_from_world(&current, world)?;
-      self.deactivate_room(&current, world)?;
-    }
-    self.add_room_to_world(name.clone(), world, assets)?;
-    self.activate_room(name.clone(), world)?;
-    self.current = Some(name.clone());
 
-    Ok(())
+  pub fn queue_transition(&mut self, name: impl Into<String>) -> Result<(), String> {
+    self.transition.queue(name)
   }
   /// Get the current room if one is active
   pub fn get_current(&self) -> Option<&Room> {
@@ -140,54 +171,97 @@ impl RoomRegistry {
       .as_mut()
       .and_then(|name| self.rooms.get_mut(name))
   }
-  /// clamp the camera to the bounds of the current room
-  pub fn clamp_camera(&self, camera: &mut Camera) {
-    if let Some(room) = self.get_current() {
-      camera.set_bounds(room.get_bounds());
-    }
-  }
-  /// Get the entry bounds for the current room
-  pub fn get_entry_bounds(&self) -> Result<CameraBounds, String> {
-    let mut translation_bounds = self
-      .get_current()
-      .ok_or("No current room")?
-      .get_bounds();
-    translation_bounds.origin = translation_bounds.origin + ROOM_ENTER_MARGIN;
-    translation_bounds.size = translation_bounds.size - (ROOM_ENTER_MARGIN * 2) as Size;
-    Ok(translation_bounds)
-  }
+
+  /// Get a tileset by name
+  pub fn get_tileset(&self, name: String) -> Option<&Tileset<TileMeta>> { self.tilesets.get(&name) }
 }
 
 // Systems //
 
 /// Check for room collisions and enact room transitions
 impl Systemize for RoomRegistry {
-  fn system(SysArgs { world, camera, asset, state, .. }: &mut SysArgs) -> Result<(), String> {
+  fn system(SysArgs { world, asset, camera, event, state, .. }: &mut SysArgs) -> Result<(), String> {
+    let room_registry = &mut state.get_mut::<LevelState>()?.room_registry;
+
     let PlayerQuery { position, collider: player_collider, .. } = use_player(world);
     let player_box = Rec2::new(position.0 + player_collider.0.origin, player_collider.0.size);
-    let mut room_collisions = Vec::new();
-    for (_, room_collider) in world.query::<Without<&RoomCollider, &ActiveRoom>>() {
-      let collision = rec2_collision(&room_collider.collision_box, &player_box, CollisionMask::default());
-      if collision.is_some() {
-        room_collisions.push(room_collider.clone());
+
+    match room_registry.transition.integrate() {
+      // no transition in progress, look for room collision and queue a transition
+      RoomTransitionState::Idle => {
+        let mut room_collisions = Vec::new();
+        for (_, room_collider) in world.query::<Without<&RoomCollider, &ActiveRoom>>() {
+          let collision = rec2_collision(&room_collider.collision_box, &player_box, CollisionMask::default());
+          if collision.is_some() {
+            room_collisions.push(room_collider.clone());
+          }
+        }
+
+        // invariant
+        if room_collisions.len() == 0 { return Ok(()); }
+        if room_collisions.len() > 1 { return Err(String::from("Multiple room collisions")); }
+
+        // transition to the new room
+        let room_collider = room_collisions.first().ok_or(String::from("No room collision"))?;
+        room_registry.queue_transition(&room_collider.room)?;
+      }
+      // Transition is queued, start it
+      RoomTransitionState::Queued(next) => {
+        room_registry.deactivate_room(&room_registry.current.clone().unwrap(), world)?;
+        room_registry.add_room_to_world(&next, world, asset)?;
+
+        let new_bounds = room_registry.rooms.get(&next).expect("Failed to get new bounds").get_bounds();
+        let entry_bounds = CameraBounds::new(
+          new_bounds.origin + ROOM_ENTER_MARGIN,
+          new_bounds.size - (ROOM_ENTER_MARGIN * 2) as Size,
+        );
+        let mut new_player_box = player_box.clone();
+        new_player_box.clamp(&Rec2::new(Vec2::<f32>::from(entry_bounds.origin), entry_bounds.size));
+
+        // create a new viewport centered on the player
+        let mut new_viewport = camera.get_viewport().clone();
+        new_viewport.origin = Vec2::<i32>::from(new_player_box.origin) - Vec2::<i32>::from(new_viewport.size) / 2 + Vec2::<i32>::from(new_player_box.size / 2);
+        new_viewport.clamp(&new_bounds);
+
+        room_registry.transition.start(RoomTransitionData {
+          old_viewport: *camera.get_viewport(),
+          new_viewport,
+          old_player: player_box,
+          new_player: new_player_box,
+        })?;
+
+        camera.release(camera.get_position());
+        camera.remove_bounds();
+
+        event.queue_pause();
+      }
+      // transition is in progress, update the progress
+      RoomTransitionState::Progress(t, data) => {
+        // reintegrate t on a bezier curve
+        let t = ease_in_out().lerp(t).y;
+
+        let camera_position = lerp(Vec2::<f32>::from(data.old_viewport.origin), Vec2::<f32>::from(data.new_viewport.origin), t);
+        camera.set_position(Vec2::<i32>::from(camera_position));
+
+        let PlayerQuery { position, .. } = use_player(world);
+        let new_player_position = lerp(Vec2::<f32>::from(data.old_player.origin), Vec2::<f32>::from(data.new_player.origin), t);
+        position.0 = new_player_position;
+      }
+      // the transition is complete. out with the old...
+      RoomTransitionState::Complete(next) => {
+        room_registry.remove_room_from_world(&room_registry.current.clone().unwrap(), world)?;
+
+        room_registry.activate_room(&next, world)?;
+        room_registry.current = Some(next);
+
+        camera.set_bounds(room_registry.get_current().expect("Failed to get entry bounds").get_bounds());
+        camera.tether();
+
+        event.queue_resume();
       }
     }
-
-    if room_collisions.len() == 0 { return Ok(()); }
-    if room_collisions.len() > 1 { return Err(String::from("Multiple room collisions")); }
-
-    let room = room_collisions.first().ok_or(String::from("No room collision"))?;
-
-    let room_registry = state.get_mut::<RoomRegistry>()?;
-    room_registry.transition_to_room(world, asset, &room.room)?;
-    room_registry.clamp_camera(camera);
-
-    let entry_bounds = room_registry.get_entry_bounds()?;
-    let PlayerQuery { position, collider, .. } = use_player(world);
-    let mut player_box = Rec2::new(position.0 + collider.0.origin, collider.0.size);
-    player_box.clamp_position(&Rec2::new(Vec2::<f32>::from(entry_bounds.origin), entry_bounds.size));
-    position.0 = player_box.origin;
 
     Ok(())
   }
 }
+

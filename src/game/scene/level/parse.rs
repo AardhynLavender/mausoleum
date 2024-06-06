@@ -13,7 +13,7 @@ use crate::engine::tile::tilemap::Tilemap;
 use crate::engine::tile::tileset::Tileset;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::text::{COMMA, strip_newlines};
-use crate::game::scene::level::meta::{ObjMeta, parse_breakability, parse_collectable, parse_damage, parse_object, parse_tilelayer, TILED_TILE_CLASS, TileLayerType, TileMeta};
+use crate::game::scene::level::meta::{ObjMeta, parse_breakability, parse_collectable, parse_collision_layer, parse_damage, parse_object, parse_tilelayer, TILED_TILE_CLASS, TileLayerType, TileMeta};
 
 /// Delimiter for tile data in .Tiled tmx files
 const DELIMITER: char = COMMA;
@@ -31,8 +31,9 @@ pub fn tileset_meta_from_tiled(tiled_tileset: &TiledTileset) -> Result<HashMap<T
     if tile._type != TILED_TILE_CLASS { return Err(format!("Invalid tile type: {}, for tile: {}", tile._type, tile_key)); }
     let breakability = parse_breakability(&tile.properties)?;
     let collectable = parse_collectable(&tile.properties)?;
-    let damage = parse_damage(&tile.properties)?;
-    meta.insert(tile_key, TileMeta { breakability, collectable, damage });
+    let collision_layer = parse_collision_layer(&tile.properties)?;
+    let damage = parse_damage("damage", &tile.properties)?;
+    meta.insert(tile_key, TileMeta { breakability, collectable, damage, collision_layer });
   }
   Ok(meta)
 }
@@ -51,8 +52,8 @@ pub fn tilemap_layer_from_tiled(tileset: &Tileset<TileMeta>, tiled_tilelayer: &T
   let meta = parse_tilelayer(&tiled_tilelayer.properties)?;
   let keys = make_tile_keys(&tiled_tilelayer.data.tiles, &DELIMITER);
   let dimensions = Size2::new(tiled_tilelayer.width_tiles, tiled_tilelayer.height_tiles);
-  let tiles = tileset.tiledata_from(&keys, dimensions)?.collect();
-  Ok(TileLayer { meta, tiles })
+  let tiles: Vec<_> = tileset.tiledata_from(&keys, dimensions)?.collect();
+  Ok(TileLayer { meta, entities: HashMap::with_capacity(tiles.len()), tiles })
 }
 
 /// Build an engine tileset from a Tiled tileset.

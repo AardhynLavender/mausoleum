@@ -16,25 +16,33 @@ use crate::engine::rendering::renderer::layer;
 use crate::engine::state::State;
 use crate::engine::system::SysArgs;
 use crate::engine::tile::query::{TileHandle, TileQuery, TileQueryResult};
-use crate::engine::tile::tile::{Tile, TileCollider};
-use crate::engine::tile::tilemap::{Tilemap, TilemapMutation};
-use crate::engine::utility::direction::{HALF_ROTATION, Rotation};
+use crate::engine::tile::tile::{Tile, TileCollider, TileKey};
+use crate::engine::tile::tilemap::{MapIndex, Tilemap, TilemapMutation};
+use crate::engine::tile::tileset::Tileset;
+use crate::engine::utility::conversion::coordinate_to_index;
+use crate::engine::utility::direction::{HALF_DIRECTION_ROTATION, Rotation};
 use crate::engine::world::World;
 use crate::game::combat::damage::Damage;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::angry_buzz::make_angry_buzz;
+use crate::game::creature::bubbly::make_bubbly;
 use crate::game::creature::buzz::make_buzz;
 use crate::game::creature::grunt::make_grunt;
 use crate::game::creature::ripper::make_ripper;
+use crate::game::creature::rotund::make_rotund;
 use crate::game::creature::spiky::make_spiky;
 use crate::game::creature::spore::make_spore;
 use crate::game::creature::zoomer::make_zoomer;
 use crate::game::persistence::world::make_save_area;
+use crate::game::physics::collision::Fragile;
 use crate::game::physics::position::Position;
 use crate::game::player::combat::PlayerHostile;
 use crate::game::preferences::use_preferences;
+use crate::game::scene::level::collision::RoomCollision;
 use crate::game::scene::level::meta::{ObjMeta, Soft, Strong, TileBreakability, TileLayerType, TileMeta};
-use crate::game::scene::level::registry::RoomRegistry;
+use crate::game::scene::level::scene::LevelState;
+use crate::game::story::data::Story;
+use crate::game::story::world::make_story_area;
 
 pub const ROOM_ENTER_MARGIN: i32 = TILE_SIZE.x as i32 / 2;
 
@@ -60,19 +68,34 @@ impl RoomCollider {
 #[derive(Debug, Clone, Default)]
 pub struct ActiveRoom;
 
-// Structures //
+/// An exception to the tilemap that must be overridden
+#[derive(Default, Debug, Clone)]
+pub struct RoomTileException {
+  layer: TileLayerType,
+  index: MapIndex,
+  key: Option<TileKey>,
+}
 
+impl RoomTileException {
+  /// Instantiate a new tile exception
+  pub fn new(index: MapIndex, layer: TileLayerType, key: Option<TileKey>) -> Self {
+    Self { index, key, layer }
+  }
+}
+
+/// A room in the game, with a tilemap and entities that interact with it
 pub struct Room {
   name: String,
   position: Vec2<f32>,
   tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>,
+  exceptions: Vec<RoomTileException>,
   entities: HashSet<Entity>,
 }
 
 impl Room {
   /// Instantiate a new room
-  pub fn build(name: String, tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>) -> Self {
-    Self { name, tilemap, position, entities: HashSet::new() }
+  pub fn build(name: String, tilemap: Tilemap<TileMeta, TileLayerType, ObjMeta>, position: Vec2<f32>, exceptions: Vec<RoomTileException>) -> Self {
+    Self { name, tilemap, position, exceptions, entities: HashSet::new() }
   }
 
   // Tilemap //
@@ -80,19 +103,38 @@ impl Room {
   /// Create and add tiles associated with the tilemap to the world
   fn add_tilemap_to_world(&mut self, world: &mut World) -> Result<(), String> {
     let tilemap_position = self.position;
+    let dimensions = self.tilemap.get_size();
     self.tilemap.add_tiles(|layer, tile, _, position| {
+      let index = coordinate_to_index(&tile.coordinate, dimensions);
+      if let Some(exception) = self.exceptions.iter().find(|exception| exception.layer == layer && exception.index == index) {
+        if exception.key.is_none() {
+          return Ok(None);
+        } else {
+          unimplemented!("Tile exceptions with Some tile keys are not yet implemented");
+        }
+      }
+
       let position = position + tilemap_position;
+
+      let collision_layer = tile.data.meta.collision_layer;
       let entity = world.add((
         Tile::new(tile.data.tile_key),
         Position::from(position),
-        Sprite::new(tile.data.texture_key, tile.data.src),
+        collision_layer
       ));
+
+      // todo: add sprites if `meta.hidden` is true instead...
+      if collision_layer == RoomCollision::All {
+        world.add_components(entity, (
+          Sprite::new(tile.data.texture_key, tile.data.src),
+        )).expect("Failed to add active room component");
+      }
 
       // add render layer
       match layer {
-        TileLayerType::Background => world.add_components(entity, (layer::Layer4, ))?,
         TileLayerType::Foreground => world.add_components(entity, (layer::Layer7, ))?,
         TileLayerType::Collision => world.add_components(entity, (layer::Layer6, ))?,
+        TileLayerType::Background => world.add_components(entity, (layer::Layer4, ))?,
       }
 
       // add a collider if the tile has a mask
@@ -105,14 +147,15 @@ impl Room {
           world.add_components(entity, (collider, ))?;
         }
 
-        if let Some(collectable) = tile.data.meta.collectable {
+        if let Some(collectable) = tile.data.meta.collectable.clone() {
           world.add_components(entity, (collectable, ))?;
         }
 
-        if tile.data.meta.breakability == TileBreakability::Soft {
-          world.add_components(entity, (Soft, ))?;
-        } else if tile.data.meta.breakability == TileBreakability::Strong {
-          world.add_components(entity, (Strong, ))?;
+        match tile.data.meta.breakability {
+          TileBreakability::Solid => (),
+          TileBreakability::Soft => world.add_components(entity, (Soft, ))?,
+          TileBreakability::Strong => world.add_components(entity, (Strong, ))?,
+          TileBreakability::Brittle => world.add_components(entity, (Fragile, ))?,
         }
 
         let damage = tile.data.meta.damage;
@@ -121,7 +164,7 @@ impl Room {
         }
       }
 
-      Ok(entity)
+      Ok(Some(entity))
     })
   }
   /// Remove the tiles from the world
@@ -146,7 +189,7 @@ impl Room {
           world.add_components(handle.entity, (TileCollider::new(collision_box, CollisionMask::default()), )).expect("Failed to add tile collider");
         }
         let mut tile_collider = world.get_component_mut::<TileCollider>(handle.entity).expect("Failed to retrieve tile collider");
-        tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_ROTATION), true).expect("failed to set side");
+        tile_collider.mask.set_side(neighbour.rotate(Rotation::Left, HALF_DIRECTION_ROTATION), true).expect("failed to set side");
         let new_mask = tile_collider.mask.clone();
         handle.concept.mask = new_mask;
       },
@@ -156,20 +199,32 @@ impl Room {
 
   // Entities //
 
-  pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+  pub fn add_entities_to_world(&mut self, world: &mut World, assets: &mut AssetManager, state: &Story) -> Result<(), String> {
     self.tilemap.add_objects(|object| {
       let entity = match object {
-        ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
         ObjMeta::AngryBuzzConcept { position } => world.add(make_angry_buzz(assets, self.position + *position)?),
+        ObjMeta::BubblyConcept { position, direction, .. } => world.add(make_bubbly(assets, self.position + *position, *direction)?),
+        ObjMeta::BuzzConcept { position } => world.add(make_buzz(assets, self.position + *position)?),
         ObjMeta::GruntConcept { position } => world.add(make_grunt(assets, self.position + *position)?),
-        ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
-        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
+        ObjMeta::SaveAreaConcept { position, collision_box } => {
+          let story = state.get_entry("save");
+          world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size), story)?)
+        }
         ObjMeta::SpikyConcept { direction, position } => world.add(make_spiky(assets, self.position + *position, *direction)?),
+        ObjMeta::SporeConcept { direction, position } => world.add(make_spore(assets, self.position + *position, *direction)?),
+        ObjMeta::RipperConcept { direction, position } => world.add(make_ripper(assets, self.position + *position, *direction)?),
+        ObjMeta::RotundConcept { direction, position, spit_axis } => world.add(make_rotund(assets, self.position + *position, *direction, *spit_axis)?),
         ObjMeta::ZoomerConcept { direction, position } => world.add(make_zoomer(assets, self.position + *position, *direction)?),
-        ObjMeta::SaveAreaConcept { position, collision_box } => world.add(make_save_area(self.name.clone(), CollisionBox::new(self.position + *position, collision_box.size))?),
+        ObjMeta::StoryConcept { position, collision_box, key } => {
+          if let Some(entry) = state.get_entry(key) {
+            let collision_box = CollisionBox::new(self.position + *position, collision_box.size);
+            return Ok(Some(world.add(make_story_area(entry.clone(), collision_box))));
+          }
+          return Ok(None);
+        }
       };
       self.entities.insert(entity);
-      Ok(entity)
+      Ok(Some(entity))
     })
   }
   // Add a new entity associated with the room
@@ -197,9 +252,9 @@ impl Room {
   // Room //
 
   /// Add the entities and tilemap associated with the room to the world
-  pub fn add_to_world(&mut self, world: &mut World, assets: &mut AssetManager) -> Result<(), String> {
+  pub fn add_to_world(&mut self, world: &mut World, assets: &mut AssetManager, state: &Story) -> Result<(), String> {
     self.add_tilemap_to_world(world)?;
-    self.add_entities_to_world(world, assets)
+    self.add_entities_to_world(world, assets, state)
   }
   // Remove the entities associated with the room from the world
   pub fn remove_from_world(&mut self, world: &mut World) {
@@ -244,9 +299,22 @@ pub fn sys_render_room_colliders(SysArgs { world, render, camera, state, .. }: &
 /// ## Panics
 /// if the `RoomRegistry` not in state or the current room is `None`
 pub fn use_room(state: &mut State) -> &mut Room {
-  state.get_mut::<RoomRegistry>()
+  state.get_mut::<LevelState>()
     .expect("Failed to get RoomRegistry")
+    .room_registry
     .get_current_mut()
-    .ok_or("Failed to get current room")
-    .unwrap()
+    .expect("Failed to get current room")
+}
+
+/// Use the Room registries tileset
+/// ## Panics
+/// if the `RoomRegistry` not in state
+pub fn use_tileset(state: &mut State) -> &Tileset<TileMeta> {
+  let registry = &mut state
+    .get_mut::<LevelState>()
+    .expect("Failed to get RoomRegistry")
+    .room_registry;
+  registry
+    .get_tileset(String::from("tileset"))
+    .expect("Failed to get tileset")
 }

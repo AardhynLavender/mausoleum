@@ -9,6 +9,9 @@ if [ ! -d "$target" ]; then
   exit 1;
 fi;
 
-rm -f "$target/user_save.json";
+rm -rf "$target"
+mkdir -p "$target/asset" "$target/data";
 cp -r asset "$target";
+cp -r data "$target";
+
 exit 0;

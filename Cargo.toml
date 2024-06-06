@@ -1,8 +1,8 @@
 [package]
-name = "metroidvania"
-description = "A 2D metroidvania game"
+name = "mausoleum"
+description = "A 2D metroidvania inspired platformer"
 authors = ["aardhyn lavender"]
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [profile.dev]
@@ -25,17 +25,21 @@ rev = "53bef8994c541b6561884a8395ea35715ece75db"
 x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
 
 [package.metadata.bundle]
-name = "metroidvania"
-identifier = "com.aardhyn.metroidvania"
+name = "mausoleum"
+identifier = "com.aardhyn.mausoleum"
 version = "0.1.0"
-short_description = "A 2D metroidvania game"
+short_description = "A 2D metroidvania inspired platformer"
 authors = ["aardhyn lavender"]
 copyright = "aardhyn lavender"
 icon = ["asset/icon.png"]
 resources = [
     "asset/*.ogg",
     "asset/*.ttf",
-    "asset/*.png"
+    "asset/*.png",
+    "asset/*.tmx",
+    "asset/*.tsx",
+    "data/collectable.json",
+    "data/story.json",
 ]
 osx_frameworks = [
     "SDL2",

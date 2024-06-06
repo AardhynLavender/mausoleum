@@ -71,18 +71,10 @@ impl Renderer {
 
     // apply pre-construction properties
     let mut builder = window?.into_canvas(); // takes ownership of `Window`
-    if properties.vsync {
-      builder = builder.present_vsync();
-    }
-    if properties.hardware_acceleration {
-      builder = builder.accelerated();
-    }
-    if properties.software_acceleration {
-      builder = builder.software();
-    }
-    if !properties.show_cursor {
-      context.mouse().show_cursor(false);
-    }
+    if properties.vsync { builder = builder.present_vsync(); }
+    if properties.hardware_acceleration { builder = builder.accelerated(); }
+    if properties.software_acceleration { builder = builder.software(); }
+    if !properties.show_cursor { context.mouse().show_cursor(false); }
 
     // build renderer subsystem
     let mut subsystem = builder.build().map_err(|e| e.to_string())?;
@@ -90,20 +82,16 @@ impl Renderer {
     // apply post-construction properties
     subsystem.set_integer_scale(true).map_err(|e| e.to_string())?;
     subsystem.set_draw_color(properties.screen_color);
+    subsystem.set_blend_mode(sdl2::render::BlendMode::Blend);
     if let Some(size) = properties.logical {
       subsystem.set_logical_size(size.x, size.y).map_err(|e| e.to_string())?;
     }
 
-    Ok(Self {
-      subsystem,
-      properties,
-    })
+    Ok(Self { subsystem, properties })
   }
 
   /// Instantiate a new `TextureCreator` from the `Renderer`
-  pub fn new_texture_creator(&self) -> TextureCreator<WindowContext> {
-    self.subsystem.texture_creator()
-  }
+  pub fn new_texture_creator(&self) -> TextureCreator<WindowContext> { self.subsystem.texture_creator() }
 
   /// Set the windows fullscreen mode
   pub fn set_fullscreen(&mut self, fullscreen: bool) {
@@ -122,14 +110,10 @@ impl Renderer {
     }
   }
   /// Check if the window is in fullscreen mode
-  pub fn is_fullscreen(&self) -> bool {
-    self.subsystem.window().fullscreen_state() == FullscreenType::Desktop
-  }
+  pub fn is_fullscreen(&self) -> bool { self.subsystem.window().fullscreen_state() == FullscreenType::Desktop }
 
   /// Set the drawing color of the internal `sdl2::render::WindowCanvas`
-  fn set_color(&mut self, color: RGBA) {
-    self.subsystem.set_draw_color(color);
-  }
+  fn set_color(&mut self, color: RGBA) { self.subsystem.set_draw_color(color); }
   /// Clear the screen
   pub fn clear(&mut self) {
     self.set_color(self.properties.screen_color);
@@ -181,6 +165,18 @@ impl Renderer {
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }
+  /// Fill `rect` of `color` to the screen
+  pub fn fill_rect<T: IntConvertable, U: SizePrimitive>(
+    &mut self,
+    rect: Rec2<T, U>,
+    color: RGBA,
+  ) {
+    self.set_color(color);
+    self.subsystem
+      .fill_rect(Rect::from(rect))
+      .map_err(|error| eprintln!("{error}"))
+      .ok();
+  }
   /// Draw a line from `from` to `to` of `color`
   pub fn draw_line<T: IntConvertable>(&mut self, from: Vec2<T>, to: Vec2<T>, color: RGBA) {
     self.set_color(color);
@@ -200,12 +196,8 @@ fn build_window(
   let video_subsystem = context.video()?;
 
   let mut builder = video_subsystem.window(properties.title.as_str(), w, h);
-  if properties.fullscreen {
-    builder.fullscreen_desktop();
-  };
-  if properties.opengl {
-    builder.opengl();
-  };
+  if properties.fullscreen { builder.fullscreen_desktop(); };
+  if properties.opengl { builder.opengl(); };
 
   let window = builder.build().map_err(|e| e.to_string())?;
   Ok(window)

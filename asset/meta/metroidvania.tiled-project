@@ -1,0 +1,392 @@
+{
+    "automappingRulesFile": "",
+    "commands": [
+    ],
+    "extensionsPath": "extensions",
+    "folders": [
+        "../"
+    ],
+    "properties": [
+    ],
+    "propertyTypes": [
+        {
+            "color": "#ff00aa00",
+            "drawFill": true,
+            "id": 22,
+            "members": [
+            ],
+            "name": "AngryBuzz",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "id": 1,
+            "name": "Breakability",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "Solid",
+                "Strong",
+                "Soft",
+                "Brittle"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "color": "#ffaa007f",
+            "drawFill": true,
+            "id": 23,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "up"
+                }
+            ],
+            "name": "Bubbly",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55aa7f",
+            "drawFill": true,
+            "id": 12,
+            "members": [
+            ],
+            "name": "Buzz",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "id": 17,
+            "name": "Collectable",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "health",
+                "high_jump",
+                "missile_tank",
+                "ice_beam",
+                "none"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 27,
+            "name": "CollisionLayer",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "All",
+                "Creature",
+                "Player"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 25,
+            "name": "CompassDirectionType",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "cardinal",
+                "ordinal",
+                ""
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "id": 6,
+            "name": "Direction",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "up",
+                "upRight",
+                "right",
+                "downRight",
+                "down",
+                "downLeft",
+                "left",
+                "upLeft"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "color": "#ffffff7f",
+            "drawFill": true,
+            "id": 20,
+            "members": [
+            ],
+            "name": "Grunt",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
+            "id": 16,
+            "members": [
+                {
+                    "name": "type",
+                    "propertyType": "LayerType",
+                    "type": "string",
+                    "value": "collision"
+                }
+            ],
+            "name": "Layer",
+            "type": "class",
+            "useAs": [
+                "property",
+                "layer",
+                "project"
+            ]
+        },
+        {
+            "id": 13,
+            "name": "LayerType",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "collision",
+                "background",
+                "foreground"
+            ],
+            "valuesAsFlags": false
+        },
+        {
+            "color": "#ffff5500",
+            "drawFill": true,
+            "id": 8,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Ripper",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffa0a0a4",
+            "drawFill": true,
+            "id": 28,
+            "members": [
+                {
+                    "name": "Music",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax1",
+                    "type": "file",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax2",
+                    "type": "file",
+                    "value": ""
+                },
+                {
+                    "name": "Parallax3",
+                    "type": "file",
+                    "value": ""
+                }
+            ],
+            "name": "Room",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffffff00",
+            "drawFill": true,
+            "id": 24,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "upRight"
+                },
+                {
+                    "name": "spit_axis",
+                    "propertyType": "CompassDirectionType",
+                    "type": "string",
+                    "value": "ordinal"
+                }
+            ],
+            "name": "Rotund",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffaaff00",
+            "drawFill": true,
+            "id": 19,
+            "members": [
+            ],
+            "name": "Save",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffff007f",
+            "drawFill": true,
+            "id": 10,
+            "members": [
+                {
+                    "name": "collectable",
+                    "propertyType": "Collectable",
+                    "type": "string",
+                    "value": "health"
+                },
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Spiky",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55007f",
+            "drawFill": true,
+            "id": 21,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "up"
+                }
+            ],
+            "name": "Spore",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55ffff",
+            "drawFill": true,
+            "id": 26,
+            "members": [
+            ],
+            "name": "Story",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffff0000",
+            "drawFill": true,
+            "id": 3,
+            "members": [
+                {
+                    "name": "breakability",
+                    "propertyType": "Breakability",
+                    "type": "string",
+                    "value": "Solid"
+                },
+                {
+                    "name": "collectable",
+                    "propertyType": "Collectable",
+                    "type": "string",
+                    "value": "none"
+                },
+                {
+                    "name": "collision_layer",
+                    "propertyType": "CollisionLayer",
+                    "type": "string",
+                    "value": "All"
+                },
+                {
+                    "name": "damage",
+                    "type": "float",
+                    "value": 0
+                }
+            ],
+            "name": "Tile",
+            "type": "class",
+            "useAs": [
+                "property",
+                "tile",
+                "project"
+            ]
+        },
+        {
+            "color": "#ff55ff00",
+            "drawFill": true,
+            "id": 5,
+            "members": [
+                {
+                    "name": "direction",
+                    "propertyType": "Direction",
+                    "type": "string",
+                    "value": "right"
+                }
+            ],
+            "name": "Zoomer",
+            "type": "class",
+            "useAs": [
+                "property",
+                "object",
+                "project"
+            ]
+        }
+    ]
+}

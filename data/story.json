@@ -1,0 +1,94 @@
+[
+  {
+    "key": "prologue",
+    "title": "computer",
+    "data": [
+      "terrain",
+      "          ",
+      "scan *******************      ",
+      "          ",
+      "Surface area scan [complete]:          ",
+      "- Primitive hostile life forms.",
+      "- Rocky Terrain",
+      "- Temporal disturbances",
+      "          ",
+      "Depth scan        [inconclusive]:          ",
+      "- Potentially unstable ground.",
+      "- subterranean structures probable.",
+      "          ",
+      "mission          ",
+      "",
+      "Retrieve the artifact and return to shuttle.          ",
+      "",
+      "target located eastward.          ",
+      "proceed with caution.",
+      "          ",
+      "press escape"
+    ]
+  },
+  {
+    "key": "wtf",
+    "title": "computer",
+    "data": [
+      "          ",
+      "scan ***************      ",
+      "          ",
+      "[information withheld]",
+      "          ",
+      "press escape"
+    ]
+  },
+  {
+    "key": "save",
+    "title": "computer",
+    "data": [
+      "          ",
+      "scan ***************      ",
+      "          ",
+      "a temporal disturbance surrounds these crystals.",
+      "Potential timeline divergance.",
+      "          ",
+      "press escape"
+    ]
+  },
+  {
+    "key": "transit",
+    "title": "computer",
+    "data": [
+      "Structure entrance ahead",
+      "          ",
+      "Scan ******",
+      "          ",
+      "Suspect Plasma rifle incapable of penetrating bast door.",
+      "          ",
+      "Assessment required...",
+      "          ",
+      "press escape"
+    ]
+  },
+  {
+    "key": "fallen",
+    "title": "computer",
+    "data": [
+      "Depth scans               [complete]",
+      "- Unstable ground confirmed",
+      "- subterranean structures highly probable.",
+      "          ",
+      "press escape"
+    ]
+  },
+  {
+    "key": "epilogue",
+    "title": "computer",
+    "data": [
+      "          ",
+      "scan ***************      ",
+      "          ",
+      "[information withheld]",
+      "          ",
+      "Return to shuttle.",
+      "          ",
+      "press escape"
+    ]
+  }
+]

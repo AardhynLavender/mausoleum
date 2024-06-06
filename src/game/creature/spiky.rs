@@ -21,6 +21,7 @@ use crate::game::combat::health::Health;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
+use crate::game::physics::frozen::FreezeResistant;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
@@ -31,7 +32,7 @@ use crate::game::scene::level::room::use_room;
 use crate::game::utility::math::floor_to_tile;
 
 const SPIKY_SPEED: f32 = 48.0;
-const SPIKY_ASSET: &str = "asset/spiky.png";
+const SPIKY_ASSET: &str = "asset/sprite/spiky.png";
 const SPIKY_HEALTH: u32 = 30;
 const SPIKY_DAMAGE: u32 = 10;
 const DIMENSIONS: Size2 = Size2::new(16, 16);
@@ -83,6 +84,7 @@ pub fn make_spiky(asset_manager: &mut AssetManager, position: Vec2<f32>, initial
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
     Damage::new(SPIKY_DAMAGE),
-    Health::build(SPIKY_HEALTH).expect("Failed to build health")
+    Health::build(SPIKY_HEALTH).expect("Failed to build health"),
+    FreezeResistant,
   ))
 }

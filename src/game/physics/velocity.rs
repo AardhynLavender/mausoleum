@@ -8,7 +8,7 @@ use crate::game::physics::frozen::Frozen;
 use crate::game::physics::position::Position;
 
 /// Add Velocity to an entity
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct Velocity(pub Vec2<f32>);
 
 impl Velocity {
@@ -16,6 +16,8 @@ impl Velocity {
   pub fn new(x: f32, y: f32) -> Self {
     Self(Vec2::new(x, y))
   }
+  /// Check if there is no velocity
+  pub fn is_none(&self) -> bool { self.0 == Vec2::default() }
 
   /// Check if the velocity moves horizontally in the positive direction
   pub fn is_going_left(&self) -> bool { self.0.x < 0.0 }

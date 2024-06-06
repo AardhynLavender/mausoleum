@@ -35,14 +35,14 @@ const GRUNT_CHARGE_SPEED: f32 = 192.0;
 
 const GRUNT_GRAVITY: Vec2<f32> = Vec2::new(0.0, 256.0);
 
-const GRUNT_ASSET: &str = "asset/grunt.png";
+const GRUNT_ASSET: &str = "asset/sprite/grunt.png";
 const GRUNT_HEALTH: u32 = 128;
 const GRUNT_DAMAGE_IDLE: u32 = 15;
 const GRUNT_DAMAGE_CHARGE: u32 = 25;
 const GRUNT_DIMENSIONS: Size2 = Size2::new(32, 24);
 
-const GRUNT_CHARGE_RADIUS: f32 = 160.0;
-const GRUNT_CHARGE_TIME_MS: u64 = 1000;
+const GRUNT_CHARGE_RADIUS: f32 = 250.0;
+const GRUNT_CHARGE_TIME_MS: u64 = 1500;
 const GRUNT_CHARGE_COOLDOWN_MS: u64 = 1000;
 const GRUNT_TURN_COOLDOWN_MIN: u64 = 1000;
 const GRUNT_TURN_COOLDOWN_MAX: u64 = 5000;
@@ -53,7 +53,7 @@ fn randomize_direction() -> Option<Direction> {
     0 => Some(Direction::Left),
     1 => Some(Direction::Right),
     2 => None,
-    _ => unreachable!(),
+    _ => unreachable!("Invalid random direction"),
   }
 }
 
@@ -166,6 +166,6 @@ pub fn make_grunt(asset_manager: &mut AssetManager, position: Vec2<f32>) -> Resu
     Gravity::new(GRUNT_GRAVITY),
     Damage::new(GRUNT_DAMAGE_IDLE),
     Health::build(GRUNT_HEALTH).expect("Failed to build health"),
-    RoomCollision,
+    RoomCollision::Creature,
   ))
 }

@@ -1,18 +1,21 @@
-.PHONY: all run build release clean bundle bundle-windows
+.PHONY: all run build install release clean bundle bundle-windows
 
 all: build run
 
 run: src
 	cargo run
 
-build: src
+install:
+	cargo install cargo-vcpkg
 	cargo vcpkg build
-	cargo build
+
+build: src
 	./prepare.sh debug
+	cargo build --debug
 
 release: src
-	cargo build --release
 	./prepare.sh release
+	cargo build --release
 
 clean: src
 	cargo clean

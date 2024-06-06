@@ -15,12 +15,13 @@ use crate::engine::rendering::component::Sprite;
 use crate::engine::system::{SysArgs, Systemize};
 use crate::engine::tile::query::{TileQuery, TileQueryResult};
 use crate::engine::utility::alias::{Coordinate, Size2};
-use crate::engine::utility::direction::{Direction, QUARTER_ROTATION, Rotation};
+use crate::engine::utility::direction::{Direction, QUARTER_DIRECTION_ROTATION, Rotation};
 use crate::game::combat::damage::Damage;
 use crate::game::combat::health::Health;
 use crate::game::constant::TILE_SIZE;
 use crate::game::creature::CreatureLayer;
 use crate::game::physics::collision::Collider;
+use crate::game::physics::frozen::FreezeResistant;
 use crate::game::physics::gravity::Gravity;
 use crate::game::physics::position::Position;
 use crate::game::physics::velocity::Velocity;
@@ -33,7 +34,7 @@ use crate::game::utility::math::{floor_to_tile, round_to_tile};
 const ZOOMER_SPEED: f32 = 48.0;
 const ZOOMER_HEALTH: u32 = 30;
 const ZOOMER_DAMAGE: u32 = 10;
-const ZOOMER_ASSET: &str = "asset/zoomer.png";
+const ZOOMER_ASSET: &str = "asset/sprite/zoomer.png";
 const DIMENSIONS: Size2 = Size2::new(16, 16);
 const SIZE: Vec2<f32> = Vec2::new(DIMENSIONS.x as f32, DIMENSIONS.y as f32);
 
@@ -83,7 +84,8 @@ pub fn make_zoomer(asset_manager: &mut AssetManager, position: Vec2<f32>, initia
     Collider::new(CollisionBox::new(Vec2::default(), DIMENSIONS)),
     CreatureLayer::default(),
     Damage::new(ZOOMER_DAMAGE),
-    Health::build(ZOOMER_HEALTH).expect("Failed to build health")
+    Health::build(ZOOMER_HEALTH).expect("Failed to build health"),
+    FreezeResistant,
   ))
 }
 
@@ -116,7 +118,7 @@ fn compute_leading(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, p
     zoomer.last_lead = Some(leading_coordinate);
     if leading_tile.is_some() {
       let rotation = zoomer.rotation.clone().invert();
-      let new_direction = direction.rotate(rotation, QUARTER_ROTATION);
+      let new_direction = direction.rotate(rotation, QUARTER_DIRECTION_ROTATION);
       velocity.0 = Vec2::<f32>::from(new_direction.to_coordinate()) * ZOOMER_SPEED;
       position.0 = round_to_tile(position.0);
     };
@@ -126,7 +128,7 @@ fn compute_leading(zoomer: &mut Zoomer, room: &mut Room, direction: Direction, p
 
 // Get the coordinate of the tile that the zoomer "clings" to.
 fn get_cling_coordinate(coordinate: Coordinate, direction: Direction, rotation: Rotation) -> Coordinate {
-  coordinate - direction.to_coordinate() + direction.rotate(rotation, QUARTER_ROTATION).to_coordinate()
+  coordinate - direction.to_coordinate() + direction.rotate(rotation, QUARTER_DIRECTION_ROTATION).to_coordinate()
 }
 
 /// Updates a Zoomer direction based on the tile it "clings" to.
@@ -165,7 +167,7 @@ fn round_bend(zoomer: &mut Zoomer, direction: Direction) -> Option<Vec2<f32>> {
   }
   zoomer.turning = true;
 
-  let new_direction = direction.rotate(zoomer.rotation, QUARTER_ROTATION);
+  let new_direction = direction.rotate(zoomer.rotation, QUARTER_DIRECTION_ROTATION);
   let new_direction_unit = Vec2::<f32>::from(new_direction.to_coordinate());
   let new_velocity = new_direction_unit * ZOOMER_SPEED;
 
