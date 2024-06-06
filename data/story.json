@@ -21,7 +21,9 @@
       "Retrieve the artifact and return to shuttle.          ",
       "",
       "target located eastward.          ",
-      "proceed with caution."
+      "proceed with caution.",
+      "          ",
+      "press escape"
     ]
   },
   {
@@ -31,7 +33,9 @@
       "          ",
       "scan ***************      ",
       "          ",
-      "[information withheld]"
+      "[information withheld]",
+      "          ",
+      "press escape"
     ]
   },
   {
@@ -41,8 +45,10 @@
       "          ",
       "scan ***************      ",
       "          ",
-      "Strange temporal energy surrounds these crystals.",
-      "Potential timeline divergance."
+      "a temporal disturbance surrounds these crystals.",
+      "Potential timeline divergance.",
+      "          ",
+      "press escape"
     ]
   },
   {
@@ -55,7 +61,9 @@
       "          ",
       "Suspect Plasma rifle incapable of penetrating bast door.",
       "          ",
-      "Assessment required..."
+      "Assessment required...",
+      "          ",
+      "press escape"
     ]
   },
   {
@@ -64,14 +72,23 @@
     "data": [
       "Depth scans               [complete]",
       "- Unstable ground confirmed",
-      "- subterranean structures highly probable."
+      "- subterranean structures highly probable.",
+      "          ",
+      "press escape"
     ]
   },
   {
     "key": "epilogue",
     "title": "computer",
     "data": [
-      "Artifact retrieved. Return to shuttle."
+      "          ",
+      "scan ***************      ",
+      "          ",
+      "[information withheld]",
+      "          ",
+      "Return to shuttle.",
+      "          ",
+      "press escape"
     ]
   }
 ]
