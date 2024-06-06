@@ -1,13 +1,13 @@
-# Metroidvania
+# Mausoleum
 
-Metroidvania inspired game written Rust using the SDL2 library.
+Metroidvania inspired 2D platformer written Rust using the SDL2 library.
 
 ## Download
 
-A demo of this software will eventually be available on [itch.io](https://aardhyn-lavender.itch.io/metroidvania).
+A demo of this software will eventually be available on [itch.io](https://aardhyn-lavender.itch.io/mausoleum).
 
 For now, download the latest precompiled executable for your platform
-under [Releases](https://github.com/AardhynLavender/Tetris/releases).
+under [Releases](https://github.com/AardhynLavender/mausoleum/releases).
 
 ## Installation
 
@@ -24,10 +24,10 @@ I've had little success with the SDL3 wrapper, plus it's still technically in be
 
 I've found [Microsoft VCPKG](https://github.com/microsoft/vcpkg) to be a simple (and multiplatform) method.
 
+Install the necessary SDL2 dependencies with
+
 ```bash
-cargo install cargo-vcpkg
-cargo vcpkg build
-cargo build
+make install
 ```
 
 > There are other installation methods not involving VCPKG described in
@@ -48,8 +48,6 @@ Build and run the executable on your platform.
 
 ```bash
 make
-# or
-cargo run # compile and run
 ```
 
 ## Bundling
@@ -66,8 +64,6 @@ Make sure these are stored in `/Library/Frameworks/` or wherever you store your 
 And run
 
 ```bash
-cargo bundle --release
-# or
 make bundle
 ```
 
@@ -77,7 +73,7 @@ Unfortunately, I've not found any ways to successfully bundle a Rust application
 build `.msi` files correctly.
 I've not had success with the **WiX Toolset** or either.
 
-To ship the application, you can provide the `tetris.exe` and the `asset/` directory.
+To ship the application, you can provide the `mausoleum.exe` and the `asset/` and `data/` directory.
 
 ## References
 

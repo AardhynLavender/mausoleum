@@ -13,7 +13,7 @@ pub const TYPEFACE_SIZE: u16 = 5;
 
 // Window //
 
-pub const WINDOW_TITLE: &str = "Metroidvania";
+pub const WINDOW_TITLE: &str = "Mausoleum";
 pub const LOGICAL_SIZE_TILES: Vec2<u32> = Vec2::new(40, 22);
 pub const LOGICAL_SIZE: Vec2<u32> = Vec2::new(LOGICAL_SIZE_TILES.x * TILE_SIZE.x, LOGICAL_SIZE_TILES.y * TILE_SIZE.y);
 pub const WINDOW_SCALE: f32 = 2.0;
