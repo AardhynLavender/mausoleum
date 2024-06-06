@@ -326,7 +326,7 @@ impl<T: UnitPrimitive, U: SizePrimitive> Rec2<T, U> {
 
 impl Rec2<f32, Size> {
   /// Clamp the rectangle within the bounds of a greater rectangle
-  pub fn clamp_position(&mut self, bounds: &Rec2<f32, Size>) {
+  pub fn clamp(&mut self, bounds: &Rec2<f32, Size>) {
     self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<f32>::from(bounds.size - self.size)));
   }
 
@@ -340,6 +340,13 @@ impl Rec2<f32, Size> {
   /// Returns the centroid of the rectangle
   pub fn centroid(&self) -> Vec2<f32> {
     Vec2::new(self.origin.x + (self.size.x / 2) as f32, self.origin.y + (self.size.y / 2) as f32)
+  }
+}
+
+impl Rec2<i32, Size> {
+  /// Clamp the rectangle within the bounds of a greater rectangle
+  pub fn clamp(&mut self, bounds: &Rec2<i32, Size>) {
+    self.origin.clamp(&bounds.origin, &(bounds.origin.clone() + Vec2::<i32>::from(bounds.size - self.size)));
   }
 }
 

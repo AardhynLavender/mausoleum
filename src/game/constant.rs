@@ -37,8 +37,8 @@ pub const USER_SAVE_FILE: &str = "user_save.json";
 pub fn ease_in_out() -> CubicBezierCurve<f32> {
   CubicBezierCurve::new(
     Vec2::new(0.0, 0.0),
-    Vec2::new(0.42, 0.0),
-    Vec2::new(0.58, 1.0),
+    Vec2::new(0.65, 0.0),
+    Vec2::new(0.35, 1.0),
     Vec2::new(1.0, 1.0),
   )
 }

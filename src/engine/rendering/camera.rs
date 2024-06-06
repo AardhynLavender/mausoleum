@@ -39,26 +39,30 @@ impl Camera {
       self.tethered = false;
     }
   }
-  /// Get the camera viewport
-  pub fn get_viewport(&self) -> &CameraBounds { &self.viewport }
-  /// Get the camera bounds
-  pub fn get_bounds(&self) -> &Option<CameraBounds> { &self.bounds }
+
+  /// Set the camera position
+  pub fn set_position(&mut self, position: Vec2<i32>) { self.viewport.origin = position; }
   /// Get the camera position
   pub fn get_position(&self) -> Vec2<i32> { self.viewport.origin }
+
   /// Center the camera on `position`
-  pub fn set_position(&mut self, position: Vec2<i32>) {
+  pub fn set_center(&mut self, position: Vec2<i32>) {
     let mut new_position = position - Vec2::from(self.viewport.size) / 2;
     if let Some(bounds) = &self.bounds {
       new_position.clamp(&bounds.origin, &Vec2::<i32>::from((bounds.origin + Vec2::<i32>::from(bounds.size)) - Vec2::<i32>::from(self.viewport.size)));
     }
-    self.viewport.origin = new_position;
+    self.set_position(new_position);
   }
+
   /// Set the camera bounds
-  pub fn set_bounds(&mut self, bounds: CameraBounds) {
-    self.bounds = Some(bounds);
-  }
+  pub fn set_bounds(&mut self, bounds: CameraBounds) { self.bounds = Some(bounds); }
+  /// Get the camera viewport
+  pub fn get_viewport(&self) -> &CameraBounds { &self.viewport }
+  /// Get the camera bounds
+  pub fn get_bounds(&self) -> &Option<CameraBounds> { &self.bounds }
   /// remove the bounds from the camera
   pub fn remove_bounds(&mut self) { self.bounds = None; }
+
   /// Translate a `position` to the camera viewport coordinate system
   pub fn translate(&self, position: Vec2<f32>) -> Vec2<i32> {
     Vec2::<i32>::from(position) - self.viewport.origin
@@ -92,7 +96,7 @@ impl Systemize for CameraTether {
       .into_iter()
       .next()
     {
-      camera.set_position(Vec2::<i32>::from(position.0) + tether.offset);
+      camera.set_center(Vec2::<i32>::from(position.0) + tether.offset);
     } else {
       eprintln!("Camera tethered but no tether found! releasing camera...");
       camera.release(Vec2::default());

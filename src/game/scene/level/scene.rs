@@ -31,6 +31,7 @@ use crate::game::persistence::world::{SaveArea, use_save_area};
 use crate::game::physics::collision::sys_render_colliders;
 use crate::game::physics::frozen::Frozen;
 use crate::game::physics::gravity::Gravity;
+use crate::game::physics::transform::Transform;
 use crate::game::physics::velocity::Velocity;
 use crate::game::player::combat::PlayerCombat;
 use crate::game::player::controller::PlayerController;
@@ -89,16 +90,20 @@ impl Scene for LevelScene {
     let parser = TiledParser::parse(path)
       .map_err(|e| eprintln!("Failed to parse Tiled data: {}", e))
       .expect("Failed to parse Tiled data");
-    let save_room = self.save_data.get_save_room();
     let mut room_registry = RoomRegistry::build(parser, exceptions, story_data, asset, world).expect("Failed to build room registry");
-    room_registry.transition_to_room(world, asset, save_room).expect("Failed to add room to world");
-    room_registry.clamp_camera(camera);
-    camera.tether();
+
+    // load initial room
+    let save_room = self.save_data.get_save_room();
+    room_registry.load_room(save_room, world, asset).expect("Failed to load save room");
 
     let save_position = use_save_area(world).collider.origin;
     let player_position = save_position + self.save_data.get_offset();
     make_player(world, asset, inventory.into_iter(), story_advancements, player_position);
     make_player_health_text(world, asset);
+
+    let bounds = room_registry.get_current().expect("Failed to get entry bounds").get_bounds();
+    camera.set_bounds(bounds);
+    camera.tether();
 
     // Add systems to the level scene
     system.add_many(Schedule::FrameUpdate, SystemTag::Suspendable, vec![
@@ -113,6 +118,7 @@ impl Scene for LevelScene {
       Rotund::system,
       Zoomer::system,
       Gravity::system,
+      Transform::system,
       Velocity::system,
       Damage::system,
       Frozen::system,
@@ -120,7 +126,6 @@ impl Scene for LevelScene {
       SaveArea::system,
       StoryArea::system,
       RoomCollision::system,
-      RoomRegistry::system,
       TimeToLive::system,
     ].into_iter()).expect("Failed to add level systems");
 
@@ -132,6 +137,7 @@ impl Scene for LevelScene {
     ].into_iter()).expect("Failed to add player systems");
 
     system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
+      RoomRegistry::system,
       LevelScene::system,
       MenuPane::system,
       sys_story_modal,
@@ -174,7 +180,6 @@ impl Systemize for LevelScene {
     }
 
     if exit && !event.is_paused() {
-      println!("Exiting level scene");
       make_menu(world, event, asset);
     }
 
