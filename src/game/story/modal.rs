@@ -14,8 +14,8 @@ use crate::game::story::data::StoryItem;
 use crate::game::ui::iterative_text::IterativeTextBuilder;
 use crate::game::ui::modal::{make_modal, Modal, use_escape_modal};
 
-const MODAL_BACKGROUND: &str = "asset/hud/collectable_pane.png";
-const MODAL_SIZE: Size2 = Size2::new(200, 160);
+const MODAL_BACKGROUND: &str = "asset/hud/story_pane.png";
+const MODAL_SIZE: Size2 = Size2::new(300, 200);
 const MODAL_MARGIN: f32 = 8.0;
 
 const DESCRIPTION_TOP_OFFSET: f32 = 24.0;
