@@ -62,8 +62,6 @@ pub fn close_modal(world: &mut World, event: &mut EventStore, resume_on_close: b
   if !queued_free.is_empty() {
     for entity in queued_free { world.free_now(entity)? }
     if resume_on_close { event.queue_resume(); }
-  } else {
-    eprintln!("No modals found to close!");
   }
 
   Ok(())
