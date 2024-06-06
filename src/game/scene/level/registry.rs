@@ -237,11 +237,8 @@ impl Systemize for RoomRegistry {
       }
       // transition is in progress, update the progress
       RoomTransitionState::Progress(t, data) => {
-
         // reintegrate t on a bezier curve
-        let t2 = t;
         let t = ease_in_out().lerp(t).y;
-        println!("t: {t2}, t2: {t}");
 
         let camera_position = lerp(Vec2::<f32>::from(data.old_viewport.origin), Vec2::<f32>::from(data.new_viewport.origin), t);
         camera.set_position(Vec2::<i32>::from(camera_position));
