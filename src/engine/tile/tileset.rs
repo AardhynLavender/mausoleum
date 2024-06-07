@@ -42,6 +42,9 @@ fn make_tiles<Meta>(texture_key: TextureKey, dimensions: Size2, tile_size: Size2
 const PLAYER_BARRIER_TILE: TileKey = 26;
 const CREATURE_BARRIER_TILE: TileKey = 27;
 
+/// Check if a tile is a barrier tile
+fn is_barrier_tile(tile: &TileKey) -> bool { *tile == PLAYER_BARRIER_TILE || *tile == CREATURE_BARRIER_TILE }
+
 /// Wrapper for a texture that contains tiles
 pub struct Tileset<Meta> {
   pub texture: TextureKey,
@@ -77,11 +80,12 @@ impl<Meta> Tileset<Meta> where Meta: Clone {
         if let Some(tile_key) = tile_key {
           let data = self.get_tile(*tile_key as usize)?;
           let coordinate = index_to_coordinate(index, dimensions);
+          let borders_barrier = is_barrier_tile(tile_key);
           let mask = CollisionMask::new(
-            has_tile_at(tile_data, &(coordinate + Direction::Up.to_coordinate()), &dimensions),
-            has_tile_at(tile_data, &(coordinate + Direction::Right.to_coordinate()), &dimensions),
-            has_tile_at(tile_data, &(coordinate + Direction::Down.to_coordinate()), &dimensions),
-            has_tile_at(tile_data, &(coordinate + Direction::Left.to_coordinate()), &dimensions),
+            empty_neighbour(tile_data, borders_barrier, coordinate, Direction::Up, &dimensions),
+            empty_neighbour(tile_data, borders_barrier, coordinate, Direction::Right, &dimensions),
+            empty_neighbour(tile_data, borders_barrier, coordinate, Direction::Down, &dimensions),
+            empty_neighbour(tile_data, borders_barrier, coordinate, Direction::Left, &dimensions),
           );
           let concept = TileConcept::new(data.clone(), coordinate, mask.clone());
           Ok::<Option<TileConcept<Meta>>, String>(Some(concept))
@@ -96,14 +100,15 @@ impl<Meta> Tileset<Meta> where Meta: Clone {
   }
 }
 
-/// Check if the tile at `coordinate` is valid and contains a tile
-fn has_tile_at(data: &Vec<Option<TileKey>>, coordinate: &Coordinate, dimensions: &Size2) -> bool {
-  let index = coordinate_to_index(coordinate, *dimensions);
-  data
-    .get(index)
-    .map_or(false, |tile| {
-      tile.is_none()
-        || *tile == Some(PLAYER_BARRIER_TILE)
-        || *tile == Some(CREATURE_BARRIER_TILE)
-    })
+
+/// Check if a neighboring tile at `coordinate` is valid and contains a tile
+///
+/// Non-barrier tiles are considered empty to barrier tiles, and vice versa.
+fn empty_neighbour(data: &Vec<Option<TileKey>>, barrier_border: bool, coordinate: Coordinate, direction: Direction, dimensions: &Size2) -> bool {
+  let neighbour = coordinate + direction.to_coordinate();
+  let index = coordinate_to_index(&neighbour, *dimensions);
+  if let Some(Some(tile)) = data.get(index) {
+    return barrier_border != is_barrier_tile(tile);
+  }
+  true
 }
