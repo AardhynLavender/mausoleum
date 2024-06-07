@@ -2,7 +2,7 @@ use crate::engine::geometry::shape::Vec2;
 use crate::engine::utility::alias::Coordinate;
 
 /**
- * Direction and rotation structures and  conversion utilities
+ * Direction and rotation structures and conversion utilities
  */
 
 // Axis Direction //

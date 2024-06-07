@@ -1,13 +1,13 @@
-use std::path::Path;
-
-use sdl2::ttf::{Font, Sdl2TtfContext};
-
-use crate::engine::store::Store;
-use crate::game::utility::path::{get_filename, get_path};
-
 /**
  * Typeface loading, storage, and retrieval
  */
+
+use std::path::Path;
+
+use sdl2::ttf::{Font, Sdl2TtfContext};
+use crate::engine::utility::store::Store;
+
+use crate::game::utility::path::{get_filename, get_path};
 
 /// store typefaces
 pub type TypefaceStore<'ttf, 'f> = Store<String, Font<'ttf, 'f>>;

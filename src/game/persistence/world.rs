@@ -1,23 +1,22 @@
 use hecs::Entity;
-
-use crate::engine::component::text::TextBuilder;
-use crate::engine::geometry::collision::{CollisionBox, CollisionMask, rec2_collision};
+use crate::engine::component::position::Position;
+use crate::engine::ecs::system::{SysArgs, Systemize};
+use crate::engine::ecs::world::World;
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::rendering::camera::Sticky1;
-use crate::engine::rendering::color::color;
-use crate::engine::system::{SysArgs, Systemize};
+use crate::engine::render::camera::Sticky1;
 use crate::engine::utility::alignment::{Align, Alignment};
-use crate::engine::world::World;
+use crate::engine::utility::color::color;
 use crate::game::constant::{USER_SAVE_FILE, WINDOW};
 use crate::game::persistence::assertion::assert_save_room;
 use crate::game::persistence::data::SaveData;
-use crate::game::physics::collision::{Collider, make_collision_box};
-use crate::game::physics::position::Position;
-use crate::game::player::world::{PlayerQuery, use_player};
-use crate::game::scene::level::room::use_room;
+use crate::game::scene::level::physics::collision::{Collider, make_collision_box};
+use crate::game::scene::level::player::world::{PlayerQuery, use_player};
+use crate::game::scene::level::room::collision::{CollisionBox, CollisionMask, rec2_collision};
+use crate::game::scene::level::room::room::use_room;
 use crate::game::scene::level::scene::LevelScene;
-use crate::game::story::data::StoryItem;
-use crate::game::story::modal::make_story_modal;
+use crate::game::scene::level::story::data::StoryItem;
+use crate::game::scene::level::story::modal::make_story_modal;
+use crate::game::ui::text_builder::TextBuilder;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const INITIAL_SAVE_ROOM: &str = "save_0";

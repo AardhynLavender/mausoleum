@@ -7,9 +7,9 @@ use std::time::Duration;
 use hecs::Entity;
 
 use crate::engine::component::text::Text;
-use crate::engine::system::{SysArgs, Systemize};
-use crate::engine::time::{ConsumeAction, Timer};
-use crate::engine::world::World;
+use crate::engine::ecs::system::{SysArgs, Systemize};
+use crate::engine::ecs::world::World;
+use crate::engine::utility::time::{ConsumeAction, Timer};
 
 /// Manage the iteration of characters in text components
 pub struct IterativeText {

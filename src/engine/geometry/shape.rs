@@ -1,3 +1,8 @@
+
+/**
+ * Geometric primitive structures and traits
+ */
+
 use std::marker::Copy;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -6,10 +11,6 @@ use num::pow::Pow;
 use sdl2::rect::{Point, Rect};
 
 use crate::engine::utility::alias::Size;
-
-/**
- * Geometric primitives
- */
 
 // Traits //
 

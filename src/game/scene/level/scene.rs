@@ -1,55 +1,54 @@
-use std::collections::HashMap;
 /**
  * The level scene
  */
 
+use std::collections::HashMap;
+
 use std::path::Path;
 
+use crate::engine::core::lifecycle::LifecycleArgs;
+use crate::engine::core::scene::Scene;
+use crate::engine::ecs::system::{Schedule, SysArgs, Systemize, SystemTag};
 use crate::engine::geometry::shape::Vec2;
-use crate::engine::lifecycle::LifecycleArgs;
-use crate::engine::scene::Scene;
-use crate::engine::system::{Schedule, SysArgs, Systemize, SystemTag};
-use crate::engine::tile::parse::TiledParser;
-use crate::game::collectable::collectable::Collection;
-use crate::game::collectable::data::{CollectableData, deserialize_weapon_data};
-use crate::game::combat::damage::Damage;
-use crate::game::combat::health::LiveState;
-use crate::game::combat::ttl::TimeToLive;
-use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE};
-use crate::game::creature::angry_buzz::AngryBuzz;
-use crate::game::creature::bubbly::Bubbly;
-use crate::game::creature::buzz::Buzz;
-use crate::game::creature::grunt::Grunt;
-use crate::game::creature::ripper::Ripper;
-use crate::game::creature::rotund::Rotund;
-use crate::game::creature::spiky::Spiky;
-use crate::game::creature::spore::Spore;
-use crate::game::creature::zoomer::Zoomer;
-use crate::game::interface::cursor::Cursor;
+use crate::game::constant::{DEV_SAVE_FILE, USER_SAVE_FILE, WORLD_PATH};
 use crate::game::persistence::data::SaveData;
 use crate::game::persistence::world::{SaveArea, use_save_area};
-use crate::game::physics::collision::sys_render_colliders;
-use crate::game::physics::frozen::Frozen;
-use crate::game::physics::gravity::Gravity;
-use crate::game::physics::transform::Transform;
-use crate::game::physics::velocity::Velocity;
-use crate::game::player::combat::PlayerCombat;
-use crate::game::player::controller::PlayerController;
-use crate::game::player::world::{make_player, PlayerQuery, use_player};
 use crate::game::preferences::use_preferences;
-use crate::game::scene::level::collision::{RoomCollision, sys_render_tile_colliders};
-use crate::game::scene::level::hud::{make_player_health_text, PlayerHealth};
-use crate::game::scene::level::menu::{make_menu, MenuPane};
-use crate::game::scene::level::meta::TileLayerType;
-use crate::game::scene::level::registry::RoomRegistry;
-use crate::game::scene::level::room::{RoomTileException, sys_render_room_colliders};
-use crate::game::story::data::deserialize_story_data;
-use crate::game::story::modal::sys_story_modal;
-use crate::game::story::world::StoryArea;
+use crate::game::scene::level::collectable::collectable::Collection;
+use crate::game::scene::level::collectable::data::{CollectableData, deserialize_weapon_data};
+use crate::game::scene::level::combat::damage::Damage;
+use crate::game::scene::level::combat::health::LiveState;
+use crate::game::scene::level::combat::ttl::TimeToLive;
+use crate::game::scene::level::creature::angry_buzz::AngryBuzz;
+use crate::game::scene::level::creature::bubbly::Bubbly;
+use crate::game::scene::level::creature::buzz::Buzz;
+use crate::game::scene::level::creature::grunt::Grunt;
+use crate::game::scene::level::creature::ripper::Ripper;
+use crate::game::scene::level::creature::rotund::Rotund;
+use crate::game::scene::level::creature::spiky::Spiky;
+use crate::game::scene::level::creature::spore::Spore;
+use crate::game::scene::level::creature::zoomer::Zoomer;
+use crate::game::scene::level::physics::collision::sys_render_colliders;
+use crate::game::scene::level::physics::frozen::Frozen;
+use crate::game::scene::level::physics::gravity::Gravity;
+use crate::game::scene::level::physics::transform::Transform;
+use crate::game::scene::level::physics::velocity::Velocity;
+use crate::game::scene::level::player::combat::PlayerCombat;
+use crate::game::scene::level::player::controller::PlayerController;
+use crate::game::scene::level::player::world::{make_player, PlayerQuery, use_player};
+use crate::game::scene::level::room::collision::{RoomCollision, sys_render_tile_colliders};
+use crate::game::scene::level::room::meta::TileLayerType;
+use crate::game::scene::level::room::registry::RoomRegistry;
+use crate::game::scene::level::room::room::{RoomTileException, sys_render_room_colliders};
+use crate::game::scene::level::story::data::deserialize_story_data;
+use crate::game::scene::level::story::modal::sys_story_modal;
+use crate::game::scene::level::story::world::StoryArea;
+use crate::game::scene::level::tile::tiled::TiledParser;
+use crate::game::scene::level::ui::hud::{make_player_health_text, PlayerHealth};
+use crate::game::scene::level::ui::menu::{make_menu, MenuPane};
+use crate::game::ui::cursor::Cursor;
 use crate::game::ui::iterative_text::IterativeText;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
-
-const WORLD_PATH: &str = "asset/world/world.world";
 
 pub const PHYSICS_SCHEDULE: Schedule = Schedule::FrameUpdate;
 // pub const PHYSICS_SCHEDULE: Schedule = Schedule::FixedUpdate;
@@ -162,7 +161,7 @@ impl Scene for LevelScene {
   }
 }
 
-/// Listen for level events
+/// Listen and respond to level events
 impl Systemize for LevelScene {
   fn system(SysArgs { event, scene, asset, world, state, .. }: &mut SysArgs) -> Result<(), String> {
     let PlayerQuery { health, .. } = use_player(world);

@@ -1,14 +1,18 @@
 #![deny(warnings)]
 // #![windows_subsystem = "windows"] // uncomment this for release builds
 
+/**
+  * Build and run the application
+  */
+
 use std::path::Path;
 
 use crate::engine::application::Application;
-use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
-use crate::engine::rendering::renderer::Properties;
+use crate::engine::core::lifecycle::{Lifecycle, LifecycleArgs};
+use crate::engine::render::renderer::Properties;
 use crate::game::constant::{LOGICAL_SIZE, TYPEFACE_PATH, TYPEFACE_SIZE, WINDOW_SIZE, WINDOW_TITLE};
 use crate::game::preferences::Preferences;
-use crate::game::scene::menu::MenuScene;
+use crate::game::scene::main_menu::scene::MenuScene;
 
 pub mod engine;
 pub mod game;

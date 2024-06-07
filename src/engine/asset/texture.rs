@@ -1,3 +1,7 @@
+/**
+ * Texture loading, storage, and retrieval
+ */
+
 use std::path::Path;
 
 use sdl2::image::LoadTexture;
@@ -6,12 +10,8 @@ use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 
 use crate::engine::geometry::shape::Rec2;
-use crate::engine::store::{next_key, Store};
 use crate::engine::utility::alias::{Size, Size2};
-
-/**
- * Texture loading, storage, and retrieval
- */
+use crate::engine::utility::store::{next_key, Store};
 
 pub type TextureKey = usize;
 

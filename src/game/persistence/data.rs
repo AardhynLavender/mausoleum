@@ -11,8 +11,8 @@ use crate::engine::utility::io::{delete_file, write_file};
 use crate::game::persistence::assertion::{assert_inventory, assert_save_room};
 use crate::game::persistence::constant::DEFAULT_SAVE_ROOM;
 use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data};
-use crate::game::scene::level::meta::Item;
-use crate::game::story::data::StoryKey;
+use crate::game::scene::level::room::meta::Item;
+use crate::game::scene::level::story::data::StoryKey;
 
 /// Inventory type
 type Inventory = Vec<Item>;
@@ -92,9 +92,9 @@ impl TryFrom<RawSaveData> for SaveData {
 mod tests {
   use std::convert::TryFrom;
 
-  use crate::engine::tile::tilemap::MapIndex;
   use crate::game::persistence::data::{RawSaveData, SaveData};
-  use crate::game::scene::level::meta::{Collectable, Item};
+  use crate::game::scene::level::room::meta::{Collectable, Item};
+  use crate::game::scene::level::tile::tilemap::MapIndex;
 
   const MOCK_ROOM: &str = "mock_room";
 

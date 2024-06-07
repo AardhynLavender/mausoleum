@@ -1,9 +1,10 @@
-use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::utility::alias::{Size, Size2};
 
 /**
- * position utilities
+ * UI Alignment utilities
  */
+
+use crate::engine::geometry::shape::{Rec2, Vec2};
+use crate::engine::utility::alias::{Size, Size2};
 
 /// Align something on the horizontal or vertical axis
 /// Pass the perpendicular axis as the second argument
