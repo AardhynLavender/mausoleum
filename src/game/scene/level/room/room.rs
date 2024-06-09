@@ -5,12 +5,12 @@
 use std::collections::HashSet;
 
 use hecs::{DynamicBundle, Entity};
+
 use crate::engine::asset::asset::AssetManager;
 use crate::engine::component::position::Position;
 use crate::engine::component::sprite::Sprite;
 use crate::engine::ecs::system::SysArgs;
 use crate::engine::ecs::world::World;
-
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::math::conversion::coordinate_to_index;
 use crate::engine::render::camera::CameraBounds;
@@ -127,6 +127,13 @@ impl Room {
         world.add_components(entity, (
           Sprite::new(tile.data.texture_key, tile.data.src),
         )).expect("Failed to add active room component");
+
+        if let Some(mut animation) = tile.data.meta.animation.clone() {
+          animation.start();
+          world.add_components(entity, (
+            animation,
+          )).expect("Failed to add animation component");
+        }
       }
 
       // add render layer

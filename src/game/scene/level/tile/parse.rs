@@ -4,11 +4,11 @@
 
 use std::collections::HashMap;
 use std::path::Path;
-use crate::engine::asset::asset::AssetManager;
 
+use crate::engine::asset::asset::AssetManager;
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::text::{COMMA, strip_newlines};
-use crate::game::scene::level::room::meta::{ObjMeta, parse_breakability, parse_collectable, parse_collision_layer, parse_damage, parse_object, parse_tilelayer, TILED_TILE_CLASS, TileLayerType, TileMeta};
+use crate::game::scene::level::room::meta::{ObjMeta, parse_animation, parse_breakability, parse_collectable, parse_collision_layer, parse_damage, parse_object, parse_tilelayer, TILED_TILE_CLASS, TileLayerType, TileMeta};
 use crate::game::scene::level::tile::tile::TileKey;
 use crate::game::scene::level::tile::tiled::{TiledObjectGroup, TiledTileLayer, TiledTilemap, TiledTilemapChildren, TiledTileset};
 use crate::game::scene::level::tile::tilelayer::TileLayer;
@@ -32,9 +32,10 @@ pub fn tileset_meta_from_tiled(tiled_tileset: &TiledTileset) -> Result<HashMap<T
     if tile._type != TILED_TILE_CLASS { return Err(format!("Invalid tile type: {}, for tile: {}", tile._type, tile_key)); }
     let breakability = parse_breakability(&tile.properties)?;
     let collectable = parse_collectable(&tile.properties)?;
+    let animation = parse_animation(tiled_tileset, &tile.animation)?;
     let collision_layer = parse_collision_layer(&tile.properties)?;
     let damage = parse_damage("damage", &tile.properties)?;
-    meta.insert(tile_key, TileMeta { breakability, collectable, damage, collision_layer });
+    meta.insert(tile_key, TileMeta { breakability, animation, collectable, damage, collision_layer });
   }
   Ok(meta)
 }

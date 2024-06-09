@@ -3,9 +3,9 @@
  */
 
 use std::collections::HashMap;
-
 use std::path::Path;
 
+use crate::engine::component::animation::Animation;
 use crate::engine::core::lifecycle::LifecycleArgs;
 use crate::engine::core::scene::Scene;
 use crate::engine::ecs::system::{Schedule, SysArgs, Systemize, SystemTag};
@@ -136,6 +136,7 @@ impl Scene for LevelScene {
     ].into_iter()).expect("Failed to add player systems");
 
     system.add_many(Schedule::PostUpdate, SystemTag::Scene, vec![
+      Animation::system,
       RoomRegistry::system,
       LevelScene::system,
       MenuPane::system,

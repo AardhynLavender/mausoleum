@@ -143,7 +143,15 @@
  <tile id="95" type="Tile"/>
  <tile id="96" type="Tile"/>
  <tile id="97" type="Tile"/>
- <tile id="98" type="Tile"/>
+ <tile id="98" type="Tile">
+  <animation>
+   <frame tileid="98" duration="100"/>
+   <frame tileid="99" duration="100"/>
+   <frame tileid="100" duration="100"/>
+   <frame tileid="101" duration="100"/>
+   <frame tileid="102" duration="100"/>
+  </animation>
+ </tile>
  <tile id="99" type="Tile"/>
  <tile id="100" type="Tile"/>
  <tile id="101" type="Tile"/>
@@ -179,12 +187,27 @@
   </properties>
  </tile>
  <tile id="129" type="Tile"/>
- <tile id="130" type="Tile"/>
+ <tile id="130" type="Tile">
+  <animation>
+   <frame tileid="130" duration="250"/>
+   <frame tileid="131" duration="250"/>
+   <frame tileid="132" duration="250"/>
+   <frame tileid="133" duration="250"/>
+   <frame tileid="134" duration="250"/>
+  </animation>
+ </tile>
  <tile id="131" type="Tile"/>
  <tile id="132" type="Tile"/>
  <tile id="133" type="Tile"/>
  <tile id="134" type="Tile"/>
- <tile id="135" type="Tile"/>
+ <tile id="135" type="Tile">
+  <animation>
+   <frame tileid="135" duration="250"/>
+   <frame tileid="136" duration="250"/>
+   <frame tileid="137" duration="250"/>
+   <frame tileid="138" duration="250"/>
+  </animation>
+ </tile>
  <tile id="136" type="Tile"/>
  <tile id="137" type="Tile"/>
  <tile id="138" type="Tile"/>

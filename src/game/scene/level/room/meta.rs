@@ -2,12 +2,17 @@
  * Parse metadata for layers, tiles, and objects
  */
 
+use std::time::Duration;
+
 use serde::{Deserialize, Serialize};
+
+use crate::engine::asset::texture::SrcRect;
+use crate::engine::component::animation::{Animation, AnimationFrame};
 use crate::engine::geometry::shape::{Rec2, Vec2};
 use crate::engine::utility::alias::{Size, Size2};
 use crate::engine::utility::direction::{CompassDirectionType, Direction};
 use crate::game::scene::level::room::collision::{CollisionBox, RoomCollision};
-use crate::game::scene::level::tile::tiled::{TiledObject, TiledProperties, TiledProperty};
+use crate::game::scene::level::tile::tiled::{TiledAnimation, TiledObject, TiledProperties, TiledProperty, TiledTileset};
 use crate::game::scene::level::tile::tilemap::MapIndex;
 
 /// An item collectable by Collections
@@ -61,6 +66,7 @@ pub struct TileMeta {
   pub breakability: TileBreakability,
   pub collectable: Option<Collectable>,
   pub collision_layer: RoomCollision,
+  pub animation: Option<Animation>,
   pub damage: u32,
 }
 
@@ -100,6 +106,31 @@ pub fn get_property(name: impl Into<String>, properties: &Option<TiledProperties
   None
 }
 
+pub fn parse_animation(tileset: &TiledTileset, animation: &Option<TiledAnimation>) -> Result<Option<Animation>, String> {
+  let tile_size = Size2::new(tileset.tile_width, tileset.tile_height);
+  let animation = if let Some(animation) = animation {
+    let frames = animation
+      .frames
+      .iter()
+      .map(|frame| {
+        let duration = Duration::from_millis(frame.duration);
+
+        let tile = tileset.tiles.get(frame.tile_id as usize).ok_or("Tile not found for animation frame")?;
+        let tile_coordinate = Size2::new(tile.id % tileset.columns, tile.id / tileset.columns);
+        let tile_src = SrcRect::new(tile_coordinate * tile_size, tile_size);
+
+        Ok(AnimationFrame::new(tile_src, duration))
+      })
+      .collect::<Result<Vec<_>, String>>()?;
+
+    let animation = Animation::build(frames, true)?;
+    Some(animation)
+  } else {
+    None
+  };
+  Ok(animation)
+}
+
 /// Parse a TiledObject into an ObjMeta
 pub fn parse_object(TiledObject { name, object_type, properties, x, y, width, height, .. }: &TiledObject) -> Result<ObjMeta, String> {
   let position = Vec2::new(*x, *y);
@@ -120,7 +151,7 @@ pub fn parse_object(TiledObject { name, object_type, properties, x, y, width, he
       return Err(String::from("Save area must have a width and height"));
     }
     "spore" => {
-      let direction = parse_direction( properties).unwrap_or(Direction::Up);
+      let direction = parse_direction(properties).unwrap_or(Direction::Up);
       ObjMeta::SporeConcept { direction, position }
     }
     "spiky" => {

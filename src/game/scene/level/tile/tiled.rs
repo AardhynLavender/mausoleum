@@ -30,29 +30,6 @@ pub struct TiledProperties {
   pub properties: Vec<TiledProperty>,
 }
 
-/// Metadata for some tiled object, tile, map, etc.
-/// ## Example
-/// ```xml
-/// <tileset>
-///   <tile id="37" type="CustomTiledClass">
-///     <properties>
-///       <property name="panic_on_collision" type="CustomTileEnum" value="ALWAYS"/>
-///       ...
-///     </properties>
-///   </tile>
-///   ...
-/// </tileset>
-/// ```
-#[derive(Deserialize, Debug)]
-pub struct TiledCustomProperties {
-  #[serde(rename = "@id")]
-  pub id: u32,
-  #[serde(rename = "@type")]
-  pub _type: String,
-
-  pub properties: Option<TiledProperties>,
-}
-
 // Objects //
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -132,6 +109,22 @@ pub struct TiledWorld {
   pub world_type: String,
 }
 
+// Animation //
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledAnimation {
+  #[serde(rename = "frame")]
+  pub frames: Vec<TiledFrame>,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+pub struct TiledFrame {
+  #[serde(rename = "@tileid")]
+  pub tile_id: u32,
+  #[serde(rename = "@duration")]
+  pub duration: u64,
+}
+
 // Tileset //
 
 /// A Tiled tilesets image reference
@@ -162,9 +155,21 @@ pub struct TiledTileset {
   pub columns: u32,
 
   #[serde(rename = "tile")]
-  pub tiles: Vec<TiledCustomProperties>,
+  pub tiles: Vec<TiledTilesetTile>,
 
   pub image: TiledImage,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct TiledTilesetTile {
+  #[serde(rename = "@id")]
+  pub id: u32,
+  #[serde(rename = "@type")]
+  pub _type: String,
+
+  pub properties: Option<TiledProperties>,
+
+  pub animation: Option<TiledAnimation>,
 }
 
 // Tilemap //
