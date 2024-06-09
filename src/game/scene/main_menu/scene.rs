@@ -2,8 +2,8 @@
  * The game menu scene
  */
 use crate::engine::asset::asset::AssetManager;
-
 use crate::engine::asset::texture::SrcRect;
+use crate::engine::component::animation::Animation;
 use crate::engine::component::position::Position;
 use crate::engine::component::sprite::Sprite;
 use crate::engine::core::lifecycle::LifecycleArgs;
@@ -60,7 +60,7 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
     world.add(button_builder.make_text::<()>("quit", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 3.0)))),
   ];
 
-  let cursor = make_cursor::<()>(world, cursor_texture);
+  let cursor = make_cursor::<()>(world, cursor_texture, asset);
 
   world.add((Selection::build(buttons, cursor).expect("Failed to build selection"), ));
 }
@@ -73,7 +73,8 @@ impl Scene for MenuScene {
   fn setup(&mut self, LifecycleArgs { world, system, asset, .. }: &mut LifecycleArgs) {
     add_ui(world, asset);
     system.add(Schedule::PostUpdate, SystemTag::Suspendable, MenuScene::system).expect("Failed to add menu system");
-    system.add(Schedule::PostUpdate, SystemTag::Suspendable, Cursor::system).expect("Failed to add menu system");
+    system.add(Schedule::PostUpdate, SystemTag::Suspendable, Cursor::system).expect("Failed to cursor system");
+    system.add(Schedule::FrameUpdate, SystemTag::Suspendable, Animation::system).expect("Failed to add animation system");
   }
   /// Destroy the main menu scene
   fn destroy(&mut self, LifecycleArgs { .. }: &mut LifecycleArgs) {}
@@ -83,6 +84,7 @@ impl Systemize for MenuScene {
   /// Manage the selection of the main menu
   fn system(SysArgs { scene, event, world, .. }: &mut SysArgs) -> Result<(), String> {
     let (.., menu) = world.query_one::<&mut Selection>().ok_or("Failed to get menu selection")?;
+    let cursor = menu.get_cursor();
 
     let up = is_control(Control::Up, Behaviour::Pressed, event);
     let down = is_control(Control::Down, Behaviour::Pressed, event);
@@ -111,6 +113,8 @@ impl Systemize for MenuScene {
         _ => { unreachable!("Invalid menu selection index"); }
       }
     }
+
+    if delta != 0 { world.get_component_mut::<Animation>(cursor)?.restart(); }
 
     Ok(())
   }

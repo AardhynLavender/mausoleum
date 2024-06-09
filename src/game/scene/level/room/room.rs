@@ -128,10 +128,9 @@ impl Room {
           Sprite::new(tile.data.texture_key, tile.data.src),
         )).expect("Failed to add active room component");
 
-        if let Some(mut animation) = tile.data.meta.animation.clone() {
-          animation.start();
+        if let Some(animation) = tile.data.meta.animation.clone() {
           world.add_components(entity, (
-            animation,
+            animation.start(),
           )).expect("Failed to add animation component");
         }
       }

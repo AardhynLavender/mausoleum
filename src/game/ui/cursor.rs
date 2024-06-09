@@ -1,10 +1,14 @@
+use std::time::Duration;
+
 /**
-  * UI Cursor component and system
+ * UI Cursor component and system
  */
 
 use hecs::{Component, Entity};
 
+use crate::engine::asset::asset::AssetManager;
 use crate::engine::asset::texture::{SrcRect, TextureKey};
+use crate::engine::component::animation::make_texture_animation;
 use crate::engine::component::position::Position;
 use crate::engine::component::sprite::Sprite;
 use crate::engine::ecs::system::{SysArgs, Systemize};
@@ -18,19 +22,22 @@ pub const CURSOR_DIMENSIONS: Size2 = Vec2::new(5, 5);
 pub const CURSOR_MARGIN: f32 = 8.0;
 pub const CURSOR_PATH: &str = "asset/hud/cursor.png";
 pub const CURSOR_OFFSET: Vec2<f32> = Vec2::new(-(CURSOR_DIMENSIONS.x as f32) + -CURSOR_MARGIN, 1.0);
+pub const CURSOR_ANIMATE_MS: u64 = 150;
 
 /// Cursor component
 
 pub struct Cursor;
 
 // Create cursor
-pub fn make_cursor<C>(world: &mut World, texture: TextureKey) -> Entity where C: Default + Component {
+pub fn make_cursor<C>(world: &mut World, texture: TextureKey, assets: &mut AssetManager) -> Entity where C: Default + Component {
+  let animation = make_texture_animation(texture, assets, CURSOR_DIMENSIONS, Duration::from_millis(CURSOR_ANIMATE_MS)).expect("Failed to make cursor animation");
   world.add((
     C::default(),
     Cursor,
     Position::default(),
     Sticky2::default(),
     Sprite::new(texture, SrcRect::new(Vec2::default(), CURSOR_DIMENSIONS)),
+    animation.start(),
   ))
 }
 
@@ -54,8 +61,8 @@ fn get_selection(world: &mut World) -> Option<(Entity, Entity)> {
 }
 
 fn place_cursor(world: &mut World, cursor: Entity, selected: Entity) -> Result<(), String> {
-  let position = world.get_component::<Position>(selected)?;
-  let mut cursor = world.get_component_mut::<Position>(cursor)?;
-  cursor.0 = position.0 + CURSOR_OFFSET;
+  let selection_position = world.get_component::<Position>(selected)?;
+  let mut cursor_position = world.get_component_mut::<Position>(cursor)?;
+  cursor_position.0 = selection_position.0 + CURSOR_OFFSET;
   Ok(())
 }

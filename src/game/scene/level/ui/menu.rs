@@ -1,9 +1,9 @@
-
 /**
  * The in-game menu used to pause the game
  */
 
 use crate::engine::asset::asset::AssetManager;
+use crate::engine::component::animation::Animation;
 use crate::engine::core::event::EventStore;
 use crate::engine::ecs::system::{SysArgs, Systemize};
 use crate::engine::ecs::world::World;
@@ -41,7 +41,7 @@ pub fn make_menu(world: &mut World, event: &mut EventStore, asset: &mut AssetMan
     world.add(builder.make_text::<Modal>("quit", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 4.0)))),
   ];
 
-  let cursor = make_cursor::<Modal>(world, cursor_texture);
+  let cursor = make_cursor::<Modal>(world, cursor_texture, asset);
 
   world.add((
     Selection::build(buttons, cursor).expect("Failed to build selection"),
@@ -57,6 +57,8 @@ impl Systemize for MenuPane {
     use_escape_modal(world, event);
 
     if let Some((.., menu)) = world.query_one_with::<&mut Selection, (&MenuPane, &Modal)>() {
+      let cursor = menu.get_cursor();
+      
       let up = is_control(Control::Up, Behaviour::Pressed, event);
       let down = is_control(Control::Down, Behaviour::Pressed, event);
       let delta = if up { -1 } else if down { 1 } else { 0 };
@@ -78,6 +80,8 @@ impl Systemize for MenuPane {
           _ => { unreachable!() }
         }
       }
+
+      if delta != 0 { world.get_component_mut::<Animation>(cursor)?.restart(); }
     }
 
     Ok(())
