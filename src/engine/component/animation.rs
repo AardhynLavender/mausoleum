@@ -1,8 +1,10 @@
 use std::time::Duration;
 
-use crate::engine::asset::texture::SrcRect;
+use crate::engine::asset::asset::AssetManager;
+use crate::engine::asset::texture::{SrcRect, TextureKey};
 use crate::engine::component::sprite::Sprite;
 use crate::engine::ecs::system::{SysArgs, Systemize};
+use crate::engine::utility::alias::{Size, Size2};
 use crate::engine::utility::invariant::invariant;
 use crate::engine::utility::time::Timer;
 use crate::game::scene::level::physics::frozen::Frozen;
@@ -44,10 +46,15 @@ impl Animation {
   }
   /// Get the current animation frame
   fn get_current_frame(&self) -> &AnimationFrame { &self.frames[self.current_frame] }
-  /// Start the animation
-  pub fn start(&mut self) {
+  /// Restart the animation
+  pub fn restart(&mut self) {
     self.current_frame = 0;
     self.timer = Timer::new(self.get_current_frame().duration, true);
+  }
+  /// Start the animation
+  pub fn start(mut self) -> Self {
+    self.restart();
+    self
   }
   /// Update the animation
   pub fn update(&mut self) -> AnimationState {
@@ -69,6 +76,7 @@ impl Animation {
 }
 
 impl Systemize for Animation {
+  /// Update sprites based on their animations
   fn system(SysArgs { world, .. }: &mut SysArgs) -> Result<(), String> {
     let completed_animations = world
       .query::<(&mut Animation, &mut Sprite)>()
@@ -91,4 +99,22 @@ impl Systemize for Animation {
 
     Ok(())
   }
+}
+
+/// Create an animation from a texture
+pub fn make_texture_animation(texture_key: TextureKey, asset: &mut AssetManager, dimensions: Size2, frame_duration: Duration) -> Result<Animation, String> {
+  let texture = asset.texture.use_store().get(texture_key)?;
+
+  invariant(texture.dimensions.x % dimensions.x == 0, "Animation frame width must divide evenly into texture width")?;
+  invariant(texture.dimensions.y == dimensions.y, "Animation frame height must match texture height")?;
+
+  let frames = (0..texture.dimensions.x / dimensions.x)
+    .map(|i| {
+      let origin = Size2::new(i as Size * dimensions.x, 0);
+      println!("origin: {:?}", origin);
+      AnimationFrame::new(SrcRect::new(origin, dimensions), frame_duration)
+    })
+    .collect();
+  let animation = Animation::build(frames, true).map_err(|e| format!("Failed to build animation: {}", e))?;
+  Ok(animation)
 }
