@@ -1,7 +1,6 @@
-
 /**
-  * Control and manage the player entity in the world
-  */
+ * Control and manage the player entity in the world
+ */
 
 use crate::engine::ecs::system::{SysArgs, Systemize};
 use crate::engine::geometry::shape::Vec2;
@@ -50,15 +49,8 @@ impl PlayerController {
 impl Systemize for PlayerController {
   /// Process user controls each frame
   fn system(SysArgs { delta, event, world, .. }: &mut SysArgs) -> Result<(), String> {
-    let PlayerQuery { health, velocity, inventory, advancement, controller, gravity, .. } = use_player(world);
+    let PlayerQuery { health, velocity, inventory, controller, gravity, .. } = use_player(world);
     let aim = get_controls_direction(event, Behaviour::Held).unwrap_or(controller.last_aim);
-
-    // Data //
-
-    if is_control(Control::Inventory, Behaviour::Pressed, event) {
-      println!("{:?}", inventory);
-      println!("{:?}", advancement);
-    }
 
     /*
       todo: cast downward rays of `jump_widow` length downwards to check if the player is on the floor

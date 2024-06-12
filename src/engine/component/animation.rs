@@ -111,7 +111,6 @@ pub fn make_texture_animation(texture_key: TextureKey, asset: &mut AssetManager,
   let frames = (0..texture.dimensions.x / dimensions.x)
     .map(|i| {
       let origin = Size2::new(i as Size * dimensions.x, 0);
-      println!("origin: {:?}", origin);
       AnimationFrame::new(SrcRect::new(origin, dimensions), frame_duration)
     })
     .collect();
