@@ -1,6 +1,6 @@
 /**
-  * Rendering system
-  */
+ * Rendering system
+ */
 
 use hecs::{Component, Or};
 use crate::engine::asset::asset::AssetManager;
@@ -77,7 +77,7 @@ pub fn render_renderable(render: &mut Renderer, asset: &mut AssetManager, mut re
 
   match renderable {
     Or::Left(sprite) => {
-      render.draw_from_texture::<i32>(texture, position, sprite.src, sprite.rotation);
+      render.draw_from_texture::<i32>(texture, position, sprite.src, sprite.rotation, sprite.centroid);
     }
     Or::Right(..) => {
       render.draw_texture::<i32>(texture, position);

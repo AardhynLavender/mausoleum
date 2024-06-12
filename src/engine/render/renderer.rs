@@ -2,7 +2,7 @@
  * Rendering subsystem
  */
 
-use sdl2::rect::Rect;
+use sdl2::rect::{Point, Rect};
 use sdl2::render::TextureCreator;
 use sdl2::video::{FullscreenType, WindowContext};
 
@@ -143,13 +143,15 @@ impl Renderer {
     position: Vec2<T>,
     from: SrcRect,
     rotation: f64,
+    centroid: Option<Vec2<T>>,
   ) {
     let (x, y) = position.destructure();
     let ((sx, sy), (w, h)) = from.destructure();
     let dest = Rect::new(x.into(), y.into(), w, h);
     let src = Rect::new(sx as i32, sy as i32, w, h);
+    let centroid = centroid.map(|c| Point::new(c.x.into(), c.y.into()));
     self.subsystem
-      .copy_ex(&texture.internal, src, dest, rotation, None, false, false)
+      .copy_ex(&texture.internal, src, dest, rotation, centroid, false, false)
       .map_err(|error| eprintln!("{error}"))
       .ok();
   }
