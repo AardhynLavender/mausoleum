@@ -78,15 +78,21 @@
     ]
   },
   {
-    "key": "epilogue",
+    "key": "epilouge",
     "title": "computer",
     "data": [
       "          ",
       "scan ***************      ",
       "          ",
+      "artifact scans            [complete]",
+      "                     ",
+      "...",
+      "                     ",
       "[information withheld]",
       "          ",
+      "",
       "Return to shuttle.",
+      "",
       "          ",
       "press escape"
     ]
