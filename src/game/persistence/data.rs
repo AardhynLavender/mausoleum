@@ -14,6 +14,8 @@ use crate::game::persistence::parse::{deserialize_save_data, serialize_save_data
 use crate::game::scene::level::room::meta::Item;
 use crate::game::scene::level::story::data::StoryKey;
 
+const INITIAL_PLAYER_POSITION: Vec2<f32> = Vec2::new(32.0, 52.0);
+
 /// Inventory type
 type Inventory = Vec<Item>;
 
@@ -45,7 +47,7 @@ impl Default for SaveData {
       String::from(DEFAULT_SAVE_ROOM),
       Inventory::default(),
       HashSet::default(),
-      Vec2::default(),
+      INITIAL_PLAYER_POSITION,
     ).expect("Failed to build default save data")
   }
 }
