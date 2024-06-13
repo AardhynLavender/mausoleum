@@ -1,10 +1,9 @@
-
 use std::collections::HashSet;
 
 use hecs::Entity;
+
 use crate::engine::component::position::Position;
 use crate::engine::ecs::system::{SysArgs, Systemize};
-
 use crate::engine::geometry::shape::Vec2;
 use crate::game::scene::level::physics::collision::{Collider, make_collision_box};
 use crate::game::scene::level::room::collision::{CollisionBox, CollisionMask, rec2_collision};
@@ -58,7 +57,7 @@ pub type StoryAreaBundle = (StoryArea, Position, Collider);
 
 impl Systemize for StoryArea {
   /// Check for player interaction with a story area
-  fn system(SysArgs { world, event, asset, .. }: &mut SysArgs) -> Result<(), String> {
+  fn system(SysArgs { world, event, asset, state, .. }: &mut SysArgs) -> Result<(), String> {
     if let Some((advancer, (advancer_position, advancer_collider))) = world
       .query_one_with::<(&Position, &Collider), &StoryAdvancer>()
       .map(|(entity, (position, collider))| (entity, (*position, *collider)))
@@ -84,7 +83,7 @@ impl Systemize for StoryArea {
           if !past_advancements.advance(&entry.key) { continue; }
         }
         world.free_now(area)?;
-        make_story_modal(world, event, asset, &entry);
+        make_story_modal(world, event, asset, &entry, state);
       }
     }
     Ok(())

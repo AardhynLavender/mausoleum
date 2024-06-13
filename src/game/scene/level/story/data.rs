@@ -1,6 +1,6 @@
 /**
-  * Manage story progression
-  */
+ * Manage story progression
+ */
 
 use std::collections::HashSet;
 
@@ -23,6 +23,8 @@ pub struct StoryItem {
   pub key: StoryKey,
   pub title: String,
   pub data: Vec<String>,
+  #[serde(default)]
+  pub endgame: bool,
 }
 
 /// Collection of story progression entries

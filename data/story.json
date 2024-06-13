@@ -7,12 +7,12 @@
       "          ",
       "scan *******************      ",
       "          ",
-      "Surface area scan [complete]:          ",
+      "Surface area scan         [complete]:          ",
       "- Primitive hostile life forms.",
       "- Rocky Terrain",
       "- Temporal disturbances",
       "          ",
-      "Depth scan        [inconclusive]:          ",
+      "Depth scan                [inconclusive]:          ",
       "- Potentially unstable ground.",
       "- subterranean structures probable.",
       "          ",
@@ -46,7 +46,7 @@
       "scan ***************      ",
       "          ",
       "a temporal disturbance surrounds these crystals.",
-      "Potential timeline divergance.",
+      "Potential timeline divergence.",
       "          ",
       "press escape"
     ]
@@ -80,6 +80,7 @@
   {
     "key": "epilouge",
     "title": "computer",
+    "endgame": true,
     "data": [
       "          ",
       "scan ***************      ",

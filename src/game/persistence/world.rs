@@ -1,4 +1,5 @@
 use hecs::Entity;
+
 use crate::engine::component::position::Position;
 use crate::engine::ecs::system::{SysArgs, Systemize};
 use crate::engine::ecs::world::World;
@@ -89,7 +90,7 @@ impl Systemize for SaveArea {
           if let Some(story) = &area.story {
             let PlayerQuery { advancement, .. } = use_player(world);
             if advancement.advance(&story.key) {
-              make_story_modal(world, event, asset, &story);
+              make_story_modal(world, event, asset, &story, state);
             }
           }
         }

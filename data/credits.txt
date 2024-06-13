@@ -1,0 +1,107 @@
+Developed by
+
+Aardhyn Lavender
+
+
+
+
+
+
+
+
+
+
+Using
+
+Rust
+SDL2
+Hecs
+
+Rust Rover
+Vim
+
+GIMP
+Tiled
+
+Git
+GitHub
+GitHub Copilot
+ChatGPT 3.5
+
+Windows 11
+
+
+
+
+
+
+
+
+
+
+
+Artwork and Level Design
+
+Aardhyn Lavender
+
+
+
+
+
+
+
+
+
+
+
+Typography
+
+QuinqureFive by GGBotNet
+
+
+
+
+
+
+
+
+
+
+
+Thanks
+
+"The Rust Programming Language" by Steve Klabnik and Carol Nichols
+
+"Math for Game Programmers: Building a Better Jump" by Kyle Pittman
+
+"Entity Component System FAQ" by Sander Mertens
+
+
+
+
+
+
+
+
+
+
+
+Inspiration
+
+Super Metroid
+Axiom Verge
+Hollow Knight
+
+
+
+
+
+
+
+
+
+
+
+Special Thanks
+
+Grayson Orr
