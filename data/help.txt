@@ -1,0 +1,12 @@
+menu                     ESCAPE
+close                    ESCAPE
+
+left                          A
+right                         D
+up                            W
+down                          S
+jump                      SPACE
+
+lock position        LEFT SHIFT
+
+fullscreen                  F11
