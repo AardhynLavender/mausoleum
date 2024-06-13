@@ -56,7 +56,9 @@ Aardhyn Lavender
 
 Typography
 
-QuinqureFive by GGBotNet
+QuinqureFive
+by
+GGBotNet
 
 
 
@@ -70,11 +72,20 @@ QuinqureFive by GGBotNet
 
 Thanks
 
-"The Rust Programming Language" by Steve Klabnik and Carol Nichols
+"The Rust Programming Language"
 
-"Math for Game Programmers: Building a Better Jump" by Kyle Pittman
+Steve Klabnik
+Carol Nichols
 
-"Entity Component System FAQ" by Sander Mertens
+
+"Math for Game Programmers: Building a Better Jump"
+
+Kyle Pittman
+
+
+"Entity Component System FAQ"
+
+Sander Mertens
 
 
 
