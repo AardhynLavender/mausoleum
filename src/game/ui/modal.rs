@@ -1,6 +1,5 @@
-
 /**
-  * Modal UI component and lifecycle functions
+ * Modal UI component and lifecycle functions
  */
 
 use crate::engine::asset::asset::AssetManager;
