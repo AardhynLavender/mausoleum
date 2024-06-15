@@ -19,7 +19,7 @@ use crate::game::utility::controls::{Behaviour, Control, is_control};
 #[derive(Default)]
 pub struct MenuPane;
 
-pub const PANE_DIMENSIONS: Size2 = Size2::new(128, 109);
+pub const PANE_DIMENSIONS: Size2 = Size2::new(128, 93);
 pub const PANE_LEFT_MARGIN: f32 = 24.0;
 pub const BUTTONS_START_Y: f32 = 24.0;
 pub const BUTTONS_GAP_Y: f32 = 16.0;
@@ -37,9 +37,8 @@ pub fn make_menu(world: &mut World, event: &mut EventStore, asset: &mut AssetMan
   let buttons = [
     world.add(builder.make_text::<Modal>("resume", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y)))),
     world.add(builder.make_text::<Modal>("help", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y)))),
-    world.add(builder.make_text::<Modal>("preferences", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 2.0)))),
-    world.add(builder.make_text::<Modal>("exit", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 3.0)))),
-    world.add(builder.make_text::<Modal>("quit", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 4.0)))),
+    world.add(builder.make_text::<Modal>("exit", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 2.0)))),
+    world.add(builder.make_text::<Modal>("quit", Alignment::new(Align::Start(PANE_LEFT_MARGIN), Align::Start(BUTTONS_START_Y + BUTTONS_GAP_Y * 3.0)))),
   ];
 
   let cursor = make_cursor::<Modal>(world, cursor_texture, asset);

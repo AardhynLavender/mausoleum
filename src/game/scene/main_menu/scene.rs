@@ -30,7 +30,7 @@ pub const COPYRIGHT_MARGIN: f32 = 10.0;
 pub const TITLE_SIZE: Size2 = Size2::new(78, 20);
 
 pub const BUTTON_GAP: f32 = 16.0;
-pub const BUTTON_COUNT: f32 = 4.0;
+pub const BUTTON_COUNT: f32 = 3.0;
 pub const OPTIONS_BOUNDS: Size2 = Size2::new(48, (BUTTON_GAP * BUTTON_COUNT) as Size);
 
 /// Add the main menu UI to the world
@@ -56,13 +56,12 @@ pub fn add_ui(world: &mut World, asset: &mut AssetManager) {
   let buttons = [
     world.add(button_builder.make_text::<()>("start", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(0.0)))),
     world.add(button_builder.make_text::<()>("new game", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP)))),
-    world.add(button_builder.make_text::<()>("options", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 2.0)))),
-    world.add(button_builder.make_text::<()>("quit", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 3.0)))),
+    world.add(button_builder.make_text::<()>("quit", Alignment::new(Align::Start(CURSOR_MARGIN), Align::Start(BUTTON_GAP * 2.0)))),
   ];
 
   let cursor = make_cursor::<()>(world, cursor_texture, asset);
 
-  world.add((Selection::build(buttons, cursor).expect("Failed to build selection"), ));
+  world.add((Selection::build(buttons, cursor).expect("Failed to build selection"),));
 }
 
 // The main menu displayed when the application starts
@@ -108,8 +107,7 @@ impl Systemize for MenuScene {
             .unwrap_or(SaveData::default());
           scene.queue_next(LevelScene::new(save_data))
         }
-        2 => { eprintln!("Not implemented yet") }
-        3 => { event.queue_quit() }
+        2 => { event.queue_quit() }
         _ => { unreachable!("Invalid menu selection index"); }
       }
     }
