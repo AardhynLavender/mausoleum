@@ -439,7 +439,14 @@
  <tile id="352" type="Tile"/>
  <tile id="353" type="Tile"/>
  <tile id="354" type="Tile"/>
- <tile id="355" type="Tile"/>
+ <tile id="355" type="Tile">
+  <animation>
+   <frame tileid="355" duration="170"/>
+   <frame tileid="356" duration="150"/>
+   <frame tileid="357" duration="250"/>
+   <frame tileid="358" duration="300"/>
+  </animation>
+ </tile>
  <tile id="356" type="Tile"/>
  <tile id="357" type="Tile"/>
  <tile id="358" type="Tile"/>
