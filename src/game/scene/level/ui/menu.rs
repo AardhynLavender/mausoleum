@@ -75,15 +75,14 @@ impl Systemize for MenuPane {
             close_modal(world, event, false).expect("Failed to close modal");
             make_help_modal(world, event, asset);
           }
-          2 => { eprintln!("Not implemented yet"); }
-          3 => {
+          2 => {
             close_modal(world, event, false).expect("Failed to close modal");
             scene.queue_next(MenuScene);
           }
-          4 => {
+          3 => {
             event.queue_quit();
           }
-          _ => { unreachable!() }
+          _ => { unreachable!("Invalid menu selection index") }
         }
       }
 
