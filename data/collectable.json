@@ -12,7 +12,7 @@
   },
   "missile_tank": {
     "name": "Desolation Pulse",
-    "description": "Larger plasma bust module. Takes longer to change but is more effective against obstacles and creatures.",
+    "description": "Larger plasma bust module. Takes longer to change but is more effective against tougher obstacles and creatures.",
     "key": "K",
     "tile": 29
   },

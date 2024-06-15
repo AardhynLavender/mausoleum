@@ -2,7 +2,7 @@
 name = "mausoleum"
 description = "A 2D metroidvania inspired platformer"
 authors = ["aardhyn lavender"]
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 
 [profile.dev]
@@ -12,7 +12,7 @@ opt-level = 0
 opt-level = 3
 
 [dependencies.sdl2]
-version = "0.36"
+version = "0.37.0"
 default-features = false
 features = ["ttf", "image", "gfx", "mixer", "static-link", "use-vcpkg", "unsafe_textures"]
 
@@ -27,7 +27,7 @@ x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
 [package.metadata.bundle]
 name = "mausoleum"
 identifier = "com.aardhyn.mausoleum"
-version = "0.1.0"
+version = "0.7.0"
 short_description = "A 2D metroidvania inspired platformer"
 authors = ["aardhyn lavender"]
 copyright = "aardhyn lavender"
@@ -51,7 +51,7 @@ osx_frameworks = [
 [dependencies]
 hecs = "0.10.4"
 num = "0.4.1"
-quick-xml = { version = "0.31.0", features = ["serialize"] }
+quick-xml = { version = "0.32.0", features = ["serialize"] }
 rand = "0.8.5"
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"

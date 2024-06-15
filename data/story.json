@@ -7,12 +7,12 @@
       "          ",
       "scan *******************      ",
       "          ",
-      "Surface area scan [complete]:          ",
+      "Surface area scan         [complete]          ",
       "- Primitive hostile life forms.",
-      "- Rocky Terrain",
-      "- Temporal disturbances",
+      "- Rocky Terrain.",
+      "- Temporal disturbances.",
       "          ",
-      "Depth scan        [inconclusive]:          ",
+      "Depth scan                [inconclusive]          ",
       "- Potentially unstable ground.",
       "- subterranean structures probable.",
       "          ",
@@ -33,6 +33,8 @@
       "          ",
       "scan ***************      ",
       "          ",
+      "...          ",
+      "          ",
       "[information withheld]",
       "          ",
       "press escape"
@@ -46,7 +48,7 @@
       "scan ***************      ",
       "          ",
       "a temporal disturbance surrounds these crystals.",
-      "Potential timeline divergance.",
+      "Potential timeline divergence.",
       "          ",
       "press escape"
     ]
@@ -55,11 +57,12 @@
     "key": "transit",
     "title": "computer",
     "data": [
-      "Structure entrance ahead",
+      "Structure entrance ahead.",
       "          ",
       "Scan ******",
       "          ",
-      "Suspect Plasma rifle incapable of penetrating bast door.",
+      "Suspect Plasma rifle incapable of penetrating",
+      "bast door.",
       "          ",
       "Assessment required...",
       "          ",
@@ -71,22 +74,29 @@
     "title": "computer",
     "data": [
       "Depth scans               [complete]",
-      "- Unstable ground confirmed",
+      "- Unstable ground confirmed.",
       "- subterranean structures highly probable.",
       "          ",
       "press escape"
     ]
   },
   {
-    "key": "epilogue",
+    "key": "epilouge",
     "title": "computer",
+    "endgame": true,
     "data": [
       "          ",
       "scan ***************      ",
       "          ",
+      "artifact scans            [complete]",
+      "                     ",
+      "...",
+      "                     ",
       "[information withheld]",
       "          ",
+      "",
       "Return to shuttle.",
+      "",
       "          ",
       "press escape"
     ]

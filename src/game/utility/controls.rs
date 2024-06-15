@@ -1,6 +1,10 @@
+/**
+ * player controls abstraction and utilities
+ */
+
 use sdl2::keyboard::Keycode;
 
-use crate::engine::event::EventStore;
+use crate::engine::core::event::EventStore;
 use crate::engine::utility::direction::Direction;
 
 /**
@@ -24,7 +28,6 @@ pub enum Control {
   Select,
   Debug,
   Escape,
-  Inventory,
   PrimaryTrigger,
   SecondaryTrigger,
   TertiaryTrigger,
@@ -43,8 +46,7 @@ pub fn is_control(control: Control, behaviour: Behaviour, events: &EventStore) -
     Control::Left => check(Keycode::Left) || check(Keycode::A),
     Control::Right => check(Keycode::Right) || check(Keycode::D),
     Control::Select => check(Keycode::Return) || check(Keycode::Space),
-    Control::Debug => check(Keycode::Slash),
-    Control::Inventory => check(Keycode::E),
+    Control::Debug => if cfg!(debug_assertions) { check(Keycode::Slash) } else { false }
     Control::Lock => check(Keycode::LShift),
     Control::PrimaryTrigger => check(Keycode::J),
     Control::SecondaryTrigger => check(Keycode::K),
@@ -54,7 +56,7 @@ pub fn is_control(control: Control, behaviour: Behaviour, events: &EventStore) -
 }
 
 /// Determine a net direction based on pressed controls
-pub fn get_direction(events: &EventStore, behaviour: Behaviour) -> Option<Direction> {
+pub fn get_controls_direction(events: &EventStore, behaviour: Behaviour) -> Option<Direction> {
   let up = is_control(Control::Up, behaviour, events);
   let down = is_control(Control::Down, behaviour, events);
   let left = is_control(Control::Left, behaviour, events);

@@ -1,9 +1,11 @@
-pub mod collision;
-pub mod scene;
+mod collectable;
+mod combat;
+mod creature;
+mod ui;
+
+pub mod physics;
+pub mod player;
+pub mod story;
+pub mod tile;
 pub mod room;
-pub mod parse;
-pub mod meta;
-pub mod registry;
-pub mod hud;
-pub mod menu;
-mod transition;
+pub mod scene;

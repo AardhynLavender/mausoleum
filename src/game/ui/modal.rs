@@ -1,23 +1,29 @@
-use crate::engine::asset::AssetManager;
+/**
+ * Modal UI component and lifecycle functions
+ */
+
+use crate::engine::asset::asset::AssetManager;
 use crate::engine::asset::texture::{SrcRect, TextureKey};
-use crate::engine::component::text::TextBuilder;
-use crate::engine::event::EventStore;
+use crate::engine::component::position::Position;
+use crate::engine::component::sprite::Sprite;
+use crate::engine::core::event::EventStore;
+use crate::engine::ecs::world::World;
 use crate::engine::geometry::shape::{Rec2, Vec2};
-use crate::engine::rendering::camera::{Sticky1, Sticky2};
-use crate::engine::rendering::color::color;
-use crate::engine::rendering::component::Sprite;
+use crate::engine::render::camera::{Sticky1, Sticky2};
 use crate::engine::utility::alias::Size2;
 use crate::engine::utility::alignment::{Align, Aligner, Alignment};
-use crate::engine::world::World;
+use crate::engine::utility::color::color;
 use crate::game::constant::WINDOW;
-use crate::game::physics::position::Position;
+use crate::game::ui::text_builder::TextBuilder;
 use crate::game::utility::controls::{Behaviour, Control, is_control};
 
 const MODAL_MARGIN: f32 = 8.0;
 
+/// Mark an entity as a member of a modal
 #[derive(Default)]
 pub struct Modal;
 
+/// Create a modal UI with a title and background texture
 pub fn make_modal<'m, 'a>(
   world: &'m mut World,
   events: &mut EventStore,

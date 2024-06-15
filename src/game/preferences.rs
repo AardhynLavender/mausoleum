@@ -1,4 +1,4 @@
-use crate::engine::state::State;
+use crate::engine::utility::state::State;
 
 /// Stores global preferences for the game
 pub struct Preferences {

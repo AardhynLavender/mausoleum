@@ -1,24 +1,24 @@
-use std::time::Duration;
-
-use crate::engine::asset::AssetManager;
-use crate::engine::event::EventStore;
-use crate::engine::geometry::shape::Vec2;
-use crate::engine::internal::{add_internal_entities, add_internal_systems};
-use crate::engine::lifecycle::{Lifecycle, LifecycleArgs};
-use crate::engine::rendering::camera::{Camera, CameraBounds};
-use crate::engine::rendering::color::{RGBA, unit_to_alpha};
-use crate::engine::rendering::renderer::Properties;
-use crate::engine::scene::{Scene, SceneManager, SceneTransition, TransitionState};
-use crate::engine::state::State;
-use crate::engine::subsystem::Subsystem;
-use crate::engine::system::{Schedule, SysArgs, SystemManager, SystemTag};
-use crate::engine::time::Frame;
-use crate::engine::utility::alias::{DeltaMS, Size2};
-use crate::engine::world::World;
-
 /**
  * Application structure and lifecycle
  */
+
+use std::time::Duration;
+
+use crate::engine::asset::asset::AssetManager;
+use crate::engine::core::event::EventStore;
+use crate::engine::core::frame::Frame;
+use crate::engine::core::internal::{add_internal_entities, add_internal_systems};
+use crate::engine::core::lifecycle::{Lifecycle, LifecycleArgs};
+use crate::engine::core::scene::{Scene, SceneManager, SceneTransition, TransitionState};
+use crate::engine::core::subsystem::Subsystem;
+use crate::engine::ecs::system::{Schedule, SysArgs, SystemManager, SystemTag};
+use crate::engine::ecs::world::World;
+use crate::engine::geometry::shape::Vec2;
+use crate::engine::render::camera::{Camera, CameraBounds};
+use crate::engine::render::renderer::Properties;
+use crate::engine::utility::alias::{DeltaMS, Size2};
+use crate::engine::utility::color::{RGBA, unit_to_alpha};
+use crate::engine::utility::state::State;
 
 pub const SIMULATION_FPS: DeltaMS = 1.0 / 60.0;
 pub const MAX_FRAME_TIME: DeltaMS = 1.0 / 30.0;

@@ -1,11 +1,11 @@
-use std::path::Path;
-
-use crate::engine::store::Store;
-use crate::game::utility::path::get_filename;
-
 /**
  * Loading and playing music and sfx
  */
+
+use std::path::Path;
+use crate::engine::utility::store::Store;
+
+use crate::game::utility::path::get_filename;
 
 /// Type of sound
 pub enum SoundType {

@@ -11,7 +11,7 @@ install:
 
 build: src
 	./prepare.sh debug
-	cargo build --debug
+	cargo build
 
 release: src
 	./prepare.sh release

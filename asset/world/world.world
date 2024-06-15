@@ -405,6 +405,13 @@
             "width": 640,
             "x": 3840,
             "y": -704
+        },
+        {
+            "fileName": "save_10.tmx",
+            "height": 352,
+            "width": 640,
+            "x": 7680,
+            "y": -1760
         }
     ],
     "onlyShowAdjacentMaps": false,

@@ -1,0 +1,16 @@
+menu                     ESCAPE
+close                    ESCAPE
+
+left                          A
+right                         D
+up                            W
+down                          S
+jump                      SPACE
+
+plasma blast                  J
+desolation pulse              K
+temporal disruptor            L
+
+lock position        LEFT SHIFT
+
+fullscreen                  F11

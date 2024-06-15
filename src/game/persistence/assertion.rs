@@ -1,13 +1,13 @@
-use regex::Regex;
-
 /**
  * Assertions for save data
  */
 
+use regex::Regex;
+
 use crate::engine::utility::container::count_if;
 use crate::engine::utility::invariant::invariant;
 use crate::game::persistence::constant::{MAX_HEALTH_PICKUPS, SINGLE_PICKUP};
-use crate::game::scene::level::meta::{Collectable, Item};
+use crate::game::scene::level::room::meta::{Collectable, Item};
 
 pub fn is_collectable(collectable: Collectable) -> impl Fn(&Item) -> bool {
   move |item: &Item| item.collectable == collectable
