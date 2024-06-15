@@ -7,7 +7,7 @@ use crate::game::scene::level::ui::help::parse::load_help_data;
 use crate::game::ui::modal::{make_modal, Modal};
 
 const MODAL_TITLE: &str = "Controls";
-const MODAL_SIZE: Size2 = Size2::new(200, 221);
+const MODAL_SIZE: Size2 = Size2::new(200, 285);
 const MODAL_BACKGROUND: &str = "asset/hud/help_pane.png";
 const MODAL_MARGIN: f32 = 8.0;
 const MODAL_CONTENT_START_Y: f32 = 32.0;
