@@ -31,7 +31,6 @@ use crate::game::scene::level::creature::zoomer::Zoomer;
 use crate::game::scene::level::physics::collision::sys_render_colliders;
 use crate::game::scene::level::physics::frozen::Frozen;
 use crate::game::scene::level::physics::gravity::Gravity;
-use crate::game::scene::level::physics::transform::Transform;
 use crate::game::scene::level::physics::velocity::Velocity;
 use crate::game::scene::level::player::combat::PlayerCombat;
 use crate::game::scene::level::player::controller::PlayerController;
@@ -117,7 +116,6 @@ impl Scene for LevelScene {
       Rotund::system,
       Zoomer::system,
       Gravity::system,
-      Transform::system,
       Velocity::system,
       Damage::system,
       Frozen::system,
