@@ -1,9 +1,9 @@
-
 /**
-  * Modal for displaying collectable information for new items
-  */
+ * Modal for displaying collectable information for new items
+ */
 
 use std::time::Duration;
+
 use crate::engine::asset::asset::AssetManager;
 use crate::engine::component::position::Position;
 use crate::engine::component::sprite::Sprite;
@@ -46,7 +46,7 @@ pub fn make_tile_sprite(tileset: &Tileset<TileMeta>, tile: TileKey) -> Sprite {
 
 /// Create a modal to display collectable information
 pub fn make_collectable_modal(world: &mut World, events: &mut EventStore, asset: &mut AssetManager, state: &mut State, data: &CollectableItemData) {
-  let CollectableItemData { name, .. } = data;
+  let CollectableItemData { name, key, .. } = data;
   let background = asset.texture.load(MODAL_BACKGROUND).expect("Failed to load collectable modal background");
   let (aligner, mut builder) = make_modal(world, events, asset, name.clone(), MODAL_SIZE, background);
 
@@ -71,6 +71,11 @@ pub fn make_collectable_modal(world: &mut World, events: &mut EventStore, asset:
       .expect("Failed to start iterative text");
     accumulated_duration += line_duration + CHAR_ITERATION_MS;
   };
+
+  if let Some(key) = key {
+    let key_text = format!("Press {}", key);
+    world.add(builder.make_text::<Modal>(key_text, Alignment::new(Align::Center(0.0), Align::End(MODAL_MARGIN))));
+  }
 }
 
 impl Systemize for CollectableModal {
