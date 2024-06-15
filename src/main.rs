@@ -1,9 +1,9 @@
 #![deny(warnings)]
-// #![windows_subsystem = "windows"] // uncomment this for release builds
+#![windows_subsystem = "windows"] // uncomment this for release builds
 
 /**
-  * Build and run the application
-  */
+ * Build and run the application
+ */
 
 use std::path::Path;
 
